@@ -4,7 +4,7 @@
 from setuptools import setup
 from os import system
 
-version = '2.7.0'
+version = '2.7.1'
 
 setup(
     name='jutge-toolkit',
@@ -13,6 +13,7 @@ setup(
         'jutge-util',
         'pyyaml>=5.1',
         'colorama',
+        'lizard',
     ],
     version=version,
     description='Toolkit to make problems for Jutge.org',
@@ -33,6 +34,7 @@ setup(
             'jutge-compilers=jutge.toolkit:compilers.main',
             'jutge-available-compilers=jutge.toolkit:compilers.available_compilers',
             'jutge-start=jutge.toolkit:start.main',
+            'jutge-code-metrics=jutge.toolkit:code_metrics.main',
         ]
     },
     scripts=[
