@@ -18,7 +18,7 @@ sudo wget -O /usr/local/bin/jutge-vinga https://github.com/jutge-org/jutge-vinga
 sudo wget -O /usr/local/bin/jutge-somhi https://raw.githubusercontent.com/jutge-org/jutge-toolkit/master/scripts/jutge-somhi
 
 sudo chown root:root /usr/local/bin/jutge-vinga
-sudo chmod 700 /usr/local/bin/jutge-vinga
+sudo chmod 755 /usr/local/bin/jutge-vinga
 sudo chmod +s /usr/local/bin/jutge-vinga
 
 sudo chown root:root /usr/local/bin/jutge-somhi
