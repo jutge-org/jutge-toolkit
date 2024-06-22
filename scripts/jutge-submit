@@ -18,6 +18,7 @@ tar xf -
 chmod -R u+rwX,go-rwx .
 timeout 320 jutge-start $name
 cd correction
-tar czf --dereference - *
+jutge-sanitize
+tar czf - *
 cd ../..
 rm -rf $name

@@ -51,6 +51,7 @@ setup(
             'jutge-available-compilers=jutge.toolkit:compilers.available_compilers',
             'jutge-start=jutge.toolkit:start.main',
             'jutge-code-metrics=jutge.toolkit:code_metrics.main',
+            'jutge-sanitize=jutge.toolkit:cleanup.main'
         ]
     },
     scripts=[

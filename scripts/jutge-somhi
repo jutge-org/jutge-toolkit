@@ -36,13 +36,13 @@ timeout=65
 chown --recursive nobody:nogroup .
 
 # remove all symlinks
-find -mindepth 1 -maxdepth 999 -type l -delete
+jutge-sanitize
 
 # launch run 
 su --shell /bin/bash nobody --command "ulimit -c 0 -f $maxoutput -t $maxtime -u $maxprocs && env --ignore-environment PATH=\"$newpath\" LANG=C.UTF-8 USER=nobody timeout $timeout ./run"
 
-# remove all symlinks
-find . -type l -delete
+# remove all special files
+jutge-sanitize
 
 # change directory ownership back to original user
 chown --recursive "$owner" .
