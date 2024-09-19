@@ -366,7 +366,7 @@ handler.yml: \verbatimtabinput{handler.yml}
         raise Exception(Fore.RED + "\nps2pdf error!" + Style.RESET_ALL)
 
     os.remove("main.ps")
-    os.system("mv main.pdf %s/problem.%s.pdf" % (ori, lang))
+    os.system("mv main.pdf \"%s/problem.%s.pdf\"" % (ori, lang))
 
     print(Fore.GREEN + 'Done!' + Style.RESET_ALL)
 
