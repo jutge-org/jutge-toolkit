@@ -85,14 +85,9 @@ def main():
         text = True,
         universal_newlines = True
     )
-
     stdout, stderr = process.communicate()
-
-    print("STDOUT:", stdout)
     with open("stdout.txt", 'w') as stdout_file:
         stdout_file.write(stdout)
-
-    print("STDERR:", stderr)
     with open("stderr.txt", 'w') as stderr_file:
         stderr_file.write(stderr)
 
