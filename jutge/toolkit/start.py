@@ -9,6 +9,7 @@ import argparse
 import logging
 import os
 import resource
+import subprocess
 import sys
 
 from jutge import util
@@ -42,7 +43,7 @@ def main():
         logging.info('setting ulimits')
         resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
         resource.setrlimit(resource.RLIMIT_CPU, (300, 300))
-        resource.setrlimit(resource.RLIMIT_NPROC, (1000, 1000))
+        # resource.setrlimit(resource.RLIMIT_NPROC, (1000, 1000))
 
         logging.info('setting umask')
         os.umask(0o077)
@@ -70,11 +71,35 @@ def main():
         util.del_dir('correction')
         util.mkdir('correction')
 
-    # http://stackoverflow.com/questions/692000/how-do-i-write-stderr-to-a-file-while-using-tee-with-a-pipe
 
-    cmd = 'bash -c "python3 driver/judge.py %s </dev/null > >(tee stdout.txt) 2> >(tee stderr.txt >&2)"' % args.name
-    logging.info('executing %s' % cmd)
-    os.system(cmd)
+    # We need to execute the driver and, both for stdout and stderr, show them
+    # on the screen and save them to a file.
+
+    command = ["python3", "driver/judge.py", args.name]
+    logging.info('executing %s' % ' '.join(command))
+
+    process = subprocess.Popen(
+        command,
+        stdout = subprocess.PIPE,
+        stderr = subprocess.PIPE,
+        text = True,
+        universal_newlines = True
+    )
+
+    stdout, stderr = process.communicate()
+
+    print("STDOUT:", stdout)
+    with open("stdout.txt", 'w') as stdout_file:
+        stdout_file.write(stdout)
+
+    print("STDERR:", stderr)
+    with open("stderr.txt", 'w') as stderr_file:
+        stderr_file.write(stderr)
+
+    return_code = process.returncode
+
+    logging.info('execution finished with return_code = %d' % return_code)
+
     os.rename("stderr.txt", "correction/stderr.txt")
     os.rename("stdout.txt", "correction/stdout.txt")
     os.system("chmod -R u+rwX,go-rwx .")
