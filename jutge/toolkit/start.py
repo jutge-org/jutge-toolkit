@@ -43,6 +43,13 @@ def main():
         logging.info('setting ulimits')
         resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
         resource.setrlimit(resource.RLIMIT_CPU, (300, 300))
+
+        # NOTE(pauek): [2024-10-11] 
+        # I disabled this because since the last update of the docker images, 
+        # the start.py process crashed when trying to fork a process. This 
+        # happens when launching the driver/judge.py (line 88) if the call to 
+        # `setrlimit` below is enabled. Don't know why yet...
+        #
         # resource.setrlimit(resource.RLIMIT_NPROC, (1000, 1000))
 
         logging.info('setting umask')
