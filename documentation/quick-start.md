@@ -4,7 +4,7 @@ To create problems you have two options: use the `jutge-toolkit` or use the Dock
 
 ## jutge-toolkit
 
-If you want to create problems, you will have to install the `jutge-toolkit`  with `pip3 install jutge-toolkit`.
+If you want to create problems, you will have to install the `jutge-toolkit` with `pip3 install jutge-toolkit`.
 
 `jutge-toolkit`is a set of tools that will help you create your problems and quizzes. It requires at least `g++` and `gcc` compilers to work.
 
@@ -28,7 +28,7 @@ The common scenario is to run `make-problem` in the command line within a direct
 - `--recursive`: The toolkit searches recursively for problems.
 - `--list`: Lists all the problems found recursively.
 - `--iterations`: Choose how many times the programs will be executed in order to get a more accurate execution time.
-- `--clean`: Removes all generated files (*.exe, *.cor, *.pdf).
+- `--clean`: Removes all generated files (_.exe, _.cor, \*.pdf).
 - `--force` or `-f`: Don't prompt when removing generated files.
 - `--verify`: Verify the correctness of a program.
 - `--help` or `-h` : Shows a help message with available arguments.
@@ -40,8 +40,6 @@ For full details, please refer to the [common problem documentation](documentati
 In order to generate a quiz, simply execute `make-quiz` inside a directory that contains the quiz, passing as a unique parameter an integer number that will be used as the random seed. The output will be a JSON file with the generated quiz.
 
 For full details, please refer to the [quiz problem documentation](documentation/quizzes.md).
-
-
 
 ## Docker
 
@@ -68,7 +66,7 @@ We have also prepared the `jutge-run` shortcut, which facilitates the usage of t
 jutge-run command [ arg1 arg2 ... ]
 ```
 
-``jutge-run`` wrapper lets you run the following commands:
+`jutge-run` wrapper lets you run the following commands:
 
 - `jutge-make-problem`: Check the program correctness, verify if all the solutions are correct and generate the .pdf files.
 - `jutge-make-quiz`: Generate the json file for a quiz based on a seed.

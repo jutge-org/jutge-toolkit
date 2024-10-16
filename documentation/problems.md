@@ -5,19 +5,19 @@ This page describes the structure of a common problem in
 `jutge-make-problem` command of the tookit.
 
 Table of contents:
-* [Usage](#usage)
-* [Problem structure](#problem-structure)
-* [Problem files](#problem-files)
-    * [Problem statement](#problem-statement)
-    * [Problem metadata](#problem-metadata)
-    * [Handler](#handler)
-    * [Tags](#tags)
-    * [Test cases](#test-cases)
-    * [Solutions](#solutions)
-    * [Scores](#scores)
-    * [Awards](#awards)
-* [Sample problems](#sample-problems)
 
+- [Usage](#usage)
+- [Problem structure](#problem-structure)
+- [Problem files](#problem-files)
+  - [Problem statement](#problem-statement)
+  - [Problem metadata](#problem-metadata)
+  - [Handler](#handler)
+  - [Tags](#tags)
+  - [Test cases](#test-cases)
+  - [Solutions](#solutions)
+  - [Scores](#scores)
+  - [Awards](#awards)
+- [Sample problems](#sample-problems)
 
 # Usage
 
@@ -36,13 +36,10 @@ problem statement.
 - `--recursive`: The toolkit searches recursively for problems.
 - `--list`: Lists all the problems found recursively.
 - `--iterations`: Choose how many times the programs will be executed in order to get a more accurate execution time.
-- `--clean`: Removes all generated files (*.exe, *.cor, *.pdf).
+- `--clean`: Removes all generated files (_.exe, _.cor, \*.pdf).
 - `--force` or `-f`: Don't prompt when removing generated files.
 - `--verify`: Verify the correctness of a program.
 - `--help` or `-h` : Shows a help message with available arguments.
-
-
-
 
 # Problem structure
 
@@ -88,8 +85,6 @@ A problem is a folder with `.pbm` extension that can be structured in two ways:
 
 Note: the above structures are just two examples of the structure that a basic problem can have and therefore should only be considered as a guideline. The purpose of all the files is explained later on this file.
 
-
-
 # Problem files
 
 A problem should contain the following files:
@@ -98,7 +93,7 @@ A problem should contain the following files:
 - `handler.yml`: Contains the information of how to handle the problem. See [Handler](#handler) for more information.
 - `tags.yml`: Contains all the tags associated to the problem as a YAML list of words. Only for instructors, can be left empty. See [Tags](#tags) for more information.
 - `*.inp`: All the input test sets. See [Test cases](#test-cases) for more information.
-- `*.cor`: All the correct files. Those are generated automatically by the toolkit from the `solution.*` file.  See [Test cases](#test-cases) for more information.
+- `*.cor`: All the correct files. Those are generated automatically by the toolkit from the `solution.*` file. See [Test cases](#test-cases) for more information.
 - `problem.lang.tex`: Statement LaTeX file for language `lang`. See [Problem statement](#problem-statement) for more information.
 - `problem.lang.yml`: Contains the problem information in language `lang`. See [Problem metadata](#problem-metadata) for more information.
 - `problem.lang.pdf`: Formatted PDF statement for language `lang`. These are generated automatically by the toolkit.
@@ -108,11 +103,9 @@ Additionally, the problem can contain the following optional files:
 - `award.png`: Image of the award users will obtain when they get the problem accepted for the first time. See [Awards](#awards) for more information.
 - `award.html`: HTML description of the award users will obtain when they get the problem accepted for the first time. See [Awards](#awards) for more information.
 - `code.*`: Code provided in the problem to users that is given as a solution template (a function with blanks to be filled, for example).
-- `distiller.yml`:  File used to specify the parameters of the distillation process. See [Distilled test cases](#distilled-test-cases) for more information.
+- `distiller.yml`: File used to specify the parameters of the distillation process. See [Distilled test cases](#distilled-test-cases) for more information.
 - `scores.yml`: File that describes the scoring of a problem. See [Scoring](#scoring) for more information.
 - `*.ops`: File used to specify some limits for the correction of the problem. See [Test options](#test-options) for more information.
-
-
 
 ## Problem statement
 
@@ -150,7 +143,6 @@ sample test cases. `RunPython` users should use `\SampleSession` to get their sa
 
 The title inside the `\Problem{}` macro should match the title in the metadata given in the `problem.lang.yml` file, but on the LaTeX file it can contain math or LaTeX macros.
 
-
 ### Figures
 
 Figures can be inserted using the `\FigureL`, `\FigureC` and `\FigureR` macros, which stand for _left_, _center_ and _right_ respectively. These macros have two parameters:
@@ -160,11 +152,9 @@ Figures can be inserted using the `\FigureL`, `\FigureC` and `\FigureR` macros, 
 
 For instance, `\FigureR{width=4.5cm}{towerbell}` will place figure `towerbell` to the right with a width of 4.5 cm.
 
-
 ### Quotes
 
 In order to enclose texts between quotes, please use the `\q{...}` (single quotes), `\qq{...}` (double quotes) or `\uq{...}` (no quotes, but same style) macros.
-
 
 ### Code
 
@@ -172,11 +162,9 @@ The `lstlisting` macros may be used in order to include code. Short snippets of 
 
 By default, C++ style is used. It may be changed using standard `lstlisting` definitions. The `\UseHaskell` and `\UsePython` macros are shortcuts to use Haskell or Python styling.
 
-
 ### Scoring
 
 In case the problem scores submissions if a test case is passed, we can use `\Scoring` followed by a sentence to explain the scoring method (how many points is worth a case, for example).
-
 
 ### Other sectioning macros
 
@@ -198,12 +186,9 @@ There exist a few other macros that may be used in various situations. Their eff
 - `\ObservationNoMainTuplesPlural`
 - `\ObservationNoMainClasses`
 
-
 ### Other macros
 
 The `\CPP` macro prints C++ in a beautiful way. The `\Link{...}` macro provides an hyperlink to another problem (without specified language), e.g., `\Link{P68688}`.
-
-
 
 ## Problem metadata
 
@@ -245,8 +230,6 @@ translator_email: cmolina@somewhere.mail.com
 original_language: ca
 ```
 
-
-
 ## Handler
 
 The file `handler.yml` contains the information of how to handle the problem using YAML syntax. These options will tell the toolkit how to compile the problem. The handler must have two options:
@@ -272,10 +255,10 @@ There are also optional arguments that may be used:
 
 By default, the content of `handler.yml ` should be like this:
 
-````
+```
 handler: std
 source_modifier: none
-````
+```
 
 ##### Limiting the maximum time a submission can take
 
@@ -295,10 +278,10 @@ If the arguments have not been specified, the default `time_factor` and `time_co
 
 This is an example of how the arguments would look like in `handler.yml `:
 
-````handler.yml
-time_factor: [2, 10, 2] 
+```handler.yml
+time_factor: [2, 10, 2]
 time_constant: [0.1, 0.01, 0.05]
-````
+```
 
 ### Checker
 
@@ -311,15 +294,13 @@ With the `checker` option you can specify how the user's program output is compa
 - `elastic`: Used to check for outputs whose order is independent. This happens, for instance, for backtracking problems where output order is left without specification. This checker has the following options:
   - `separator`: String that separates one case from another one.
 - `elastic2`: Used to check for outputs whose order is independent and the order of these outputs are also independent. This happens, for instance, for subset backtracking problems where output order is left without specification and the order of the subset is also unordered. This checker has the following options:
-  - `separator1`:  String that separates one case from another one.
+  - `separator1`: String that separates one case from another one.
   - `separator2`: String that separates one case inside the case from another one.
   - `starting`: String that starts one case.
   - `ending`: String that ends one case.
 - `external`: used to check for outputs using an external program that reads the input and the generated output and writes to `stdout` the verdict. This checker has the following options:
   - `external_program`: Name of the external program used. If the program does not exist, an IE (Internal Error) verdict will be returned.
   - `external_timeout`: Time that the external program has to do its work. The default time is 5 seconds. An IE (Internal Error) verdict will be returned it the program runs for more than the timeout.
-
-
 
 ## Tags
 
@@ -335,8 +316,6 @@ A list of problem tags are stored using YAML syntax in the file `tags.yml`. Each
 - event upc contest
 - year 2017
 ```
-
-
 
 ## Test cases
 
@@ -360,8 +339,6 @@ In addition, these rules should be taken into account in the output files:
 
 - There must be no spaces before a line break. In particular, there must be no lines with only one or more spaces before the line break.
 
-
-
 ### Sample test cases
 
 Sample test cases start with `sample` and will be shown to users in the problem statement and provided to users. As such, they should make clear the format of the input and the output for the problem and should be reasonably short.
@@ -369,7 +346,6 @@ Sample test cases start with `sample` and will be shown to users in the problem 
 #### Public test cases
 
 Public test cases start with `public` and will be provided to users. Usage of public test cases should be rare, but can be useful in situations where long input/output samples must be delivered.
-
 
 #### Hint test cases
 
@@ -380,8 +356,6 @@ Hint test cases start with `hint` and will be revealed to users if the submissio
 Distilled test cases start with `distilled` and will be shown to users whose submission fails on them (unless some sample or hint test case also fails). Distilled test cases are created by the system using the [Distiller Algorithm](http://upcommons.upc.edu/handle/2117/28174) and are added automatically to the problem directory, they are not mean to be created or modified by hand.
 
 File `distiller.yml` is used to specify the parameters of the distillation process. `distillation.yml` is used to get some statistics form the distillation process.
-
-
 
 ### Test options
 
@@ -404,8 +378,6 @@ The `test.ops` file can be used to specify some limits for the correction of the
 - `--logfile`: Set path of the `.log` file. If not specified, the output name will be `basename.log`.
 - `--resfile`: Set path of the `.res` file. If not specified, the output name will be `basename.res`.
 
-
-
 ## Solutions
 
 Each problem must have, at least, one solution file. Solution files are the reference solutions for the problem statement in various programming languages that will be used to compute the correct outputs for each input test case. Solution files are named `solution.ext`, where `ext` is the standard extension that corresponds to the selected programming language.
@@ -415,8 +387,6 @@ For instance, a problem may contain `solution.cc` and `solution.py` in order to 
 Independently of the available solutions, users can submit their solutions in any supported programming language. The system will match the programming language of the submission and the programming languages available for the solution and select the most appropriate one.
 
 By default, `jutge-problems-toolkit` uses `solution.cc` to generate the correct output test cases. An alternate programming language can be selected using the `solution` field in the `handler.yml` file. Currently, `jutge-problems-toolkit` supports solutions written in C++, Java, Python, Haskell and R.
-
-
 
 ## Scores
 
@@ -446,18 +416,16 @@ The following file gives 10 points to submissions passing all sample test cases,
 `scores.yml`
 
 ```yml
--   part: Samples
-    prefix: sample
-    points: 10
--   part: Easy
-    prefix: easy
-    points: 30
--   part: Hard
-    prefix: hard
-    points: 60
+- part: Samples
+  prefix: sample
+  points: 10
+- part: Easy
+  prefix: easy
+  points: 30
+- part: Hard
+  prefix: hard
+  points: 60
 ```
-
-
 
 ## Awards
 
@@ -467,43 +435,41 @@ The `award.png` image file should be a 200x200 pixels image in PNG format with a
 
 The `award.html` file should contain a description of the award using simple HTML code. If `award.html` is missing but `award.png` exists, a default description will be provided by the system.
 
-
-
 ## Sample problems
 
 Some sample problems are given under the [`examples/problems`](../examples/problems) directory.
 The following list highlights their main features.
 
 - `bon-dia.pbm`:
-    - Basic template
-    - Multiple languages (ca, es, en) in different directories
+  - Basic template
+  - Multiple languages (ca, es, en) in different directories
 - `tresors-1.pbm`:
-    - Basic template
-    - Multiple languages (ca, en) in just one directory (same solution)
-    - Awards
+  - Basic template
+  - Multiple languages (ca, en) in just one directory (same solution)
+  - Awards
 - `campanar-1.pbm`:
-    - Basic template
-    - Multiple languages (ca, en) in just one directory (same solution)
-    - Figures
-    - Awards
-    - `*.ops` files
-    - `generate.cc`
+  - Basic template
+  - Multiple languages (ca, en) in just one directory (same solution)
+  - Figures
+  - Awards
+  - `*.ops` files
+  - `generate.cc`
 - `campanar-2.pbm`:
-    - Basic template
-    - Multiple languages (ca, en) in just one directory (same solution)
-    - Figures
-    - Awards
-    - `generate.cc`
+  - Basic template
+  - Multiple languages (ca, en) in just one directory (same solution)
+  - Figures
+  - Awards
+  - `generate.cc`
 - `campanar-3.pbm`:
-    - Basic template
-    - Multiple languages (ca, en) in just one directory (same solution)
-    - Figures
-    - Awards
-    - `generate.cc`
-    - `generate.py`
+  - Basic template
+  - Multiple languages (ca, en) in just one directory (same solution)
+  - Figures
+  - Awards
+  - `generate.cc`
+  - `generate.py`
 - `tuples1.pbm`:
-    - Structs template
+  - Structs template
 - `permutacions.pbm`:
-    - Elastic checker
+  - Elastic checker
 - `subconjunts-1.pbm`:
-    - Double elastic checker
+  - Double elastic checker

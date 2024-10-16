@@ -1,57 +1,180 @@
 #!/usr/bin/env python3
 
-#Copyright (c) 2013 Dominik Borowiec
+# Copyright (c) 2013 Dominik Borowiec
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
-#=============================================================================
+# =============================================================================
 #                         *** CONFIGURATION ***
-#=============================================================================
+# =============================================================================
 # THIS CONFIGURATION APLLIES FOR C++, BUT IT CAN BE TUNED FOR EACH
 # PROGRAMMING LANGUAGE
 
 # Reserved words and operators for C++
 # Note that pure operators can interleave with reserved words
 RESERVED_WORDS = [
-    "alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor",
-    "bool", "break", "case", "catch", "char", "char16_t", "char32_t", "class",
-    "compl", "const", "constexpr", "const_cast", "continue", "decltype",
-    "default", "delete", "do", "double", "dynamic_cast", "else", "enum",
-    "explicit", "export", "extern", "false", "float", "for", "friend", "goto",
-    "if", "inline", "int", "long", "mutable", "namespace", "new", "noexcept",
-    "not", "not_eq", "nullptr", "operator", "or", "or_eq", "private",
-    "protected", "public", "register", "reinterpret_cast", "return", "short",
-    "signed", "sizeof", "static", "static_assert", "static_cast", "struct",
-    "switch", "template", "this", "thread_local", "throw", "true", "try",
-    "typedef", "typeid", "typename", "union", "unsigned", "using", "virtual",
-    "void", "volatile", "wchar_t", "while", "xor", "xor_eq"
-    ]
+    "alignas",
+    "alignof",
+    "and",
+    "and_eq",
+    "asm",
+    "auto",
+    "bitand",
+    "bitor",
+    "bool",
+    "break",
+    "case",
+    "catch",
+    "char",
+    "char16_t",
+    "char32_t",
+    "class",
+    "compl",
+    "const",
+    "constexpr",
+    "const_cast",
+    "continue",
+    "decltype",
+    "default",
+    "delete",
+    "do",
+    "double",
+    "dynamic_cast",
+    "else",
+    "enum",
+    "explicit",
+    "export",
+    "extern",
+    "false",
+    "float",
+    "for",
+    "friend",
+    "goto",
+    "if",
+    "inline",
+    "int",
+    "long",
+    "mutable",
+    "namespace",
+    "new",
+    "noexcept",
+    "not",
+    "not_eq",
+    "nullptr",
+    "operator",
+    "or",
+    "or_eq",
+    "private",
+    "protected",
+    "public",
+    "register",
+    "reinterpret_cast",
+    "return",
+    "short",
+    "signed",
+    "sizeof",
+    "static",
+    "static_assert",
+    "static_cast",
+    "struct",
+    "switch",
+    "template",
+    "this",
+    "thread_local",
+    "throw",
+    "true",
+    "try",
+    "typedef",
+    "typeid",
+    "typename",
+    "union",
+    "unsigned",
+    "using",
+    "virtual",
+    "void",
+    "volatile",
+    "wchar_t",
+    "while",
+    "xor",
+    "xor_eq",
+]
 
 # Note that the order of the list PURE_OPERATORS is important, because
 # because matching is being done from the begining of the list to the end.
 PURE_OPERATORS = [
-    "::", "++", "--", "(", ")", "[", "]", ".", "->", "++", "--", "+", "-",
-    "!", "~", "*", "&", ".*", "->*", "*", "/", "%", "+", "-", "<<", ">>",
-    "<", "<=", ">", ">=", "==", "!=", "&", "^", "|", "&&", "||", "?:", "=",
-    "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", ",", "\"",
-    "\'", "\\", ";", "{", "}"
-    ]
+    "::",
+    "++",
+    "--",
+    "(",
+    ")",
+    "[",
+    "]",
+    ".",
+    "->",
+    "++",
+    "--",
+    "+",
+    "-",
+    "!",
+    "~",
+    "*",
+    "&",
+    ".*",
+    "->*",
+    "*",
+    "/",
+    "%",
+    "+",
+    "-",
+    "<<",
+    ">>",
+    "<",
+    "<=",
+    ">",
+    ">=",
+    "==",
+    "!=",
+    "&",
+    "^",
+    "|",
+    "&&",
+    "||",
+    "?:",
+    "=",
+    "+=",
+    "-=",
+    "*=",
+    "/=",
+    "%=",
+    "<<=",
+    ">>=",
+    "&=",
+    "^=",
+    "|=",
+    ",",
+    '"',
+    "'",
+    "\\",
+    ";",
+    "{",
+    "}",
+]
 
 # Comment tokens
 ONELINE_COMMENT_TOKEN = "//"
@@ -66,37 +189,38 @@ MULTILINE_COMMENT_TOKEN_END = "*/"
 # state that the comment may contain code. See the code of the script :)
 
 COMMENTED_CODE_MAX_TRESHOLDS = [
-    25, #Operators count
-    5,  #Distinct operators
-    25, #Operands count
-    5,  #Distinct operand
-    20, #Program length
-    5,  #Program vocabulary
-    25, #Volume
-    20, #Difficulty
-    40, #Effort
+    25,  # Operators count
+    5,  # Distinct operators
+    25,  # Operands count
+    5,  # Distinct operand
+    20,  # Program length
+    5,  # Program vocabulary
+    25,  # Volume
+    20,  # Difficulty
+    40,  # Effort
 ]
 COMMENTED_CODE_MAX_TRESHOLDS_EXPECTED_PASSES = 7
 
 COMMENTED_CODE_MIN_TRESHOLDS = [
-    5, #Operators count
-    0, #Distinct operators
-    0, #Operands count
-    0, #Distinct operand
-    0, #Program length
-    0, #Program vocabulary
-    0, #Volume
-    0, #Difficulty
-    0, #Effort
+    5,  # Operators count
+    0,  # Distinct operators
+    0,  # Operands count
+    0,  # Distinct operand
+    0,  # Program length
+    0,  # Program vocabulary
+    0,  # Volume
+    0,  # Difficulty
+    0,  # Effort
 ]
 COMMENTED_CODE_MIN_TRESHOLDS_EXPECTED_PASSES = 9
 
-#=============================================================================
+# =============================================================================
 #                                *** SCRIPT ***
-#=============================================================================
+# =============================================================================
 
 import argparse
 import math
+
 
 class Comment:
     def __init__(self):
@@ -104,42 +228,36 @@ class Comment:
         self.firstLineNumber = -1
         self.lastLineNumber = -1
 
-
     def addContent(self, appendedContent, lineNumber):
         self.content = " ".join([self.content, appendedContent])
         self.lastLineNumber = lineNumber
         if self.firstLineNumber == -1:
             self.firstLineNumber = lineNumber
 
-
     def isEmpty(self):
         return self.firstLineNumber == -1
-
 
     def getContent(self):
         return self.content
 
-
     def getFirstLineNumber(self):
         return self.firstLineNumber
-
 
     def getLastLineNumber(self):
         return self.lastLineNumber
 
-
     def getLength(self):
         return self.getLastLineNumber() - self.getFirstLineNumber() + 1
-
 
     def newLine(self):
         self.content += "\n"
 
-
     def __str__(self):
-        return "Comment from lines %d-%d:\n%s" %(self.getFirstLineNumber(),
-            self.getLastLineNumber(), self.getContent())
-
+        return "Comment from lines %d-%d:\n%s" % (
+            self.getFirstLineNumber(),
+            self.getLastLineNumber(),
+            self.getContent(),
+        )
 
 
 class Halstead:
@@ -152,17 +270,14 @@ class Halstead:
         for line in source:
             self._analyzeLine(line)
 
-
     def _analyzeLine(self, line):
         for lexem in line.split():
             self._analyzeLexem(lexem)
-
 
     def _analyzeLexem(self, lexem):
         reduct = lexem
         while reduct:
             reduct = self._reduceLexem(reduct)
-
 
     def _reduceLexem(self, lexem):
         nonPureShortestPrefixLen = len(lexem)
@@ -170,12 +285,9 @@ class Halstead:
             if lexem.startswith(operator):
                 self.operatorsCnt += 1
                 self.operators.add(operator)
-                return lexem[len(operator):]
+                return lexem[len(operator) :]
             if operator in lexem:
-                nonPureShortestPrefixLen = min(
-                    nonPureShortestPrefixLen,
-                    lexem.find(operator)
-                )
+                nonPureShortestPrefixLen = min(nonPureShortestPrefixLen, lexem.find(operator))
         nonPureShortestPrefix = lexem[:nonPureShortestPrefixLen]
         for keyword in RESERVED_WORDS:
             if nonPureShortestPrefix == keyword:
@@ -186,44 +298,32 @@ class Halstead:
         self.operands.add(nonPureShortestPrefix)
         return lexem[nonPureShortestPrefixLen:]
 
-
     def getDistinctOperatorsCnt(self):
         return len(self.operators)
-
 
     def getDistinctOperandsCnt(self):
         return len(self.operands)
 
-
     def getTotalOperatorsCnt(self):
         return self.operatorsCnt
-
 
     def getTotalOparandsCnt(self):
         return self.operandsCnt
 
-
     def getLength(self):
         return self.getTotalOperatorsCnt() + self.getTotalOparandsCnt()
-
 
     def getVocabulary(self):
         return self.getDistinctOperatorsCnt() + self.getDistinctOperandsCnt()
 
-
     def getVolume(self):
         return self.getLength() * math.log(unzero(self.getVocabulary()), 2)
 
-
     def getDifficulty(self):
-        return (self.getDistinctOperatorsCnt() / 2 *
-            self.getTotalOparandsCnt() / unzero(
-                self.getDistinctOperandsCnt()))
-
+        return self.getDistinctOperatorsCnt() / 2 * self.getTotalOparandsCnt() / unzero(self.getDistinctOperandsCnt())
 
     def getEffort(self):
         return self.getDifficulty() * self.getVolume()
-
 
     def getValuesVector(self):
         return [
@@ -235,21 +335,35 @@ class Halstead:
             self.getVocabulary(),
             self.getVolume(),
             self.getDifficulty(),
-            self.getEffort()
+            self.getEffort(),
         ]
-
 
     @staticmethod
     def printStatistics(valuesVectors, headers=None):
-        names = ["Operators count:", "Distinct operators:", "Operands count:",
-        "Distinct operands:", "Program length:", "Program vocabulary:",
-        "Volume:", "Difficulty:", "Effort"]
+        names = [
+            "Operators count:",
+            "Distinct operators:",
+            "Operands count:",
+            "Distinct operands:",
+            "Program length:",
+            "Program vocabulary:",
+            "Volume:",
+            "Difficulty:",
+            "Effort",
+        ]
 
         # jpetit: I renamed the names to get an easier output
-        names = ["operators-count", "distinct-operators", "operands-count",
-        "distinct-operands", "program-length", "program-vocabulary",
-        "volume", "difficulty", "effort"]
-
+        names = [
+            "operators-count",
+            "distinct-operators",
+            "operands-count",
+            "distinct-operands",
+            "program-length",
+            "program-vocabulary",
+            "volume",
+            "difficulty",
+            "effort",
+        ]
 
         if headers:
             output = "".ljust(22)
@@ -258,19 +372,18 @@ class Halstead:
             print(output)
 
         for i in iter(range(len(names))):
-            output=names[i].ljust(22)
+            output = names[i].ljust(22)
             for vector in valuesVectors:
-                output += ("%.2f" %(vector[i])).ljust(10)
+                output += ("%.2f" % (vector[i])).ljust(10)
             print(output)
-
 
 
 class CommentFilter:
     def filterComments(self, source):
         """
-            @input: list of lines of file
-            @return: tuple containing list of lines of file and list of
-                Comments
+        @input: list of lines of file
+        @return: tuple containing list of lines of file and list of
+            Comments
         """
         self.regularLines = []
         self.comments = []
@@ -293,7 +406,6 @@ class CommentFilter:
 
         return (self.regularLines, self.comments)
 
-
     def reduceLine(self, line):
         notInLine = 999999
         multiLineBeginPosition = notInLine
@@ -309,26 +421,17 @@ class CommentFilter:
         if ONELINE_COMMENT_TOKEN in line:
             oneLinePosition = line.find(ONELINE_COMMENT_TOKEN)
 
-        if (not self.inMultilineComment
-                and oneLinePosition < multiLineBeginPosition):
+        if not self.inMultilineComment and oneLinePosition < multiLineBeginPosition:
             self.currentLine.append(line[:oneLinePosition])
-            self.currentComment.addContent(
-                line[oneLinePosition + len(ONELINE_COMMENT_TOKEN):],
-                self.lineNumber
-            )
+            self.currentComment.addContent(line[oneLinePosition + len(ONELINE_COMMENT_TOKEN) :], self.lineNumber)
         elif self.inMultilineComment and multiLineEndPosition != notInLine:
-            self.currentComment.addContent(
-                line[:multiLineEndPosition],
-                self.lineNumber
-            )
+            self.currentComment.addContent(line[:multiLineEndPosition], self.lineNumber)
             self.inMultilineComment = False
-            return (line[multiLineEndPosition +
-                len(MULTILINE_COMMENT_TOKEN_END):])
+            return line[multiLineEndPosition + len(MULTILINE_COMMENT_TOKEN_END) :]
         elif multiLineBeginPosition != notInLine:
             self.currentLine.append(line[:multiLineBeginPosition])
             self.inMultilineComment = True
-            return (line[multiLineBeginPosition +
-                len(MULTILINE_COMMENT_TOKEN_BEGIN):])
+            return line[multiLineBeginPosition + len(MULTILINE_COMMENT_TOKEN_BEGIN) :]
         elif self.inMultilineComment:
             self.currentComment.addContent(line, self.lineNumber)
         else:
@@ -340,23 +443,20 @@ class CommentFilter:
 
 
 def parseArgs():
-    parser = argparse.ArgumentParser(description="Discover commented code "
-    "using Halstead code metrics. "
-    "Metrics are computed on the given number of context "
-    "lines for each comment. "
-    "If the value computed on the context lines themselves and for "
-    "the context lines merged with the content of the comment are similar, "
-    "the comment may "
-    "consist of commented code. "
-    "The script (after modifying "
-    "the dictionary of operators) may be used with every "
-    "programming language." )
-    parser.add_argument(
-        "sourcefile",
-        metavar="FILE",
-        nargs=1,
-        help="File to be processed."
+    parser = argparse.ArgumentParser(
+        description="Discover commented code "
+        "using Halstead code metrics. "
+        "Metrics are computed on the given number of context "
+        "lines for each comment. "
+        "If the value computed on the context lines themselves and for "
+        "the context lines merged with the content of the comment are similar, "
+        "the comment may "
+        "consist of commented code. "
+        "The script (after modifying "
+        "the dictionary of operators) may be used with every "
+        "programming language."
     )
+    parser.add_argument("sourcefile", metavar="FILE", nargs=1, help="File to be processed.")
     parser.add_argument(
         "-v",
         "--verbose",
@@ -364,15 +464,14 @@ def parseArgs():
         metavar="N",
         type=int,
         default=0,
-        help="How many additional information should be printed, " +
-            "accepted levels 0-3."
+        help="How many additional information should be printed, " + "accepted levels 0-3.",
     )
     parser.add_argument(
         "-fm",
         "--show-file-metrics",
         dest="showFileMetrics",
-        action='store_true',
-        help="Print metrics for the full file (comments removed)."
+        action="store_true",
+        help="Print metrics for the full file (comments removed).",
     )
     parser.add_argument(
         "-c",
@@ -381,7 +480,7 @@ def parseArgs():
         metavar="N",
         dest="contextMultiplier",
         type=int,
-        help="How much bigger a context should be than a comment itself."
+        help="How much bigger a context should be than a comment itself.",
     )
     parser.add_argument(
         "-m",
@@ -390,7 +489,7 @@ def parseArgs():
         metavar="N",
         dest="minContext",
         type=int,
-        help="Minimal length of context for a comment."
+        help="Minimal length of context for a comment.",
     )
     return vars(parser.parse_args())
 
@@ -400,57 +499,41 @@ def analyzeComment(comment, regularLines, args):
     return
     # end jpetit
 
-    contextLength = max(
-        args["minContext"],
-        args["contextMultiplier"] * comment.getLength()
-    )
-    linesBefore = regularLines[
-        max(0, comment.getFirstLineNumber() - contextLength):
-        comment.getFirstLineNumber()
-    ]
-    linesAfter = regularLines[
-        comment.getLastLineNumber():
-        comment.getLastLineNumber() + contextLength
-    ]
+    contextLength = max(args["minContext"], args["contextMultiplier"] * comment.getLength())
+    linesBefore = regularLines[max(0, comment.getFirstLineNumber() - contextLength) : comment.getFirstLineNumber()]
+    linesAfter = regularLines[comment.getLastLineNumber() : comment.getLastLineNumber() + contextLength]
     linesCnt = len(linesBefore) + len(linesAfter) + comment.getLength()
 
     codeNoCommentMetrics = Halstead(linesBefore + linesAfter)
-    codeWithCommentMetrics =( Halstead(linesBefore + linesAfter +
-        [comment.getContent()]))
-    noCommentPerLineValues = [(1.00 * v) / linesCnt
-        for v in codeNoCommentMetrics.getValuesVector()]
-    withCommentPerLineValues = [(1.00 * v) / linesCnt
-        for v in codeWithCommentMetrics.getValuesVector()]
+    codeWithCommentMetrics = Halstead(linesBefore + linesAfter + [comment.getContent()])
+    noCommentPerLineValues = [(1.00 * v) / linesCnt for v in codeNoCommentMetrics.getValuesVector()]
+    withCommentPerLineValues = [(1.00 * v) / linesCnt for v in codeWithCommentMetrics.getValuesVector()]
 
-    diffValues = [abs(w - n) / unzero(n) * 100 for
-        (n, w) in zip(noCommentPerLineValues, withCommentPerLineValues)
-    ]
+    diffValues = [abs(w - n) / unzero(n) * 100 for (n, w) in zip(noCommentPerLineValues, withCommentPerLineValues)]
 
-    maxTresholdHits = [d <= t for (d, t) in
-        zip (diffValues, COMMENTED_CODE_MAX_TRESHOLDS)]
-    totalMaxTresholdHit = (sum(x > 0 for x in maxTresholdHits) >=
-        COMMENTED_CODE_MAX_TRESHOLDS_EXPECTED_PASSES)
-    minTresholdHits = [d >= t for (d, t) in
-        zip (diffValues, COMMENTED_CODE_MIN_TRESHOLDS)]
-    totalMinTresholdHit = (sum(x > 0 for x in minTresholdHits) >=
-        COMMENTED_CODE_MIN_TRESHOLDS_EXPECTED_PASSES)
+    maxTresholdHits = [d <= t for (d, t) in zip(diffValues, COMMENTED_CODE_MAX_TRESHOLDS)]
+    totalMaxTresholdHit = sum(x > 0 for x in maxTresholdHits) >= COMMENTED_CODE_MAX_TRESHOLDS_EXPECTED_PASSES
+    minTresholdHits = [d >= t for (d, t) in zip(diffValues, COMMENTED_CODE_MIN_TRESHOLDS)]
+    totalMinTresholdHit = sum(x > 0 for x in minTresholdHits) >= COMMENTED_CODE_MIN_TRESHOLDS_EXPECTED_PASSES
     hit = totalMaxTresholdHit and totalMinTresholdHit
 
     if (args["verbose"] >= 1 and hit) or (args["verbose"] == 3):
         print(comment)
-        if (args["verbose"] >= 2):
+        if args["verbose"] >= 2:
             print("Analyzed context lines count: %s." % contextLength)
-            Halstead.printStatistics([
-                codeNoCommentMetrics.getValuesVector(),
-                codeWithCommentMetrics.getValuesVector(),
-                noCommentPerLineValues,
-                withCommentPerLineValues,
-                diffValues,
-                maxTresholdHits
-            ], ["-Cmt", "+Cmt", "-Cmt/l", "+Cmt/l", "diff%", "<maxT?"])
+            Halstead.printStatistics(
+                [
+                    codeNoCommentMetrics.getValuesVector(),
+                    codeWithCommentMetrics.getValuesVector(),
+                    noCommentPerLineValues,
+                    withCommentPerLineValues,
+                    diffValues,
+                    maxTresholdHits,
+                ],
+                ["-Cmt", "+Cmt", "-Cmt/l", "+Cmt/l", "diff%", "<maxT?"],
+            )
     if hit:
-        print ("Lines %s-%s seems to be commented code."
-            %(comment.getFirstLineNumber(), comment.getLastLineNumber()))
+        print("Lines %s-%s seems to be commented code." % (comment.getFirstLineNumber(), comment.getLastLineNumber()))
     if (args["verbose"] >= 1 and hit) or (args["verbose"] == 3):
         print("")
         print("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+")
@@ -468,7 +551,7 @@ def main():
     regularLines = None
     comments = None
 
-    with open(args["sourcefile"][0], 'r') as f:
+    with open(args["sourcefile"][0], "r") as f:
         source = f.read().splitlines()
         (regularLines, comments) = CommentFilter().filterComments(source)
 
@@ -478,6 +561,7 @@ def main():
 
     for comment in comments:
         analyzeComment(comment, regularLines, args)
+
 
 if __name__ == "__main__":
     main()

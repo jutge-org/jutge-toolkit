@@ -7,4 +7,3 @@ In order to use the toolkit, you need to have its external dependencies installe
 # Usage
 
 In order to generate code metrics, simply execute `jutge-code-metrics` along with the path of the script you want to measure. The script will output all the data in JSON format.
-

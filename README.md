@@ -4,16 +4,13 @@
 
 ## Documentation
 
-The `jutge-toolkit` toolkit provides command line tools to
-make all necessary files for problems in
-[Jutge.org](https://jutge.org/).
+The `jutge-toolkit` toolkit provides command line tools to make all necessary files for problems in [Jutge.org](https://jutge.org/).
 
 ## Installation
 
 Install the toolkit with `pip3 install jutge-toolkit`.
 
-**Note:** In order to use the toolkit, you need to have its external dependencies
-installed as LaTeX and various compilers. You only need them if required.
+**Note:** In order to use the toolkit, you need to have its external dependencies installed as LaTeX and various compilers. You only need them if required.
 
 ## Upgrade
 
@@ -29,8 +26,6 @@ There are five main commands:
 
 - `jutge-make-problem`: Makes all the necessary files to generate a common problem.
 - `jutge-make-quiz`: Makes all the necessary files to generate a quiz problem.
-- `jutge-compilers`: Outputs information on the supported compilers.
-- `jutge-available-compilers`: Outputs information on the available compilers.
 - `jutge-code-metrics`: Provides measures extracted from a static inspection of a program.
 
 For full details, please refer to the following documents:
@@ -45,6 +40,7 @@ For full details, please refer to the following documents:
 - [Jordi Petit](https://github.com/jordi-petit)
 - [Cristina Raluca](https://github.com/ralucado)
 - [Jordi Reig](https://github.com/jordireig)
+- [Pau Fernández](https://github.com/pauek)
 
 ## License
 
