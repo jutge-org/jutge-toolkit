@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 # coding=utf-8
 
+import sys
 import glob
 import os
 import shutil
 import subprocess
 import timeit
 from typing import Any
-import util
 import turtle_pil
 import yogi
 from colorama import Fore, Style
+from . import util
+from . import show
 
 
 # List of available compilers (will be filled in each class)
@@ -20,13 +22,13 @@ compilers: list[str] = []
 class Compiler:
     """Compiler base class (abstract)."""
 
-    _name: str
+    _source: str
     _handler: Any
 
-    def __init__(self, handler: Any, name: str) -> None:
+    def __init__(self, handler: Any, source: str) -> None:
         """Constructor."""
         self._handler = handler
-        self._name = name
+        self._source = source if source else "solution"
 
     def name(self) -> str:
         """Returns the compiler name."""
@@ -36,9 +38,13 @@ class Compiler:
         """Returns the compiler id (automatically computed from its class name)."""
         return self.__class__.__name__.replace("Compiler_", "").replace("XX", "++")
 
+    def source(self) -> str:
+        """Returns the source file name (without extension)."""
+        return self._source
+
     def executable(self) -> str:
         """Returns the file name of the resulting "executable"."""
-        raise Exception("Abstract method")
+        return f"{self.source()}.{self.extension()}.exe"
 
     def prepare_execution(self, ori: str) -> None:
         """Copies the necessary files from ori to . to prepare the execution."""
@@ -58,16 +64,26 @@ class Compiler:
 
     def compile(self) -> bool:
         """Compiles the program and tells is success."""
+
+        if "source_modifier" in self._handler and (
+            self._handler["source_modifier"] == "no_main" or self._handler["source_modifier"] == "structs"
+        ):
+            return self.compile_complex()
+        else:
+            return self.compile_normal()
+
+    def compile_normal(self) -> bool:
+        """Compiles the program normally."""
         raise Exception("Abstract method")
 
-    def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
-        """Doc missing."""
+    def compile_complex(self) -> bool:
+        """Compiles the program with main."""
         raise Exception("Abstract method")
 
     def execute_compiler(self, cmd: str) -> None:
         """Executes the compilation command cmd."""
 
-        print(f"{Style.DIM}{cmd}{Style.RESET_ALL}")
+        show.command(cmd)
 
         error = False
         result = ""
@@ -80,25 +96,24 @@ class Compiler:
         if error or len(result) != 0:
             if len(result) != 0:
                 print("\n" + result.decode("utf-8").strip() + "\n")  # type: ignore
-            print(
-                f"{Style.BRIGHT}{Fore.RED}Compilation error! {Style.NORMAL}Please check {self.progname()}.{self.extension()} and try again.{Style.RESET_ALL}"
-            )
+            show.error(f"Compilation error at {self.source()}.{self.extension()}")
 
-        if util.file_exists("program.exe"):
-            os.system("strip program.exe")
+    def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
+        ext = "cor" if correct else f"{self.extension()}.out"
+        cmd = f"./{self.executable()} < {tst}.inp > {tst}.{ext}"
+        show.command(cmd)
+        time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
+        return time
 
 
 class Compiler_GCC(Compiler):
+
     compilers.append("GCC")
 
     def name(self) -> str:
         return "GNU C Compiler"
 
-    def executable(self) -> str:
-        return self.name() + ".c.exe"
-
     def flags1(self) -> str:
-        # return '-D_JUDGE_ -DNDEBUG -O2'
         return "-D_JUDGE_ -O2 -DNDEBUG -Wall -Wextra -Wno-sign-compare"
 
     def flags2(self) -> str:
@@ -107,34 +122,13 @@ class Compiler_GCC(Compiler):
     def extension(self) -> str:
         return "c"
 
-    def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
-        if correct:
-            ext = "cor"
-            print("./%s < %s.inp > %s.%s" % (self.executable(), tst, tst, ext), end="")
-        else:
-            ext = "c.out"
-
-        """func.system("./%s < %s.inp > %s.%s" %
-                    (self.executable(), tst, tst, ext))"""
-        func = 'import os; os.system("./%s < %s.inp > %s.%s")' % (self.executable(), tst, tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-        return time
-
-    def compile(self) -> bool:
-        if "source_modifier" in self._handler and (
-            self._handler["source_modifier"] == "no_main" or self._handler["source_modifier"] == "structs"
-        ):
-            return self.compile_no_main()
-        else:
-            return self.compile_normal()
-
     def compile_normal(self) -> bool:
-        # Compile original program
         util.del_file(self.executable())
-        self.execute_compiler("gcc " + self.flags1() + " " + self.name() + ".c -o " + self.executable() + " -lm")
+        cmd = f"gcc {self.flags1()} {self.source()}.{self.extension()} -o {self.executable()} -lm"
+        self.execute_compiler(cmd)
         return util.file_exists(self.executable())
 
-    def compile_no_main(self) -> bool:
+    def compile_complex(self) -> bool:
         # Modify the program
         util.copy_file(self.name() + ".c", "modified.c")
         ori = util.read_file("modified.c")
@@ -163,7 +157,7 @@ int main() {
 
         # Compile modified program
         util.del_file(self.executable())
-        self.execute_compiler("gcc " + self.flags2() + " modified.c -o " + self.executable() + " -lm")
+        self.execute_compiler(f"gcc {self.flags2()} modified.c -o {self.executable()} -lm")
 
         # We are almost there
         util.del_file("modified.c")
@@ -176,53 +170,28 @@ int main() {
 
 
 class Compiler_GXX(Compiler):
+
     compilers.append("GXX")
 
     def name(self) -> str:
         return "GNU C++ Compiler"
 
-    def executable(self) -> str:
-        return self.name() + ".cc.exe"
-
     def flags1(self) -> str:
-        # return '-D_JUDGE_ -DNDEBUG -O2'
-        return "-std=c++11 -D_JUDGE_ -O2 -DNDEBUG -Wall -Wextra -Wno-sign-compare -Wshadow"
+        return "-std=c++20 -D_JUDGE_ -O2 -DNDEBUG -Wall -Wextra -Wno-sign-compare -Wshadow"
 
     def flags2(self) -> str:
-        # return '-D_JUDGE_ -DNDEBUG -O2'
-        return "-std=c++11 -D_JUDGE_ -O2 -DNDEBUG -Wall -Wextra -Wno-sign-compare -Wshadow"
+        return "-std=c++20 -D_JUDGE_ -O2 -DNDEBUG -Wall -Wextra -Wno-sign-compare -Wshadow"
 
     def extension(self) -> str:
         return "cc"
 
-    def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
-        if correct:
-            ext = "cor"
-            print("./%s < %s.inp > %s.%s" % (self.executable(), tst, tst, ext), end="")
-        else:
-            ext = "cc.out"
-
-        """func.system("./%s < %s.inp > %s.%s" %
-                    (self.executable(), tst, tst, ext))"""
-        func = 'import os; os.system("./%s < %s.inp > %s.%s")' % (self.executable(), tst, tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-        return time
-
-    def compile(self) -> bool:
-        if "source_modifier" in self._handler and (
-            self._handler["source_modifier"] == "no_main" or self._handler["source_modifier"] == "structs"
-        ):
-            return self.compile_no_main()
-        else:
-            return self.compile_normal()
-
     def compile_normal(self) -> bool:
-        # Compile original program
         util.del_file(self.executable())
-        self.execute_compiler("g++ " + self.flags1() + " " + self.name() + ".cc -o " + self.executable())
+        cmd = f"g++ {self.flags1()} {self.source()}.{self.extension()} -o {self.executable()}"
+        self.execute_compiler(cmd)
         return util.file_exists(self.executable())
 
-    def compile_no_main(self) -> bool:
+    def compile_complex(self) -> bool:
         # Modify the program
         util.copy_file(self.name() + ".cc", "modified.cc")
         ori = util.read_file("modified.cc")
@@ -267,40 +236,79 @@ int main() {
             return False
 
 
-class Compiler_P1XX(Compiler_GXX):
-    compilers.append("P1XX")
+class Compiler_JDK(Compiler):
 
-    def flags1(self) -> str:
-        return "-D_JUDGE_ -DNDEBUG -O2 -Wall -Wextra -Werror -Wno-sign-compare -Wshadow"
+    compilers.append("JDK")
+
+    wrapper = """
+
+class WrapperMain {
+
+    public static void main (String[] args) {
+        try {
+            Main.main(args);
+            System.exit(0);
+        } catch (Throwable e) {
+            // We hide the exception.
+            // System.out.println(e);
+            System.exit(1);
+        }
+    }
+
+}
+"""
 
     def name(self) -> str:
-        return "GNU C++ Compiler with extra flags for beginners"
+        return "OpenJDK Runtime Environment"
 
-
-class Compiler_GXX11(Compiler_GXX):
-    compilers.append("GXX11")
-
-    def name(self) -> str:
-        return "GNU C++11 Compiler"
+    def executable(self) -> str:
+        return "Main.class"
 
     def flags1(self) -> str:
-        return "-D_JUDGE_ -DNDEBUG -O2 -std=c++11"
+        return ""
 
     def flags2(self) -> str:
-        return "-D_JUDGE_ -DNDEBUG -O2 -std=c++11"
+        return ""
 
+    def extension(self) -> str:
+        return "java"
 
-class Compiler_GXX17(Compiler_GXX):
-    compilers.append("GXX17")
+    def gen_wrapper(self):
+        util.write_file("wrapper.java", self.wrapper)
 
-    def name(self) -> str:
-        return "GNU C++17 Compiler"
+    def del_wrapper(self):
+        util.del_file("wrapper.java")
 
-    def flags1(self) -> str:
-        return "-D_JUDGE_ -DNDEBUG -O2 -std=c++17"
+    def compile_normal(self):
+        for f in glob.glob("*.class"):
+            util.del_file(f)
+        util.copy_file(self.source() + ".java", "Main.java")
+        self.gen_wrapper()
+        self.execute_compiler(f"javac {self.flags1()} wrapper.java")
+        self.del_wrapper()
+        return util.file_exists(self.executable())
 
-    def flags2(self) -> str:
-        return "-D_JUDGE_ -DNDEBUG -O2 -std=c++17"
+    def compile_complex(self):
+        # esta fet a sac!!! cal fer-ho be
+
+        for f in glob.glob("*.class"):
+            util.del_file(f)
+        # create Solution.class
+        self.execute_compiler(f"javac {self.flags1()} {self.name()}.java")
+        # create Main.class
+        self.execute_compiler(f"javac {self.flags1()} main.java")
+        # create JudgeMain.class
+        self.gen_wrapper()
+        self.execute_compiler(f"javac {self.flags1()} wrapper.java")
+        self.del_wrapper()
+        return util.file_exists("Main.class")
+
+    def execute(self, tst, correct, iterations=1):
+        ext = "cor" if correct else f"{self.extension()}.out"
+        cmd = f"Java Main < {tst}.inp > {tst}.{ext}"
+        show.command(cmd)
+        time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
+        return time
 
 
 class Compiler_GHC(Compiler):
@@ -309,46 +317,24 @@ class Compiler_GHC(Compiler):
     def name(self) -> str:
         return "Glasgow Haskell Compiler"
 
-    def executable(self) -> str:
-        return self.name() + ".hs.exe"
-
     def flags1(self) -> str:
-        return " -O3 "
+        return "-O3"
 
     def flags2(self) -> str:
-        return " -O3 "
+        return "-O3"
 
     def extension(self) -> str:
         return "hs"
 
-    def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
-        if correct:
-            ext = "cor"
-            print("./%s < %s.inp > %s.%s" % (self.executable(), tst, tst, ext), end="")
-        else:
-            ext = "hs.out"
-
-        """func.system("./%s < %s.inp > %s.%s" %
-                    (self.executable(), tst, tst, ext))"""
-        func = 'import os; os.system("./%s < %s.inp > %s.%s")' % (self.executable(), tst, tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-        return time
-
-    def compile(self) -> bool:
-        if "source_modifier" in self._handler and self._handler["source_modifier"] == "no_main":
-            return self.compile_no_main()
-        else:
-            return self.compile_normal()
-
     def compile_normal(self) -> bool:
         util.del_file(self.executable())
-        self.execute_compiler(f"ghc {self.flags1()} {self.name()}.hs -o {self.executable()} 1> /dev/null")
+        cmd = f"ghc {self.flags1()} {self.source()}.hs -o {self.executable()} 1> /dev/null"
+        self.execute_compiler(cmd)
         util.del_file(self.name() + ".hi")
         util.del_file(self.name() + ".o")
-        util.file_exists(self.executable())
-        return True
+        return util.file_exists(self.executable())
 
-    def compile_no_main(self) -> bool:
+    def compile_complex(self) -> bool:
         util.copy_file(self.name() + ".hs", "modified.hs")
         ori = util.read_file("modified.hs")
         main = util.read_file("main.hs")
@@ -370,14 +356,240 @@ class Compiler_GHC(Compiler):
         return util.file_exists(self.executable())
 
 
+class Compiler_Codon(Compiler):
+    compilers.append("Codon")
+
+    def name(self) -> str:
+        return "Codon"
+
+    def flags1(self) -> str:
+        return "-release"
+
+    def flags2(self) -> str:
+        return "-release"
+
+    def extension(self) -> str:
+        return "codon"
+
+    def compile_normal(self):
+        # hack to use yogi
+        if not os.path.exists("yogi.codon"):
+            shutil.copy(os.path.dirname(yogi.__file__) + "/yogi.codon", ".")
+
+        util.del_file(self.executable())
+        cmd = f"codon build -exe {self.flags1()} {self.source()}.{self.extension()} -o {self.executable()}"
+        self.execute_compiler(cmd)
+        return util.file_exists(self.executable())
+
+    def execute(self, tst, correct, iterations=1):
+        ext = "cor" if correct else f"{self.extension()}.out"
+        cmd = f"./{self.executable()} < {tst}.inp > {tst}.{ext}"
+        show.command(cmd)
+
+        def func():
+            os.system(cmd)
+
+        time = timeit.timeit(func, number=iterations) / iterations
+
+        return time
+
+
+class Compiler_Python3(Compiler):
+
+    compilers.append("Python3")
+
+    def name(self) -> str:
+        return "Python3"
+
+    def flags1(self) -> str:
+        return ""
+
+    def flags2(self) -> str:
+        return ""
+
+    def extension(self) -> str:
+        return "py"
+
+    def executable(self) -> str:
+        # returs the same as the source file
+        return self.source() + ".py"
+
+    def compile_normal(self):
+        show.command("nothing to compile")
+        return True
+
+    def compile_complex(self):
+        if not self.compile_normal():
+            return False
+
+        # Modify the program
+        util.copy_file(self.name() + ".py", "modified.py")
+        ori = util.read_file(self.name() + ".py")
+        main = util.read_file("main.py")
+        util.write_file("modified.py", "%s\n%s\n" % (ori, main))
+
+        # Compile modified program
+        self.gen_wrapper()
+        self.execute_compiler("python3 py3c.py modified.py 1> /dev/null")
+        self.del_wrapper()
+        return True
+
+    def execute(self, tst, correct, iterations=1):
+
+        # hack to use turtle-pil when using turtle
+        shutil.copy(turtle_pil.__file__, "turtle.py")
+
+        if "source_modifier" in self._handler and (
+            self._handler["source_modifier"] == "no_main" or self._handler["source_modifier"] == "structs"
+        ):
+            util.copy_file(self.name() + ".py", "modified.py")
+            ori = util.read_file(self.name() + ".py")
+            main = util.read_file("main.py")
+            util.write_file("modified.py", "%s\n%s\n" % (ori, main))
+
+            exec = "modified.py"
+        else:
+            exec = self.executable()
+
+        ext = "cor" if correct else f"{self.extension()}.out"
+        cmd = f"python3 {self.executable()} < {tst}.inp > {tst}.{ext}"
+        show.command(cmd)
+
+        def func():
+            os.system(cmd)
+
+        time = timeit.timeit(func, number=iterations) / iterations
+
+        util.del_file("modified.py")
+        util.del_file("turtle.py")
+        util.del_dir("__pycache__")
+
+        return time
+
+
+class Compiler_Clojure(Compiler):
+    compilers.append("Clojure")
+
+    def name(self) -> str:
+        return "Clojure"
+
+    def flags1(self) -> str:
+        return ""
+
+    def flags2(self) -> str:
+        return ""
+
+    def extension(self) -> str:
+        return "clj"
+
+    def executable(self) -> str:
+        # returs the same as the source file
+        return self.source() + ".clj"
+
+    def compile_normal(self):
+        # TBD
+        show.command("nothing to compile")
+        return True
+
+    def execute(self, tst, correct, iterations=1):
+        ext = "cor" if correct else f"{self.extension()}.out"
+        cmd = f"clj -M {self.source()}.clj < {tst}.inp > {tst}.{ext}"
+        show.command(cmd)
+        time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
+        return time
+
+
+class Compiler_R(Compiler):
+    compilers.append("R")
+
+    def name(self) -> str:
+        return "R"
+
+    def flags1(self) -> str:
+        return ""
+
+    def flags2(self) -> str:
+        return ""
+
+    def extension(self) -> str:
+        return "R"
+
+    def compile_normal(self):
+        s = util.read_file(self.source() + ".R")
+        util.write_file(
+            "wrapper.R",
+            """
+wrapper_R <- function() {
+
+%s
+
+}
+"""
+            % s,
+        )
+        util.write_file(
+            "compiler.R",
+            """
+library("codetools")
+
+source("wrapper.R")
+
+checkUsage(wrapper_R)
+        """,
+        )
+        self.execute_compiler("Rscript compiler.R 1> /dev/null")
+        util.del_file("compiler.R")
+        util.del_file("wrapper.R")
+        return True
+
+    def compile_complex(self):
+        # Modify the program
+        util.copy_file(self.name() + ".R", "modified.R")
+        ori = util.read_file("modified.R")
+        main = util.read_file("main.R")
+        util.write_file("modified.R", f"{ori}\n{main}\n")
+        s = util.read_file("modified.R")
+        util.write_file(
+            "wrapper.R",
+            """
+wrapper_R <- function() {
+
+%s
+
+}
+"""
+            % s,
+        )
+        util.write_file(
+            "compiler.R",
+            """
+library("codetools")
+
+source("wrapper.R")
+
+checkUsage(wrapper_R)
+    """
+            % s,
+        )
+        self.execute_compiler("Rscript compiler.R 1> /dev/null")
+        util.del_file("compiler.R")
+        util.del_file("wrapper.R")
+        util.del_file("modified.R")
+        return True
+
+    def execute(self, tst, correct, iterations=1):
+        ext = "cor" if correct else f"{self.extension()}.out"
+        cmd = f"Rscript {self.source()}.R < {tst}.inp > {tst}.{ext}"
+        show.command(cmd)
+        time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
+        return time
+
+
 class Compiler_RunHaskell(Compiler):
     compilers.append("RunHaskell")
 
     def name(self) -> str:
         return "Glasgow Haskell Compiler (with tweaks for testing in the judge)"
-
-    def executable(self) -> str:
-        return self.name() + ".hs"
 
     def flags1(self) -> str:
         return "-O3"
@@ -457,9 +669,6 @@ class Compiler_RunPython(Compiler):
     def name(self) -> str:
         return "Python3 Interpreter (with tweaks for testing in the judge)"
 
-    def executable(self) -> str:
-        return self.name() + ".py"
-
     def flags1(self) -> str:
         return ""
 
@@ -523,361 +732,17 @@ py_compile.compile(sys.argv[1])
         return False
 
 
-class Compiler_JDK(Compiler):
-    compilers.append("JDK")
-
-    def name(self) -> str:
-        return "OpenJDK Runtime Environment"
-
-    def executable(self) -> str:
-        return "Main.class"
-
-    def flags1(self) -> str:
-        return ""
-
-    def flags2(self) -> str:
-        return ""
-
-    def extension(self) -> str:
-        return "java"
-
-    def gen_wrapper(self):
-        util.write_file(
-            "wrapper.java",
-            """
-class WrapperMain {
-
-    public static void main (String[] args) {
-        try {
-            Main.main(args);
-            System.exit(0);
-        } catch (Throwable e) {
-            // We hide the exception.
-            // System.out.println(e);
-            System.exit(1);
-        }
-    }
-
-}
-""",
-        )
-
-    def del_wrapper(self):
-        util.del_file("wrapper.java")
-
-    def execute(self, tst, correct, iterations=1):
-        if correct:
-            ext = "cor"
-            print("java Main < %s.inp > %s.%s" % (tst, tst, ext), end="")
-        else:
-            ext = "java.out"
-
-        """func.system("java Main < %s.inp > %s.%s" % (tst, tst, ext))"""
-        func = 'import os; os.system("java Main < %s.inp > %s.%s")' % (tst, tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-        return time
-
-    def compile(self):
-        if "source_modifier" in self._handler and self._handler["source_modifier"] == "no_main":
-            return self.compile_no_main()
-        else:
-            return self.compile_normal()
-
-    def compile_normal(self):
-        for f in glob.glob("*.class"):
-            util.del_file(f)
-        util.copy_file(self.name() + ".java", "Main.java")
-        self.gen_wrapper()
-        self.execute_compiler(f"javac {self.flags1()} wrapper.java")
-        self.del_wrapper()
-        return util.file_exists(self.executable())
-
-    def compile_no_main(self):
-        # esta fet a sac!!! cal fer-ho be
-
-        for f in glob.glob("*.class"):
-            util.del_file(f)
-        # create Solution.class
-        self.execute_compiler(f"javac {self.flags1()} {self.name()}.java")
-        # create Main.class
-        self.execute_compiler(f"javac {self.flags1()} main.java")
-        # create JudgeMain.class
-        self.gen_wrapper()
-        self.execute_compiler(f"javac {self.flags1()} wrapper.java")
-        self.del_wrapper()
-        return util.file_exists("Main.class")
-
-
-class Compiler_Python3(Compiler):
-    compilers.append("Python3")
-
-    def name(self) -> str:
-        return "Python3"
-
-    def executable(self) -> str:
-        return self.name() + ".py"
-
-    def flags1(self) -> str:
-        return ""
-
-    def flags2(self) -> str:
-        return ""
-
-    def extension(self) -> str:
-        return "py"
-
-    def gen_wrapper(self):
-        util.write_file(
-            "py3c.py",
-            """
-#!/usr/bin/python3
-
-import py_compile, sys
-
-py_compile.compile(sys.argv[1])
-""",
-        )
-
-    def del_wrapper(self):
-        util.del_file("py3c.py")
-
-    def execute(self, tst, correct, iterations=1):
-
-        # hack to use turtle-pil when using turtle
-        shutil.copy(turtle_pil.__file__, "turtle.py")
-
-        if "source_modifier" in self._handler and (
-            self._handler["source_modifier"] == "no_main" or self._handler["source_modifier"] == "structs"
-        ):
-            util.copy_file(self.name() + ".py", "modified.py")
-            ori = util.read_file(self.name() + ".py")
-            main = util.read_file("main.py")
-            util.write_file("modified.py", "%s\n%s\n" % (ori, main))
-
-            exec = "modified.py"
-        else:
-            exec = self.executable()
-
-        if correct:
-            ext = "cor"
-            print("python3 %s < %s.inp > %s.%s" % (exec, tst, tst, ext), end="")
-        else:
-            ext = "py.out"
-
-        """func.system("python3 %s < %s.inp > %s.%s" % (exec, tst, tst, ext))"""
-        func = 'import os; os.system("python3 %s < %s.inp > %s.%s")' % (exec, tst, tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-
-        util.del_file("modified.py")
-        util.del_file("turtle.py")
-        util.del_dir("__pycache__")
-
-        return time
-
-    def compile(self):
-        if "source_modifier" in self._handler and (
-            self._handler["source_modifier"] == "no_main" or self._handler["source_modifier"] == "structs"
-        ):
-            return self.compile_no_main()
-        else:
-            return self.compile_normal()
-
-    def compile_normal(self):
-        self.gen_wrapper()
-        code = util.read_file(self.name() + ".py")
-        util.write_file(self.name() + ".py", code)
-        util.write_file(
-            "py3c.py",
-            """#!/usr/bin/python3
-
-import py_compile, sys
-
-py_compile.compile(sys.argv[1])""",
-        )
-        self.execute_compiler(f"python3 py3c.py {self.name()}.py 1> /dev/null")
-        self.del_wrapper()
-        return True
-
-    def compile_no_main(self):
-        if not self.compile_normal():
-            return False
-
-        # Modify the program
-        util.copy_file(self.name() + ".py", "modified.py")
-        ori = util.read_file(self.name() + ".py")
-        main = util.read_file("main.py")
-        util.write_file("modified.py", "%s\n%s\n" % (ori, main))
-
-        # Compile modified program
-        self.gen_wrapper()
-        self.execute_compiler("python3 py3c.py modified.py 1> /dev/null")
-        self.del_wrapper()
-        return True
-
-
-class Compiler_Codon(Compiler):
-    compilers.append("Codon")
-
-    def name(self) -> str:
-        return "Codon"
-
-    def executable(self) -> str:
-        return self.name() + ".codon.exe"
-
-    def flags1(self) -> str:
-        return "-release"
-
-    def flags2(self) -> str:
-        return "-release"
-
-    def extension(self) -> str:
-        return "codon"
-
-    def execute(self, tst, correct, iterations=1):
-
-        ext = "cor" if correct else "codon.out"
-        cmd = f"./{self.executable()} < {tst}.inp > {tst}.{ext}"
-        print(cmd)
-
-        def func():
-            os.system(cmd)
-
-        time = timeit.timeit(func, number=iterations) / iterations
-
-        return time
-
-    def compile(self):
-        # TBD: compile no main
-        return self.compile_normal()
-
-    def compile_normal(self):
-        util.del_file(self.executable())
-
-        # hack to use yogi
-        if not os.path.exists("yogi.codon"):
-            shutil.copy(os.path.dirname(yogi.__file__) + "/yogi.codon", ".")
-
-        self.execute_compiler(f"codon build -exe {self.flags1()} {self.name()}.codon")
-        if util.file_exists(self.executable()):
-            return False
-        util.move_file(self.name, self.executable())
-        return True
-
-
-class Compiler_R(Compiler):
-    compilers.append("R")
-
-    def name(self) -> str:
-        return "R"
-
-    def executable(self) -> str:
-        return self.name() + ".R"
-
-    def flags1(self) -> str:
-        return ""
-
-    def flags2(self) -> str:
-        return ""
-
-    def extension(self) -> str:
-        return "R"
-
-    def execute(self, tst, correct, iterations=1):
-        if correct:
-            ext = "cor"
-            print("Rscript solution.R < %s.inp > %s.%s" % (tst, tst, ext), end="")
-        else:
-            ext = "R.out"
-
-        """func.system("Rscript solution.R < %s.inp > %s.%s" % (tst, tst, ext))"""
-        func = 'import os; os.system("Rscript solution.R < %s.inp > %s.%s")' % (tst, tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-        return time
-
-    def compile(self):
-        if self._handler["source_modifier"] == "no_main":
-            return self.compile_no_main()
-        else:
-            return self.compile_normal()
-
-    def compile_normal(self):
-        s = util.read_file(self.name() + ".R")
-        util.write_file(
-            "wrapper.R",
-            """
-wrapper_R <- function() {
-
-%s
-
-}
-"""
-            % s,
-        )
-        util.write_file(
-            "compiler.R",
-            """
-library("codetools")
-
-source("wrapper.R")
-
-checkUsage(wrapper_R)
-        """,
-        )
-        self.execute_compiler("Rscript compiler.R 1> /dev/null")
-        util.del_file("compiler.R")
-        util.del_file("wrapper.R")
-        return True
-
-    def compile_no_main(self):
-        # Modify the program
-        util.copy_file(self.name() + ".R", "modified.R")
-        ori = util.read_file("modified.R")
-        main = util.read_file("main.R")
-        util.write_file("modified.R", f"{ori}\n{main}\n")
-        s = util.read_file("modified.R")
-        util.write_file(
-            "wrapper.R",
-            """
-wrapper_R <- function() {
-
-%s
-
-}
-"""
-            % s,
-        )
-        util.write_file(
-            "compiler.R",
-            """
-library("codetools")
-
-source("wrapper.R")
-
-checkUsage(wrapper_R)
-    """
-            % s,
-        )
-        self.execute_compiler("Rscript compiler.R 1> /dev/null")
-        util.del_file("compiler.R")
-        util.del_file("wrapper.R")
-        util.del_file("modified.R")
-        return True
-
-
 class Compiler_PRO2(Compiler):
     compilers.append("PRO2")
 
     def name(self) -> str:
         return "PRO2 - GNU C++ Compiler"
 
-    def executable(self) -> str:
-        return self.name() + ".pro2.exe"
-
     def flags1(self) -> str:
-        return "-D_JUDGE_ -D_GLIBCXX_DEBUG -O2 -Wall -Wextra -Werror -Wno-sign-compare -std=c++11"
+        return "-D_JUDGE_ -D_GLIBCXX_DEBUG -O2 -Wall -Wextra -Werror -Wno-sign-compare -std=c++20"
 
     def flags2(self) -> str:
-        return "-D_JUDGE_ -D_GLIBCXX_DEBUG -O2 -std=c++11"
+        return "-D_JUDGE_ -D_GLIBCXX_DEBUG -O2 -std=c++20"
 
     def extension(self) -> str:
         return "cc"
@@ -928,7 +793,7 @@ class Compiler_MakePRO2(Compiler):
         return "Make for PRO2"
 
     def executable(self) -> str:
-        return self.name() + ".makepro2.exe"
+        return self.source() + ".makepro2.exe"
 
     def flags1(self) -> str:
         return ""
@@ -993,9 +858,6 @@ class Compiler_RunClojure(Compiler):
     def name(self) -> str:
         return "Clojure (for testing functions in judge)"
 
-    def executable(self) -> str:
-        return self.name() + ".clj"
-
     def flags1(self) -> str:
         return ""
 
@@ -1028,63 +890,14 @@ class Compiler_RunClojure(Compiler):
         return True
 
 
-class Compiler_Clojure(Compiler):
-    compilers.append("Clojure")
-
-    def name(self) -> str:
-        return "Clojure"
-
-    def executable(self) -> str:
-        return self.name() + ".clj"
-
-    def flags1(self) -> str:
-        return ""
-
-    def flags2(self) -> str:
-        return ""
-
-    def extension(self) -> str:
-        return "clj"
-
-    def gen_wrapper(self):
-        util.write_file("deps.edn", '{:paths ["src"]}')
-        os.makedirs("src", exist_ok=True)
-        util.write_file("src/core.clj", "(ns core)\n\n")
-        util.system("cat " + self.name() + ".clj >> src/core.clj")
-
-    def del_wrapper(self):
-        util.del_file("src/core.clj")
-        os.rmdir("src")
-        util.del_file("deps.edn")
-
-    def execute(self, tst, correct, iterations=1):
-        if correct:
-            ext = "cor"
-            # print('clj -M %s.clj  < %s.inp > %s.%s' % (self.name, tst, tst, ext))
-        else:
-            ext = "clj.out"
-
-        self.gen_wrapper()
-        func = 'import os; os.system("clj -M -e \\"(use \'core)(-main)\\"  < %s.inp > %s.%s")' % (tst, tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-        self.del_wrapper()
-        return time
-
-    def compile(self):
-        self.gen_wrapper()
-        self.execute_compiler(f"clj -M {self.name}.clj 1> /dev/null")
-        self.del_wrapper()
-        return True
-
-
 ################################################################################
 
 
-def compiler(cpl: str, handler=None, name=None):
-    """Returns a compiler for cpl."""
+def compiler(cpl: str, handler=None, source=None):
+    """Returns a compiler for cpl using the given handler and the given source file."""
 
     cpl = cpl.replace("++", "XX")
-    return eval(f"Compiler_{cpl}(handler, name)")
+    return eval(f"Compiler_{cpl}(handler, source)")
 
 
 def compiler_extensions(handler_compiler):

@@ -18,7 +18,7 @@ setup(
         "yogi",
         "pytokr",
         "beautifulsoup4",
-        "biopython",
+        #        "biopython", # no funciona al meu mac
         "matplotlib",
         "more-itertools",
         "networkx",
@@ -47,5 +47,7 @@ setup(
             "jutge-code-metrics=jutge.toolkit:code_metrics.main",
         ]
     },
-    scripts=[],
+    scripts=[
+        "scripts/jutge-vinga-install",
+    ],
 )

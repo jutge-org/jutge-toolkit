@@ -15,8 +15,8 @@ import subprocess
 import re
 from shutil import which
 from colorama import init, Fore, Style
-import util
-import compilers
+from . import util
+from . import compilers
 
 
 # ----------------------------------------------------------------------------
@@ -66,7 +66,7 @@ def check_dependencies():
 def make_executable():
     """Compiles the solution in the cwd."""
 
-    print(Style.BRIGHT + "Generating correct executable..." + Style.RESET_ALL)
+    print(Style.BRIGHT + "Generating reference solution" + Style.RESET_ALL)
 
     if not util.file_exists("handler.yml"):
         raise Exception("handler.yml does not exist")
@@ -121,7 +121,7 @@ def make_executable_rec():
 def make_corrects(com, iterations=1):
     """Makes all correct files in the cwd."""
 
-    print(Style.BRIGHT + "Generating correct files..." + Style.RESET_ALL)
+    print(Style.BRIGHT + "Generating reference files" + Style.RESET_ALL)
 
     handler = util.read_yml("handler.yml")
 
@@ -144,7 +144,7 @@ def make_corrects(com, iterations=1):
         except Exception:
             print()
 
-        print(Style.DIM + "time: %f\t\tsize: %s" % (time, util.convert_bytes(outsize)) + Style.RESET_ALL)
+        print("time: %f\t\tsize: %s" % (time, util.convert_bytes(outsize)) + Style.RESET_ALL)
 
 
 def make_corrects_rec():
@@ -190,7 +190,8 @@ def verify_program(program, correct_extension="", iterations=1):
         file_list = [program]
 
     solution_list = []
-    excluded_extensions = ["exe", "dir", correct_extension]
+    excluded_extensions = ["exe", "dir"]
+    # excluded_extensions = ["exe", "dir", correct_extension]
     for file in file_list:
         exclude = False
         for extension in excluded_extensions:
@@ -201,7 +202,7 @@ def verify_program(program, correct_extension="", iterations=1):
     if solution_list == []:
         return
 
-    print(Style.BRIGHT + "Compiling supported programs..." + Style.RESET_ALL)
+    print(Style.BRIGHT + "Compiling solutions" + Style.RESET_ALL)
     for solution in solution_list:
         name = os.path.splitext(solution)[0]
         ext = os.path.splitext(solution)[-1][1:]
@@ -230,7 +231,7 @@ def verify_program(program, correct_extension="", iterations=1):
     has_failed = False
     tests = sorted(glob.glob("*.inp"))
     for solution, compiler in sorted(available_list, key=lambda tup: tup[0].lower()):
-        print("Verifying " + solution + "...")
+        print(Style.BRIGHT + "Verifying " + solution + Style.RESET_ALL)
         ext = os.path.splitext(solution)[-1]
         for test in tests:
             tst = os.path.splitext(test)[0]
@@ -272,7 +273,7 @@ def clean_files(forced=False):
     removed_list = []
     for dirpath, dirnames, filenames in os.walk("."):
         for filename in filenames:
-            if re.match(".*\.exe|.*\.cor|problem\..*\.pdf|problem\..*\.ps|a\.out|.*\.class|.*~", filename):
+            if re.match(r".*\.exe|.*\.cor|problem\..*\.pdf|problem\..*\.ps|a\.out|.*\.class|.*~", filename):
                 removed_list.append(dirpath + "/" + filename)
 
     if removed_list == []:
@@ -289,7 +290,7 @@ def clean_files(forced=False):
         if answer != "yes":
             return
 
-    print("\nCleaning problem...")
+    print("\nCleaning problem")
     for elem in removed_list:
         os.remove(elem)
 
@@ -378,7 +379,7 @@ handler.yml: \verbatimtabinput{handler.yml}
     )
 
     util.write_file("main.tex", t)
-    print(Style.BRIGHT + "Generating .pdf file...   ", end=Style.RESET_ALL)
+    print(Style.BRIGHT + "Generating .pdf file..", end=Style.RESET_ALL)
     sys.stdout.flush()
     r = os.system("latex -interaction scrollmode main > main.err")
     if r != 0:
@@ -461,7 +462,7 @@ def make_all(iterations=1):
         for d in next(os.walk("."))[1]:
             if d in languages:
                 os.chdir(d)
-                print(Style.BRIGHT + "Working on " + os.getcwd() + "..." + Style.RESET_ALL)
+                print(Style.BRIGHT + "Working on " + os.getcwd() + Style.RESET_ALL)
                 print()
                 com = make_executable()
                 print()
@@ -486,9 +487,9 @@ def make_all(iterations=1):
 
     if not found_png:
         if found_html:
-            print(Fore.YELLOW + "WARNING: award.html was found but there's no award.png!" + Style.RESET_ALL)
+            print(Fore.YELLOW + "\nWARNING: award.html was found but there's no award.png!" + Style.RESET_ALL)
         else:
-            print(Fore.YELLOW + "WARNING: this problem doesn't have awards")
+            print(Fore.YELLOW + "\nWARNING: this problem doesn't have awards")
 
 
 # ----------------------------------------------------------------------------
@@ -651,7 +652,7 @@ def main():
         for d in next(os.walk("."))[1]:
             os.chdir(d)
             if args.verify in " ".join(glob.glob("*")):
-                print(Style.BRIGHT + "Working on " + os.getcwd() + "..." + Style.RESET_ALL)
+                print(Style.BRIGHT + "Working on " + os.getcwd() + Style.RESET_ALL)
                 print()
                 verify_program(args.verify, iterations=args.iterations)
             os.chdir("..")
@@ -667,3 +668,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    print()
+    print()
