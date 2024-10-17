@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# coding=utf-8
 
-import sys
 import glob
 import os
 import shutil
@@ -10,9 +8,8 @@ import timeit
 from typing import Any
 import turtle_pil
 import yogi
-from colorama import Fore, Style
 from . import util
-from . import show
+from .show import console
 
 
 # List of available compilers (will be filled in each class)
@@ -46,8 +43,8 @@ class Compiler:
         """Returns the file name of the resulting "executable"."""
         return f"{self.source()}.{self.extension()}.exe"
 
-    def prepare_execution(self, ori: str) -> None:
-        """Copies the necessary files from ori to . to prepare the execution."""
+    def extension(self) -> str:
+        """Returns extension of the source files (without dot)."""
         raise Exception("Abstract method")
 
     def flags1(self) -> str:
@@ -58,12 +55,8 @@ class Compiler:
         """Returns flags for the second compilation (if needed)."""
         raise Exception("Abstract method")
 
-    def extension(self) -> str:
-        """Returns extension of the source files (without dot)."""
-        raise Exception("Abstract method")
-
     def compile(self) -> bool:
-        """Compiles the program and tells is success."""
+        """Compiles the program and tells is succeeded."""
 
         if "source_modifier" in self._handler and (
             self._handler["source_modifier"] == "no_main" or self._handler["source_modifier"] == "structs"
@@ -73,17 +66,17 @@ class Compiler:
             return self.compile_normal()
 
     def compile_normal(self) -> bool:
-        """Compiles the program normally."""
+        """Compiles the program normally and tells if succeeded."""
         raise Exception("Abstract method")
 
     def compile_complex(self) -> bool:
-        """Compiles the program with main."""
+        """Compiles the program with main and tells if succeeded."""
         raise Exception("Abstract method")
 
     def run_compiler(self, cmd: str) -> bool:
         """Runs command cmd to compile a program."""
 
-        show.command(cmd)
+        console.print(cmd, style="bold blue")
 
         error = False
         result = ""
@@ -98,7 +91,7 @@ class Compiler:
         if error:
             if len(result) != 0:
                 print("\n" + result.decode("utf-8").strip() + "\n")  # type: ignore
-            show.error(f"Compilation error at {self.source()}.{self.extension()}")
+            console.print(f"Compilation error at {self.source()}.{self.extension()}", style="bold red")
 
         return not error
 
@@ -107,7 +100,7 @@ class Compiler:
         self.execute_pre()
         ext = "cor" if correct else f"{self.extension()}.out"
         cmd = f"{self.execute_command()} < {tst}.inp > {tst}.{ext}"
-        show.command(cmd)
+        console.print(cmd, style="bold blue")
         time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
         self.execute_post()
         return time
@@ -126,6 +119,7 @@ class Compiler:
 
     def cleanup(self) -> None:
         """Cleans up after all the process."""
+        # TBD
         pass
 
 
@@ -176,7 +170,7 @@ class Compiler_GCC(Compiler):
         if util.file_exists(self.executable()):
             return True
         else:
-            show.error("Error in compilation with main.c")
+            console.print("Error in compilation with main.c", style="bold red")
             return False
 
 
@@ -227,7 +221,7 @@ class Compiler_GXX(Compiler):
         if util.file_exists(self.executable()):
             return True
         else:
-            show.error("Error in compilation with main.c")
+            console.print("Error in compilation with main.c", style="bold red")
             return False
 
 
@@ -295,6 +289,7 @@ class SolutionWrapper {
 
 
 class Compiler_GHC(Compiler):
+
     compilers.append("GHC")
 
     def name(self) -> str:
@@ -330,6 +325,7 @@ class Compiler_GHC(Compiler):
 
 
 class Compiler_Codon(Compiler):
+
     compilers.append("Codon")
 
     def name(self) -> str:
@@ -415,6 +411,7 @@ class Compiler_Python3(Compiler):
 
 
 class Compiler_Clojure(Compiler):
+
     compilers.append("Clojure")
 
     def name(self) -> str:
@@ -435,7 +432,7 @@ class Compiler_Clojure(Compiler):
 
     def compile_normal(self) -> bool:
         # TBD
-        show.command("Clojure: don't know how to check syntax")
+        console.print("Clojure: don't know how to check syntax", style="bold red")
         return True
 
     def execute_command(self) -> str:
@@ -443,6 +440,7 @@ class Compiler_Clojure(Compiler):
 
 
 class Compiler_R(Compiler):
+
     compilers.append("R")
 
     def name(self) -> str:
@@ -552,7 +550,7 @@ class Compiler_RunHaskell(Compiler):
         util.write_file(mod, f"{src}\n\n\n{inp}\n\n\n")
         ext = "cor" if correct else f"{self.extension()}.out"
         cmd = f"runhaskell {mod} > {tst}.{ext}"
-        show.command(cmd)
+        console.print(cmd, style="bold blue")
         time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
         return time
 
@@ -588,7 +586,7 @@ class Compiler_RunPython(Compiler):
         util.write_file(mod, f"{src}\n\n\n{inp}\n\n\n")
         ext = "cor" if correct else f"{self.extension()}.out"
         cmd = f"python3 {mod} > {tst}.{ext}"
-        show.command(cmd)
+        console.print(cmd, style="bold blue")
         time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
         return time
 
@@ -624,7 +622,7 @@ class Compiler_RunClojure(Compiler):
         util.write_file(mod, f"{src}\n\n\n{inp}\n\n\n")
         ext = "cor" if correct else f"{self.extension()}.out"
         cmd = f"clj -M {mod} > {tst}.{ext}"
-        show.command(cmd)
+        console.print(cmd, style="bold blue")
         time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
         return time
 
@@ -633,6 +631,7 @@ class Compiler_RunClojure(Compiler):
 
 
 class Compiler_PRO2(Compiler):
+
     compilers.append("PRO2")
 
     def name(self) -> str:
@@ -687,6 +686,7 @@ class Compiler_PRO2(Compiler):
 
 
 class Compiler_MakePRO2(Compiler):
+
     compilers.append("MakePRO2")
 
     def name(self) -> str:
@@ -747,9 +747,8 @@ class Compiler_MakePRO2(Compiler):
                     (self.executable(), tst, tst, ext))"""
         func = 'import os; os.system("./%s < %s.inp > %s.%s")' % (self.executable(), tst, tst, ext)
         time = timeit.timeit(func, number=iterations) / iterations
+        # self.del_wrapper()
         return time
-
-        self.del_wrapper()
 
 
 ################################################################################
