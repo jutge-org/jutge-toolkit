@@ -141,7 +141,7 @@ class Compiler_GCC(Compiler):
 
     def compile_complex(self) -> bool:
         # Modify the program
-        util.copy_file(self.name() + ".c", "modified.c")
+        util.copy_file(self.source() + ".c", "modified.c")
         ori = util.read_file("modified.c")
         main = util.read_file("main.c")
         util.write_file(
@@ -204,7 +204,7 @@ class Compiler_GXX(Compiler):
 
     def compile_complex(self) -> bool:
         # Modify the program
-        util.copy_file(self.name() + ".cc", "modified.cc")
+        util.copy_file(self.source() + ".cc", "modified.cc")
         ori = util.read_file("modified.cc")
         main = util.read_file("main.cc")
         util.write_file(
@@ -305,7 +305,7 @@ class WrapperMain {
         for f in glob.glob("*.class"):
             util.del_file(f)
         # create Solution.class
-        self.run_compiler(f"javac {self.flags1()} {self.name()}.java")
+        self.run_compiler(f"javac {self.flags1()} {self.source()}.java")
         # create Main.class
         self.run_compiler(f"javac {self.flags1()} main.java")
         # create JudgeMain.class
@@ -337,12 +337,12 @@ class Compiler_GHC(Compiler):
         util.del_file(self.executable())
         cmd = f"ghc {self.flags1()} {self.source()}.hs -o {self.executable()} 1> /dev/null"
         self.run_compiler(cmd)
-        util.del_file(self.name() + ".hi")
-        util.del_file(self.name() + ".o")
+        util.del_file(self.source() + ".hi")
+        util.del_file(self.source() + ".o")
         return util.file_exists(self.executable())
 
     def compile_complex(self) -> bool:
-        util.copy_file(self.name() + ".hs", "modified.hs")
+        util.copy_file(self.source() + ".hs", "modified.hs")
         ori = util.read_file("modified.hs")
         main = util.read_file("main.hs")
         util.write_file(
@@ -407,10 +407,10 @@ class Compiler_Python3(Compiler):
 
     def executable(self) -> str:
         # returs the same as the source file
-        return self.source() + ".py"
+        return self.source() + self.extension()
 
     def compile_normal(self):
-        show.command("nothing to compile")
+        show.command("Python: nothing to compile")
         return True
 
     def compile_complex(self):
@@ -418,8 +418,8 @@ class Compiler_Python3(Compiler):
             return False
 
         # Modify the program
-        util.copy_file(self.name() + ".py", "modified.py")
-        ori = util.read_file(self.name() + ".py")
+        util.copy_file(self.source() + ".py", "modified.py")
+        ori = util.read_file(self.source() + ".py")
         main = util.read_file("main.py")
         util.write_file("modified.py", "%s\n%s\n" % (ori, main))
 
@@ -437,8 +437,8 @@ class Compiler_Python3(Compiler):
         if "source_modifier" in self._handler and (
             self._handler["source_modifier"] == "no_main" or self._handler["source_modifier"] == "structs"
         ):
-            util.copy_file(self.name() + ".py", "modified.py")
-            ori = util.read_file(self.name() + ".py")
+            util.copy_file(self.source() + ".py", "modified.py")
+            ori = util.read_file(self.source() + ".py")
             main = util.read_file("main.py")
             util.write_file("modified.py", "%s\n%s\n" % (ori, main))
 
@@ -483,7 +483,7 @@ class Compiler_Clojure(Compiler):
 
     def compile_normal(self):
         # TBD
-        show.command("nothing to compile")
+        show.command("Clojure: nothing to compile")
         return True
 
     def execute_command(self) -> str:
@@ -535,7 +535,7 @@ checkUsage(wrapper_R)
 
     def compile_complex(self):
         # Modify the program
-        util.copy_file(self.name() + ".R", "modified.R")
+        util.copy_file(self.source() + ".R", "modified.R")
         ori = util.read_file("modified.R")
         main = util.read_file("main.R")
         util.write_file("modified.R", f"{ori}\n{main}\n")
@@ -611,7 +611,7 @@ class Compiler_RunHaskell(Compiler):
         util.del_file("work")
         util.del_file("work.hi")
         util.del_file("work.o")
-        util.copy_file(self.name() + ".hs", "work.hs")
+        util.copy_file(self.source() + ".hs", "work.hs")
         f = open("work.hs", "a")
         print("""main = do print "OK" """, file=f)
         f.close()
@@ -631,7 +631,7 @@ class Compiler_RunHaskell(Compiler):
         return self.compile_with("extra.hs", tst)
 
     def compile_with(self, extra, tst):
-        util.copy_file(self.name() + ".hs", "work.hs")
+        util.copy_file(self.source() + ".hs", "work.hs")
         if util.file_exists("judge.hs"):
             os.system("cat judge.hs >> work.hs")
         f = open("work.hs", "a")
@@ -702,14 +702,14 @@ py_compile.compile(sys.argv[1])
 
     def compile(self):
         self.gen_wrapper()
-        code = util.read_file(self.name() + ".py")
-        util.write_file(self.name() + ".py", code)
-        self.run_compiler(f"python3 py3c.py {self.name()}.py 1> /dev/null")
+        code = util.read_file(self.source() + ".py")
+        util.write_file(self.source() + ".py", code)
+        self.run_compiler(f"python3 py3c.py {self.source()}.py 1> /dev/null")
         self.del_wrapper()
         return True
 
     def compile_with(self, extra):
-        util.copy_file(self.name() + ".py", "work.py")
+        util.copy_file(self.source() + ".py", "work.py")
         os.system("echo '' >> work.py")
         os.system("echo '' >> work.py")
         if util.file_exists("judge.py"):
@@ -793,20 +793,20 @@ class Compiler_PRO2(Compiler):
 
     def compile(self):
         util.del_file(self.executable())
-        util.del_dir(self.name() + ".dir")
-        os.mkdir(self.name() + ".dir")
+        util.del_dir(self.source() + ".dir")
+        os.mkdir(self.source() + ".dir")
 
         if util.file_exists("solution.cc"):
-            util.system("cp solution.cc " + self.name() + ".dir/" + "program.cc")
+            util.system("cp solution.cc " + self.source() + ".dir/" + "program.cc")
         elif util.file_exists("solution.hh"):
-            util.system("cp solution.hh " + self.name() + ".dir/program.hh")
+            util.system("cp solution.hh " + self.source() + ".dir/program.hh")
         else:
             print("There is no solution.cc nor solution.hh")
 
-        util.system("cp public/* " + self.name() + ".dir")
-        util.system("cp private/* " + self.name() + ".dir")
+        util.system("cp public/* " + self.source() + ".dir")
+        util.system("cp private/* " + self.source() + ".dir")
 
-        os.chdir(self.name() + ".dir")
+        os.chdir(self.source() + ".dir")
         self.run_compiler(f"g++ {self.flags1()} *.cc -o ../{self.executable()}")
         os.chdir("..")
         if util.file_exists(self.executable()):
@@ -837,7 +837,7 @@ class Compiler_MakePRO2(Compiler):
 
     def compile(self):
         util.del_file(self.executable())
-        util.del_dir(self.name() + ".dir")
+        util.del_dir(self.source() + ".dir")
 
         if not util.file_exists("solution"):
             raise Exception("There is no solution directory")
@@ -846,18 +846,18 @@ class Compiler_MakePRO2(Compiler):
         if not util.file_exists("private"):
             raise Exception("There is no private directory")
 
-        util.mkdir(self.name() + ".dir")
-        util.system("cp solution/*  public/* private/* " + self.name() + ".dir")
-        os.chdir(self.name() + ".dir")
+        util.mkdir(self.source() + ".dir")
+        util.system("cp solution/*  public/* private/* " + self.source() + ".dir")
+        os.chdir(self.source() + ".dir")
 
         self.run_compiler("make program.exe 1> make.log")
 
         os.chdir("..")
 
-        if util.file_exists(self.name() + ".dir/program.exe"):
-            util.copy_file(self.name() + ".dir/program.exe", "./" + self.executable())
+        if util.file_exists(self.source() + ".dir/program.exe"):
+            util.copy_file(self.source() + ".dir/program.exe", "./" + self.executable())
 
-        util.del_dir(self.name() + ".dir")
+        util.del_dir(self.source() + ".dir")
 
         if util.file_exists(self.executable()):
             util.system("(cd public && tar cf ../public.tar *)")
