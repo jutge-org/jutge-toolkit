@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# checks whether a Clojure script parses successfully
+# To be implemented
+
+exit 0

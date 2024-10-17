@@ -80,7 +80,7 @@ class Compiler:
         """Compiles the program with main."""
         raise Exception("Abstract method")
 
-    def run_compiler(self, cmd: str) -> None:
+    def run_compiler(self, cmd: str) -> bool:
         """Runs command cmd to compile a program."""
 
         show.command(cmd)
@@ -92,11 +92,15 @@ class Compiler:
         except subprocess.CalledProcessError as exec:
             print(exec.output.decode("utf-8"))
             error = True
+        if len(result) != 0:
+            error = True
 
-        if error or len(result) != 0:
+        if error:
             if len(result) != 0:
                 print("\n" + result.decode("utf-8").strip() + "\n")  # type: ignore
             show.error(f"Compilation error at {self.source()}.{self.extension()}")
+
+        return not error
 
     def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
         """Executes the program with the given test and returns the time."""
@@ -317,7 +321,7 @@ class Compiler_GHC(Compiler):
         mod = f"{self.source()}-modified.hs"
         ori = util.read_file(f"{self.source()}.hs")
         main = util.read_file("main.hs")
-        util.write_file(mod, f"{ori}\n\n{main}\n\n")
+        util.write_file(mod, f"{ori}\n\n\n{main}\n\n\n")
         util.del_file(self.executable())
         self.run_compiler(f"ghc {self.flags1()} {mod} -o {self.executable()} 1> /dev/null")
         util.del_file(f"{self.source()}-modified.hi")
@@ -359,7 +363,7 @@ class Compiler_Codon(Compiler):
         mod = f"{self.source()}-modified.{self.extension()}"
         src = util.read_file(f"{self.source()}.{self.extension()}")
         main = util.read_file("main.codon")
-        util.write_file(mod, f"{src}\n\n{main}\n\n")
+        util.write_file(mod, f"{src}\n\n\n{main}\n\n\n")
         cmd = f"codon build -exe {self.flags2()} {mod} -o {self.executable()}"
         self.run_compiler(cmd)
         return util.file_exists(self.executable())
@@ -388,17 +392,15 @@ class Compiler_Python3(Compiler):
     def compile_normal(self) -> bool:
         util.copy_file(f"{self.source()}.{self.extension()}", f"{self.executable()}")
         cmd = f"jutge-syntax-checker-python3 {self.executable()}"
-        self.run_compiler(cmd)
-        return True
+        return self.run_compiler(cmd)
 
     def compile_complex(self) -> bool:
         mod = self.executable()
         src = util.read_file(f"{self.source()}.{self.extension()}")
         main = util.read_file("main.py")
-        util.write_file(mod, f"{src}\n\n{main}\n\n")
+        util.write_file(mod, f"{src}\n\n\n{main}\n\n\n")
         cmd = f"jutge-syntax-checker-python3 {self.executable()}"
-        self.run_compiler(cmd)
-        return True
+        return self.run_compiler(cmd)
 
     def execute_pre(self) -> None:
         # hack to use turtle-pil when using turtle
@@ -462,8 +464,7 @@ class Compiler_R(Compiler):
     def compile_normal(self) -> bool:
         util.copy_file(f"{self.source()}.{self.extension()}", f"{self.executable()}")
         cmd = f"jutge-syntax-checker-R {self.executable()}"
-        self.run_compiler(cmd)
-        return True
+        return self.run_compiler(cmd)
 
     def compile_complex(self) -> bool:
         # Modify the program
@@ -508,10 +509,11 @@ checkUsage(wrapper_R)
 
 
 class Compiler_RunHaskell(Compiler):
+
     compilers.append("RunHaskell")
 
     def name(self) -> str:
-        return "Glasgow Haskell Compiler (with tweaks for testing in the judge)"
+        return "Glasgow Haskell Compiler (RunFunctions)"
 
     def flags1(self) -> str:
         return "-O3"
@@ -523,65 +525,35 @@ class Compiler_RunHaskell(Compiler):
         return "hs"
 
     def compile(self) -> bool:
-        util.del_file("work")
-        util.del_file("work.hi")
-        util.del_file("work.o")
-        util.copy_file(self.source() + ".hs", "work.hs")
-        f = open("work.hs", "a")
-        print("""main = do print "OK" """, file=f)
-        f.close()
+        util.del_file(self.executable())
+        mod = f"{self.source()}-modified.hs"
+        src = util.read_file(f"{self.source()}.hs")
+        util.write_file(mod, f"{src}\n\n\nmain = return ()\n\n\n")
+        cmd = f"ghc {self.flags1()} {mod} -o {self.executable()} 1> /dev/null"
+        self.run_compiler(cmd)
+        util.del_file(f"{self.source()}-modified.hi")
+        util.del_file(f"{self.source()}-modified.o")
+        return util.file_exists(self.executable())
 
-        self.run_compiler("ghc -O3 work.hs 1> /dev/null")
-
-        util.del_file("work")
-        util.del_file("work.hi")
-        util.del_file("work.hs")
-        util.del_file("work.o")
-        return True
-
-    def compile_work(self, tst):
-        f = open("extra.hs", "w")
-        print('"testing"', file=f)
-        f.close()
-        return self.compile_with("extra.hs", tst)
-
-    def compile_with(self, extra, tst):
-        util.copy_file(self.source() + ".hs", "work.hs")
-        if util.file_exists("judge.hs"):
-            os.system("cat judge.hs >> work.hs")
-        f = open("work.hs", "a")
-        print("main = do", file=f)
-        for line in open(tst + ".inp").readlines():
+    def to_main(self, inputs: str) -> str:
+        result = "main = do\n"
+        for line in inputs.split("\n"):
             line = line.rstrip()
             if line.startswith("let "):
-                print("    %s" % line, file=f)
+                result += f"    {line}\n"
             else:
-                print("    print (%s)" % line, file=f)
-        f.close()
-        self.run_compiler(f"ghc {self.flags1()} work.hs -o work.exe 1> /dev/null")
-
-        if util.file_exists("work.exe"):
-            util.del_file("work.hi")
-            util.del_file("work.exe")
-            return True
-        else:
-            return False
+                result += f"    print ({line})\n"
+        return result
 
     def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
-        if correct:
-            ext = "cor"
-            print("runhaskell work.hs > %s.%s" % (tst, ext))
-        else:
-            ext = "hs.out"
-
-        self.compile_work(tst)
-
-        """func.system("runhaskell work.hs > %s.%s" % (tst, ext))"""
-        func = 'import os; os.system("runhaskell work.hs > %s.%s")' % (tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-
-        util.del_file("work.hs")
-
+        mod = f"{self.source()}-modified.hs"
+        src = util.read_file(f"{self.source()}.hs")
+        inp = self.to_main(util.read_file(f"{tst}.inp"))
+        util.write_file(mod, f"{src}\n\n\n{inp}\n\n\n")
+        ext = "cor" if correct else f"{self.extension()}.out"
+        cmd = f"runhaskell {mod} > {tst}.{ext}"
+        show.command(cmd)
+        time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
         return time
 
 
@@ -590,7 +562,7 @@ class Compiler_RunPython(Compiler):
     compilers.append("RunPython")
 
     def name(self) -> str:
-        return "Python3 Interpreter (with tweaks for testing in the judge)"
+        return "Python3 Interpreter (RunFunctions)"
 
     def flags1(self) -> str:
         return ""
@@ -602,20 +574,18 @@ class Compiler_RunPython(Compiler):
         return "py"
 
     def executable(self) -> str:
-        # returs the same as the source file
         return f"{self.source()}-modified.{self.extension()}"
 
     def compile(self) -> bool:
         util.copy_file(f"{self.source()}.{self.extension()}", f"{self.executable()}")
         cmd = f"jutge-syntax-checker-python3 {self.executable()}"
-        self.run_compiler(cmd)
-        return True
+        return self.run_compiler(cmd)
 
     def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
         mod = f"{self.source()}-modified.{self.extension()}"
         src = util.read_file(f"{self.source()}.{self.extension()}")
         inp = util.read_file(f"{tst}.inp")
-        util.write_file(mod, f"{src}\n\n{inp}\n\n")
+        util.write_file(mod, f"{src}\n\n\n{inp}\n\n\n")
         ext = "cor" if correct else f"{self.extension()}.out"
         cmd = f"python3 {mod} > {tst}.{ext}"
         show.command(cmd)
@@ -624,10 +594,11 @@ class Compiler_RunPython(Compiler):
 
 
 class Compiler_RunClojure(Compiler):
+
     compilers.append("RunClojure")
 
     def name(self) -> str:
-        return "Clojure (for testing functions in judge)"
+        return "Clojure (RunFunctions)"
 
     def flags1(self) -> str:
         return ""
@@ -638,27 +609,24 @@ class Compiler_RunClojure(Compiler):
     def extension(self) -> str:
         return "clj"
 
-    def execute(self, tst, correct, iterations=1):
-        if correct:
-            ext = "cor"
-            print("clj -M work.clj > %s.%s" % (tst, ext))
-        else:
-            ext = "clj.out"
-
-        util.system("cp %s.clj work.clj" % self.name)
-        f = open("work.clj", "a")
-        for line in open(tst + ".inp").readlines():
-            line = line.rstrip()
-            print("(println %s)" % line, file=f)
-        f.close()
-        func = 'import os; os.system("clj -M work.clj > %s.%s")' % (tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-        util.del_file("work.clj")
-        return time
+    def executable(self) -> str:
+        return f"{self.source()}-modified.clj"
 
     def compile(self) -> bool:
-        self.run_compiler(f"clj -M {self.name}.clj 1> /dev/null")
-        return True
+        util.copy_file(f"{self.source()}.clj", f"{self.executable()}")
+        cmd = f"jutge-syntax-checker-clojure {self.executable()}"
+        return self.run_compiler(cmd)
+
+    def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
+        mod = f"{self.source()}-modified.clj"
+        src = util.read_file(f"{self.source()}.{self.extension()}")
+        inp = util.read_file(f"{tst}.inp")
+        util.write_file(mod, f"{src}\n\n\n{inp}\n\n\n")
+        ext = "cor" if correct else f"{self.extension()}.out"
+        cmd = f"clj -M {mod} > {tst}.{ext}"
+        show.command(cmd)
+        time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
+        return time
 
 
 # -- pro2 ---------------------------------------------------------------------

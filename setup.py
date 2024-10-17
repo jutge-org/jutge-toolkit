@@ -51,5 +51,6 @@ setup(
     scripts=[
         "scripts/jutge-vinga-install",
         "scripts/jutge-syntax-checker-R",
+        "scripts/jutge-syntax-checker-clojure",
     ],
 )
