@@ -26,7 +26,7 @@ from . import compilers
 # ----------------------------------------------------------------------------
 
 
-app = typer.Typer(epilog="Jutge.org")
+cli = typer.Typer(epilog="Jutge.org")
 
 languages = ["ca", "en", "es", "fr", "de"]
 
@@ -106,7 +106,7 @@ def perform(action: Callable[[], None]) -> None:
 # ----------------------------------------------------------------------------
 
 
-@app.command()
+@cli.command()
 def make_reference_solution() -> None:
     """Make the reference solution."""
 
@@ -128,7 +128,7 @@ def make_reference_solution_in_directory() -> None:
 # ----------------------------------------------------------------------------
 
 
-@app.command()
+@cli.command()
 def make_reference_outputs() -> None:
     """Make all reference test otuputs (*.cor) using the reference solution."""
 
@@ -167,7 +167,7 @@ def make_reference_outputs_in_directory() -> None:
 # ----------------------------------------------------------------------------
 
 
-@app.command()
+@cli.command()
 def verify_program(program: str, iterations=1) -> bool:
     """Verify that a program is correct."""
 
@@ -219,7 +219,7 @@ def verify_program(program: str, iterations=1) -> bool:
 # ----------------------------------------------------------------------------
 
 
-@app.command()
+@cli.command()
 def verify_all_solutions() -> None:
     """Verify that all solutions are correct."""
 
@@ -247,7 +247,7 @@ def verify_all_solutions_in_directory() -> None:
 # ----------------------------------------------------------------------------
 
 
-@app.command()
+@cli.command()
 def make_pdf() -> None:
     """Make the pdf files for the problem."""
 
@@ -362,7 +362,7 @@ handler.yml: \\verbatimtabinput{{handler.yml}}
 # ----------------------------------------------------------------------------
 
 
-@app.command()
+@cli.command()
 def clean_garbage_files(force: Annotated[bool, typer.Option("--force")] = False) -> None:
     """Clean gargabe files (*.exe, *.cor, *.pdf, ...). Does its best."""
 
@@ -402,7 +402,7 @@ def clean_garbage_files_in_directory(force: bool) -> None:
         console.print("No garbage files to clean", style="green")
 
 
-@app.command()
+@cli.command()
 def clean_out_files() -> None:
     """Clean out files (*.out)."""
 
@@ -423,7 +423,7 @@ def clean_out_files_in_directory() -> None:
 # ----------------------------------------------------------------------------
 
 
-@app.command()
+@cli.command()
 def check_dependencies():
     """Check for missing dependencies and emits a warning."""
 
@@ -443,7 +443,7 @@ def check_dependencies():
 # ----------------------------------------------------------------------------
 
 
-@app.command()
+@cli.command()
 def make_all():
     """Makes reference solution, correct outputs, verifies programs and makes pdfs (default command)."""
 
@@ -464,9 +464,9 @@ def make_all_in_directory() -> None:
 # ----------------------------------------------------------------------------
 
 
-@app.command()
+@cli.command()
 def help(ctx: typer.Context):
-    """Print help message."""
+    """Show this message and exit."""
     print(ctx.parent.get_help())  # type: ignore
 
 
@@ -479,7 +479,7 @@ def main() -> None:
     if len(sys.argv) == 1:  # xapuça perquè no sé com fer que el default sigui make_all
         make_all()
     else:
-        app()
+        cli()
 
 
 if __name__ == "__main__":
