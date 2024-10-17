@@ -1,0 +1,34 @@
+
+\Problem{Funcions amb conjunts}
+
+\UsePython
+
+\Statement
+
+En aquest problema heu d'implementar una sèrie de funcions en Python utilitzant conjunts. Cada funció hauria de tenir una implementació ben curta i simple.
+
+\begin{enumerate}
+
+
+\item Feu una funció @average(s: set[float]) -> float@ que retorni la mitjana dels elements d'un conjunt no buit.
+ 
+\item Feu una funció @different_elements(l1: list[int], l2: list[int]) -> int@ que, donades dues llistes, retorni el nombre d'elements diferents que contenen entre les dues.
+    
+\item Feu una funció @has_duplicates(L: list[int]) -> bool@ que,
+donada una llista, indiqui si aquesta té o no algun elements duplicat.
+
+\item A partir d'una llista @l1@, s'ha generat una llista @l2@ permutant a l'atzar els seus elements i afegint un nou element (en alguna posició). Implementeu una funció \linebreak @extraneous(l1: list[str], l2: list[str]) -> str@ que retorni el nou element.
+
+\item A partir d'una llista @l1@, s'ha generat una llista @l2@ permutant a l'atzar als seus elements i, potser, afegint un nou element (en alguna posició). Implementeu una nova funció @extraneous_maybe(l1: list[str], l2: list[str]) -> Optional[str]@ que retorni el nou element si s'ha afegit o \texttt{None} si n'hi ha cap de nou.
+
+\item Feu una funció @different_words(s: str) -> int@ que, donat un text format per paraules separades per espais, retorni el nombre total de paraules diferents. Les majúscules/minúscules no han d'importar.
+
+
+
+\end{enumerate}
+
+\Scoring
+
+Cada funció puntua 16 punts i l'exemple 4.
+
+\SampleSession

@@ -586,6 +586,7 @@ class Compiler_RunHaskell(Compiler):
 
 
 class Compiler_RunPython(Compiler):
+
     compilers.append("RunPython")
 
     def name(self) -> str:
@@ -600,22 +601,41 @@ class Compiler_RunPython(Compiler):
     def extension(self) -> str:
         return "py"
 
-    def gen_wrapper(self) -> None:
-        util.write_file(
-            "py3c.py",
-            """
-#!/usr/bin/python3
+    def executable(self) -> str:
+        # returs the same as the source file
+        return f"{self.source()}-modified.{self.extension()}"
 
-import py_compile, sys
+    def compile(self) -> bool:
+        util.copy_file(f"{self.source()}.{self.extension()}", f"{self.executable()}")
+        cmd = f"jutge-syntax-checker-python3 {self.executable()}"
+        self.run_compiler(cmd)
+        return True
 
-py_compile.compile(sys.argv[1])
-""",
-        )
+    def compile_with(self, extra):
+        util.copy_file(f"{self.source()}.{self.extension()}", "work.py")
+        os.system("echo '' >> work.py")
+        os.system("echo '' >> work.py")
+        if util.file_exists("judge.py"):
+            os.system("cat judge.py >> work.py")
+        os.system(f"cat {extra} >> work.py")
+        self.gen_wrapper()
+        self.run_compiler("python3 py3c.py work.py 1> /dev/null")
+        return True
+        self.del_wrapper()
+        return False
 
-    def del_wrapper(self) -> None:
-        util.del_file("py3c.py")
+    def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
+        mod = f"{self.source()}-modified.{self.extension()}"
+        src = util.read_file(f"{self.source()}.{self.extension()}")
+        inp = util.read_file(f"{tst}.inp")
+        util.write_file(mod, f"{src}\n\n{inp}\n\n")
+        ext = "cor" if correct else f"{self.extension()}.out"
+        cmd = f"python3 {mod} > {tst}.{ext}"
+        show.command(cmd)
+        time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
+        return time
 
-    def execute(self, tst, correct, iterations=1):
+    def execute_old(self, tst, correct, iterations=1):
         if correct:
             ext = "cor"
             print("python3 %s.py > %s.%s" % (self.name, tst, ext))
@@ -631,27 +651,6 @@ py_compile.compile(sys.argv[1])
             return time
         else:
             return -1
-
-    def compile(self) -> bool:
-        self.gen_wrapper()
-        code = util.read_file(f"{self.source()}.{self.extension()}")
-        util.write_file(f"{self.source()}.{self.extension()}", code)
-        self.run_compiler(f"python3 py3c.py {self.source()}.py 1> /dev/null")
-        self.del_wrapper()
-        return True
-
-    def compile_with(self, extra):
-        util.copy_file(f"{self.source()}.{self.extension()}", "work.py")
-        os.system("echo '' >> work.py")
-        os.system("echo '' >> work.py")
-        if util.file_exists("judge.py"):
-            os.system("cat judge.py >> work.py")
-        os.system(f"cat {extra} >> work.py")
-        self.gen_wrapper()
-        self.run_compiler("python3 py3c.py work.py 1> /dev/null")
-        return True
-        self.del_wrapper()
-        return False
 
 
 class Compiler_RunClojure(Compiler):

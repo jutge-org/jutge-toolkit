@@ -1,0 +1,8 @@
+print(round(average(set([12.0, 8.5, 9.5])), 2))
+print(different_elements([1, 1, 3, 2], [3, 2, 2, 5]))
+print(has_duplicates([4, 5, 3]))
+print(has_duplicates([4, 5, 3, 5]))
+print(extraneous(['emma', 'jordi', 'albert'], ['albert', 'emma', 'enric', 'jordi']))
+print(extraneous_maybe(['emma', 'jordi', 'albert'], ['albert', 'emma', 'enric', 'jordi']))
+print(extraneous_maybe(['emma', 'jordi', 'albert'], ['albert', 'emma', 'jordi']))
+print(different_words('La mare renya la nena'))
