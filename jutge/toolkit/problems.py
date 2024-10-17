@@ -6,6 +6,7 @@
 # Importations
 # ----------------------------------------------------------------------------
 
+import contextlib
 import glob
 import sys
 import os
@@ -15,13 +16,19 @@ import subprocess
 import re
 from shutil import which
 from colorama import init, Fore, Style
-from . import util
-from . import compilers
+import util
+import compilers
+import typer
+from show import console
+from typing_extensions import Annotated
 
 
 # ----------------------------------------------------------------------------
 # Global variables
 # ----------------------------------------------------------------------------
+
+
+app = typer.Typer()
 
 home = os.path.normpath(os.path.dirname(sys.argv[0]) + "/..")
 languages = ["ca", "en", "es", "fr", "de"]
@@ -30,32 +37,42 @@ tex = True
 
 
 # ----------------------------------------------------------------------------
+# Helpers
+# ----------------------------------------------------------------------------
+
+
+def fatal(msg: str) -> None:
+    """Prints a message and exits."""
+
+    console.print(msg, style="red")
+    sys.exit(0)
+
+
+def exec(cmd: str) -> int:
+    """Executes a command and returns the return code."""
+
+    console.print(cmd, style="blue")
+    return os.system(cmd)
+
+
+# ----------------------------------------------------------------------------
 # Check for missing dependencies
 # ----------------------------------------------------------------------------
 
 
+@app.command()
 def check_dependencies():
-    check_list = ["g++", "gcc", "tex"]
-    missing_list = []
+    """Checks for missing dependencies and emits a warning."""
 
-    for program in check_list:
-        if which(program) is None:
-            missing_list.append(program)
+    console.print(f"Checking dependencies", style="bold")
 
-    if "tex" in missing_list:
-        print(Fore.YELLOW + "Warning: tex is not installed, .pdf files will not be generated!\n" + Style.RESET_ALL)
-        global tex
-        tex = False
-        missing_list.remove("tex")
+    programs = ["g++", "gcc", "python3", "Rscript", "clj", "ghc", "javac", "java", "runhaskell", "codon", "latex"]
 
-    if missing_list:
-        print(Fore.RED + "The following dependencies are missing, please install them and try again: ", end="")
-        for missing_dep in missing_list:
-            if missing_dep != missing_list[-1]:
-                print(missing_dep, end=", ")
-            else:
-                print(missing_dep + Style.RESET_ALL)
-        sys.exit(0)
+    for program in programs:
+        if which(program):
+            console.print(f"{program:<12} [green]Seems good[/green]")
+        else:
+            console.print(f"{program:<12} [red]Missing[/red]")
 
 
 # ----------------------------------------------------------------------------
@@ -69,7 +86,7 @@ def make_executable():
     print(Style.BRIGHT + "Generating reference solution" + Style.RESET_ALL)
 
     if not util.file_exists("handler.yml"):
-        raise Exception("handler.yml does not exist")
+        fatal("handler.yml does not exist")
     handler = util.read_yml("handler.yml")
 
     global com
@@ -126,7 +143,7 @@ def make_corrects(com, iterations=1):
     handler = util.read_yml("handler.yml")
 
     if not util.file_exists(com.executable()):
-        raise Exception(Fore.RED + com.executable() + " does not exist" + Style.RESET_ALL)
+        fatal(Fore.RED + com.executable() + " does not exist" + Style.RESET_ALL)
     for f in glob.glob("*.cor"):
         util.del_file(f)
     inps = sorted(glob.glob("*.inp"))
@@ -176,10 +193,10 @@ def verify_program(program, correct_extension="", iterations=1):
     """Verify that program compiles and gets AC for each test."""
 
     if not util.file_exists("handler.yml"):
-        raise Exception("handler.yml does not exist")
+        fatal("handler.yml does not exist")
     handler = util.read_yml("handler.yml")
     if handler["handler"] != "std" and handler["handler"] != "graphic":
-        raise Exception("unknown handler")
+        fatal("unknown handler")
 
     # compile
     available_list = []
@@ -269,177 +286,156 @@ def verify_program(program, correct_extension="", iterations=1):
 # ----------------------------------------------------------------------------
 
 
-def clean_files(forced=False):
-    removed_list = []
+@app.command()
+def clean_files(force: Annotated[bool, typer.Option("--force")] = False) -> None:
+    """Removes all generated files (*.exe, *.cor, *.pdf, ...). Does its best."""
+
+    console.print(f"Cleaning files", style="bold")
+
+    files_to_remove = []
     for dirpath, dirnames, filenames in os.walk("."):
         for filename in filenames:
             if re.match(
                 r"__pycache__|solution-modified*|.*\.exe|.*\.cor|problem\..*\.pdf|problem\..*\.ps|a\.out|.*\.class|.*~",
                 filename,
             ):
-                removed_list.append(dirpath + "/" + filename)
+                files_to_remove.append(dirpath + "/" + filename)
 
-    if removed_list == []:
-        print("The directories are clean, no files will be removed.")
-        return
+    if files_to_remove:
+        console.print("The following files will be removed:")
+        for file in files_to_remove:
+            console.print("    ", file, style="purple")
 
-    print("The following files " + Style.BRIGHT + "will be" + Style.RESET_ALL + " removed:")
-    for elem in sorted(removed_list):
-        print(Style.DIM + elem + Style.RESET_ALL)
-    print()
+        if not force:
+            delete = typer.confirm("Are you sure you want to delete them?")
+            if not delete:
+                console.print("No files cleaned", style="green")
+                return
 
-    if not forced:
-        answer = input("Are you sure? (Type yes to confirm): ")
-        if answer != "yes":
-            return
+        for file in files_to_remove:
+            os.remove(file)
 
-    print("\nCleaning problem")
-    for elem in removed_list:
-        os.remove(elem)
-
-    print(Fore.GREEN + "Done!" + Style.RESET_ALL)
+        console.print("Files cleaned", style="green")
+    else:
+        console.print("No files to clean", style="green")
 
 
 # ----------------------------------------------------------------------------
-# Make printable files (pdf)
+# Make PDFs
 # ----------------------------------------------------------------------------
 
 
-def make_prints_3(lang, ori):
+@app.command()
+def make_pdf() -> None:
+    """Makes the pdf files for the problem in the cwd."""
 
-    ori = os.path.realpath(ori)
+    pbms = sorted(glob.glob("problem.*.tex"))
+    if pbms:
+        for pbm in pbms:
+            language = pbm.replace("problem.", "").replace(".tex", "")
+            make_pdf_for_language(language)
+    else:
+        for language in languages:
+            if os.path.isdir(language):
+                os.chdir(language)
+                make_pdf_for_language(language)
+                os.chdir("..")
+
+
+def make_pdf_for_language(language: str) -> None:
+    """Makes the pdf file in the cwd for the given language."""
+
+    console.print(f"Making problem.{language}.pdf", style="bold")
+
+    cwd = os.path.realpath(os.getcwd())
+    root = os.path.dirname(os.path.abspath(__file__))
+
+    for f in glob.glob(f"{root}/sty/*.sty"):
+        util.copy_file(f, ".")
+
     dat = util.current_time()
     usr = util.get_username()
     hst = util.get_hostname()
-    src = "%s@%s:%s" % (usr, hst, ori)
+    src = f"{usr}@{hst}:{cwd}"
 
-    sample2 = ""
     sample1 = ""
-    tsts = sorted(glob.glob("*sample*.inp"))
+    sample2 = ""
+    tsts = sorted(glob.glob("sample*.inp"))
 
     handler = util.read_yml("handler.yml")
 
     graphic = ""
     i = 0
-    for j in tsts:
+    for tst in tsts:
         i += 1
-        jj = os.path.splitext(j)[0]
+        tst_base = os.path.splitext(tst)[0]
         if len(tsts) == 1:
             num = ""
         else:
             num = str(i)
 
         if handler["handler"] == "graphic":
-            size = subprocess.getoutput("identify -format '(%%w$\\\\times$%%h)' %s.cor" % jj)
-            graphic = "[%s]" % size
-            r = os.system("convert %s.cor %s.cor.eps" % (jj, jj))
+            size = subprocess.getoutput(f"identify -format '(%%w$\\\\times$%%h)' {tst_base}.cor")
+            graphic = f"[{size}]"
+            r = os.system(f"convert {tst_base}.cor {tst_base}.cor.eps")
             if r != 0:
-                print(Fore.RED + "ImageMagick error!", end="")
+                console.print("ImageMagick error", style="red")
                 if r == 256:
-                    print(" You must change it's security policy to be able to convert the images to EPS.", end="")
-                print(Style.RESET_ALL)
-                sys.exit(0)
+                    console.print(
+                        "You must change ImageMagick security policy to be able to convert the images to EPS.",
+                        style="red",
+                    )
+                sys.exit(1)
 
-        sample2 += r"\SampleTwoColInputOutput%s{%s}{%s}" % (graphic, jj, num)
-        sample1 += r"\SampleOneColInputOutput%s{%s}{%s}" % (graphic, jj, num)
+        sample2 += f"\\SampleTwoColInputOutput{graphic}{{{tst_base}}}{{{num}}}"
+        sample1 += f"\\SampleOneColInputOutput{graphic}{{{tst_base}}}{{{num}}}"
 
     scores = ""
     if util.file_exists("scores.yml"):
         scores = "scores.yml: \\verbatimtabinput{scores.yml}"
 
-    t = r"""
-\documentclass[11pt]{article}
+    tex = f"""
 
-    \usepackage{jutge}
-    \usepackage{lang.%s}
-    \lstMakeShortInline@
+\\documentclass[11pt]{{article}}
 
-\begin{document}
-    \newcommand{\SampleTwoCol}{%s}
-    \newcommand{\SampleOneCol}{%s}
-    \DoProblem{%s}
+\\usepackage{{jutge}}
+\\usepackage{{lang.{language}}}
+\\lstMakeShortInline@
 
-\subsection*{Metadata}
-\begin{verbatim}
-language: %s
-source: %s
-generation-time: %s\end{verbatim}
-problem.%s.yml: \verbatimtabinput{problem.%s.yml}
-handler.yml: \verbatimtabinput{handler.yml}
-%s
-\end{document}
-    """ % (
-        lang,
-        sample2,
-        sample1,
-        lang,
-        lang,
-        src,
-        dat,
-        lang,
-        lang,
-        scores,
-    )
+\\begin{{document}}
+\\newcommand{{\\SampleTwoCol}}{{{sample2}}}
+\\newcommand{{\\SampleOneCol}}{{{sample1}}}
+\\DoProblem{{{language}}}
 
-    util.write_file("main.tex", t)
-    print(Style.BRIGHT + "Generating .pdf file..", end=Style.RESET_ALL)
-    sys.stdout.flush()
-    r = os.system("latex -interaction scrollmode main > main.err")
-    if r != 0:
-        os.system("cat main.err")
-        raise Exception(Fore.RED + "\nLaTeX error!" + Style.RESET_ALL)
+\\subsection*{{Metadata}}
+\\begin{{verbatim}}
+language: {language}
+source: {src}
+generation-time: {dat}\\end{{verbatim}}
+problem.{language}.yml: \\verbatimtabinput{{problem.{language}.yml}}
+handler.yml: \\verbatimtabinput{{handler.yml}}
+{scores}
+\\end{{document}}
 
-    r = os.system("dvips main -o 1> /dev/null 2>/dev/null")
-    if r != 0:
-        raise Exception(Fore.RED + "\ndvips error!" + Style.RESET_ALL)
+    """
 
-    r = os.system("ps2pdf main.ps main.pdf 1> /dev/null 2>/dev/null")
-    if r != 0:
-        raise Exception(Fore.RED + "\nps2pdf error!" + Style.RESET_ALL)
+    util.write_file("jutge-statement.tex", tex)
 
-    os.remove("main.ps")
-    os.system('mv main.pdf "%s/problem.%s.pdf"' % (ori, lang))
+    if exec("latex -interaction scrollmode jutge-statement > jutge-statement.err") != 0:
+        os.system("cat jutge-statement.err")
+        fatal("LaTeX error")
 
-    print(Fore.GREEN + "Done!" + Style.RESET_ALL)
+    if exec("dvips jutge-statement -o 1> /dev/null 2>/dev/null") != 0:
+        fatal("dvips error")
 
+    if exec("ps2pdf jutge-statement.ps jutge-statement.pdf 1> /dev/null 2>/dev/null") != 0:
+        fatal("ps2pdf error")
 
-def make_prints2(lang):
-    """Makes the problem*pdf file in the cwd for language lang."""
+    os.remove("jutge-statement.ps")
+    os.system(f"mv jutge-statement.pdf problem.{language}.pdf")
+    os.system("rm -f jutge-statement.*")
 
-    ori = os.getcwd()
-    tmp = util.tmp_dir()
-    print(Style.DIM + ori + " " + lang + " " + tmp + " " + Style.RESET_ALL)
-
-    os.system(
-        "cp * %s/sty/* %s 2>&1 | grep -v 'omitting directory'" % (os.path.dirname(os.path.abspath(__file__)), tmp)
-    )
-    os.chdir(tmp)
-
-    try:
-        make_prints_3(lang, ori)
-    except:
-        raise
-    finally:
-        os.chdir(ori)
-
-
-def make_prints():
-    """Makes the pdf files for the problem in the cwd"""
-
-    pbms = sorted(glob.glob("problem.*.tex"))
-    if pbms:
-        for pbm in pbms:
-            lang = pbm.replace("problem.", "").replace(".tex", "")
-            make_prints2(lang)
-    else:
-        for d in next(os.walk("."))[1]:
-            if d in languages:
-                os.chdir(d)
-                make_prints2(d)
-                os.chdir("..")
-            else:
-                print(Style.DIM + "skipping " + d + Style.RESET_ALL)
-            print()
+    console.print(f"Success", style="green")
 
 
 # ----------------------------------------------------------------------------
@@ -460,7 +456,7 @@ def make_all(iterations=1):
             for pbm in pbms:
                 lang = pbm.replace("problem.", "").replace(".tex", "")
                 print()
-                make_prints2(lang)
+                make_pdf_for_language(lang)
     else:
         for d in next(os.walk("."))[1]:
             if d in languages:
@@ -474,7 +470,7 @@ def make_all(iterations=1):
                 verify_program("solution", com.extension(), iterations)
                 if tex:
                     print()
-                    make_prints2(d)
+                    make_pdf_for_language(d)
                 os.chdir("..")
                 print()
             else:
@@ -496,94 +492,11 @@ def make_all(iterations=1):
 
 
 # ----------------------------------------------------------------------------
-# Make everything recursively
-# ----------------------------------------------------------------------------
-
-
-def make_recursive_2():
-    sys.stdout.flush()
-
-    if util.file_exists("handler.yml"):
-        print("------------------------------------------")
-        print(os.getcwd())
-        print("------------------------------------------")
-        if util.file_exists("solution.cc") or util.file_exists("solution.hs"):
-            try:
-                if 1:
-                    com = make_executable()
-                    make_corrects(com)
-                    if tex:
-                        make_prints()
-            except Exception as e:
-                print("\a")
-                print(e)
-                errors.append((e, os.getcwd()))
-
-    else:
-        cwd = os.getcwd()
-        for path in next(os.walk("."))[1]:
-            os.chdir(path)
-            make_recursive_2()
-            os.chdir(cwd)
-
-
-def make_recursive(paths):
-    global errors
-    errors = []
-    cwd = os.getcwd()
-    for path in next(os.walk(paths))[1]:
-        os.chdir(path)
-        make_recursive_2()
-        os.chdir(cwd)
-    if errors:
-        print(Fore.RED + "------------------------------------------")
-        print("Errors:")
-        print("------------------------------------------")
-        for e in errors:
-            print(e)
-        print(Style.RESET_ALL, end="")
-
-
-# ----------------------------------------------------------------------------
-# Make a list of problems recursively
-# ----------------------------------------------------------------------------
-
-
-def make_list_2():
-    cwd = os.getcwd()
-    ext = os.path.splitext(cwd)[1]
-    if ext == ".pbm":
-        pbms = glob.glob("problem.*.tex")
-        if pbms:
-            langs = []
-            for p in pbms:
-                langs.append(p.replace("problem.", "").replace(".tex", ""))
-        else:
-            langs = util.intersection(glob.glob("*"), languages)
-        print(cwd + " " + " ".join(sorted(langs)))
-
-    else:
-        for path in next(os.walk(paths))[1]:
-            os.chdir(path)
-            make_list_2()
-            os.chdir(cwd)
-
-
-def make_list(paths):
-    cwd = os.getcwd()
-    for path in sorted(paths):
-        if os.path.isdir(path):
-            os.chdir(path)
-            make_list_2()
-            os.chdir(cwd)
-
-
-# ----------------------------------------------------------------------------
 # main
 # ----------------------------------------------------------------------------
 
 
-def main():
+def old_main():
     init()  # Start colorama
     check_dependencies()
 
@@ -662,7 +575,7 @@ def main():
     if args.clean:
         done = True
         if args.force:
-            clean_files(forced=True)
+            clean_files(force=True)
         else:
             clean_files()
     if not done:
@@ -670,6 +583,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    print()
-    print()
+    app()

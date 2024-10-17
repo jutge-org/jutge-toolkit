@@ -8,8 +8,8 @@ import timeit
 from typing import Any
 import turtle_pil
 import yogi
-from . import util
-from .show import console
+import util
+from show import console
 
 
 # List of available compilers (will be filled in each class)
