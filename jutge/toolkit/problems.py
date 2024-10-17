@@ -354,7 +354,7 @@ handler.yml: \\verbatimtabinput{{handler.yml}}
 
     os.remove("jutge-statement.ps")
     os.system(f"mv jutge-statement.pdf problem.{language}.pdf")
-    os.system("rm -f jutge-statement.*")
+    os.system("rm -f jutge-statement.* *.sty")
 
 
 # ----------------------------------------------------------------------------
@@ -378,7 +378,7 @@ def clean_garbage_files_in_directory(force: bool) -> None:
     for dirpath, dirnames, filenames in os.walk("."):
         for filename in filenames:
             if re.match(
-                r"__pycache__|solution-modified*|.*\.exe|.*\.cor|problem\..*\.pdf|problem\..*\.ps|a\.out|.*\.class|.*~",
+                r"__pycache__|solution-modified*|.*\.exe|.*\.cor|problem\..*\.pdf|problem\..*\.ps|.*\.out|.*\.sty|.*\.class|.*~",
                 filename,
             ):
                 files_to_remove.append(dirpath + "/" + filename)
@@ -407,6 +407,7 @@ def clean_garbage_files_in_directory(force: bool) -> None:
 # ----------------------------------------------------------------------------
 
 
+@app.callback(invoke_without_command=True)
 @app.command()
 def make_all():
     """Makes reference solution, correct outputs, verifies programs and makes pdfs."""
