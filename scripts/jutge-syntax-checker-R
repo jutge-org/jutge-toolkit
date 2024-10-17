@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#
+# Rparse: checks whether R script parses successfully
+#
+# usage: Rscript script.r
+
+set -e
+Rscript -e "parse(\"$1\")" >/dev/null

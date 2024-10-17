@@ -45,9 +45,11 @@ setup(
             "jutge-make-problem=jutge.toolkit:problems.main",
             "jutge-make-quiz=jutge.toolkit:quizzes.main",
             "jutge-code-metrics=jutge.toolkit:code_metrics.main",
+            "jutge-syntax-checker-python3=jutge.toolkit:syntax_checker_python3.main",
         ]
     },
     scripts=[
         "scripts/jutge-vinga-install",
+        "scripts/jutge-syntax-checker-R",
     ],
 )
