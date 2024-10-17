@@ -611,19 +611,6 @@ class Compiler_RunPython(Compiler):
         self.run_compiler(cmd)
         return True
 
-    def compile_with(self, extra):
-        util.copy_file(f"{self.source()}.{self.extension()}", "work.py")
-        os.system("echo '' >> work.py")
-        os.system("echo '' >> work.py")
-        if util.file_exists("judge.py"):
-            os.system("cat judge.py >> work.py")
-        os.system(f"cat {extra} >> work.py")
-        self.gen_wrapper()
-        self.run_compiler("python3 py3c.py work.py 1> /dev/null")
-        return True
-        self.del_wrapper()
-        return False
-
     def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
         mod = f"{self.source()}-modified.{self.extension()}"
         src = util.read_file(f"{self.source()}.{self.extension()}")
@@ -634,23 +621,6 @@ class Compiler_RunPython(Compiler):
         show.command(cmd)
         time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
         return time
-
-    def execute_old(self, tst, correct, iterations=1):
-        if correct:
-            ext = "cor"
-            print("python3 %s.py > %s.%s" % (self.name, tst, ext))
-        else:
-            ext = "py.out"
-
-        if self.compile_with(tst + ".inp"):
-            os.system("cat solution.py %s.inp > work.py" % tst)
-            func = 'import os; os.system("python3 work.py > %s.%s")' % (tst, ext)
-            time = timeit.timeit(func, number=iterations) / iterations
-            util.del_dir("__pycache__")
-            util.del_file("work.py")
-            return time
-        else:
-            return -1
 
 
 class Compiler_RunClojure(Compiler):

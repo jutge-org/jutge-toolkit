@@ -1,0 +1,5 @@
+(abs-value -666)
+(power1 2 3)
+(power2 2 3)
+(prime? 17)
+

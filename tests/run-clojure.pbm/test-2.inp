@@ -1,0 +1,5 @@
+(map (partial power1 1) (range 20))
+(map (partial power1 2) (range 20))
+(map (partial power1 3) (range 20))
+(map (partial power1 4) (range 10))
+

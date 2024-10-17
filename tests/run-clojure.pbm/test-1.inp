@@ -1,0 +1,1 @@
+(map abs-value (range -100 100))
