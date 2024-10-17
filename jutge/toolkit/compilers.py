@@ -99,21 +99,25 @@ class Compiler:
             show.error(f"Compilation error at {self.source()}.{self.extension()}")
 
     def execute(self, tst: str, correct: bool, iterations: int = 1) -> float:
+        """Executes the program with the given test and returns the time."""
         self.execute_pre()
         ext = "cor" if correct else f"{self.extension()}.out"
-        cmd = self.execute_command() + f" < {tst}.inp > {tst}.{ext}"
+        cmd = f"{self.execute_command()} < {tst}.inp > {tst}.{ext}"
         show.command(cmd)
         time = timeit.timeit(lambda: os.system(cmd), number=iterations) / iterations
         self.execute_post()
         return time
 
     def execute_pre(self) -> None:
+        """Hook before executing the program."""
         pass
 
     def execute_post(self) -> None:
+        """Hook after executing the program."""
         pass
 
     def execute_command(self) -> str:
+        """Returns the command to execute the program."""
         return f"./{self.executable()}"
 
 
