@@ -26,7 +26,7 @@ from . import compilers
 # ----------------------------------------------------------------------------
 
 
-app = typer.Typer()
+app = typer.Typer(epilog="Jutge.org")
 
 languages = ["ca", "en", "es", "fr", "de"]
 
@@ -397,31 +397,25 @@ def clean_garbage_files_in_directory(force: bool) -> None:
         for file in files_to_remove:
             os.remove(file)
 
-        console.print("Narbage files cleaned", style="green")
+        console.print("Garbage files cleaned", style="green")
     else:
         console.print("No garbage files to clean", style="green")
 
 
-# ----------------------------------------------------------------------------
-# Make everything in a problem directory
-# ----------------------------------------------------------------------------
-
-
-@app.callback(invoke_without_command=True)
 @app.command()
-def make_all():
-    """Makes reference solution, correct outputs, verifies programs and makes pdfs."""
+def clean_out_files() -> None:
+    """Clean out files (*.out)."""
 
-    perform(make_all_in_directory)
+    perform(lambda: clean_out_files_in_directory())
 
 
-def make_all_in_directory() -> None:
-    """Makes reference solution, correct outputs, verifies programs and makes pdfs in cwd."""
+def clean_out_files_in_directory() -> None:
+    """Clean out files in cwd."""
 
-    make_reference_solution_in_directory()
-    make_reference_outputs_in_directory()
-    verify_all_solutions_in_directory()
-    make_pdf_in_directory()
+    console.print(f"Cleaning out files", style="bold")
+
+    for file in glob.glob("*.out"):
+        os.remove(file)
 
 
 # ----------------------------------------------------------------------------
@@ -445,12 +439,47 @@ def check_dependencies():
 
 
 # ----------------------------------------------------------------------------
+# Make everything in a problem directory
+# ----------------------------------------------------------------------------
+
+
+@app.command()
+def make_all():
+    """Makes reference solution, correct outputs, verifies programs and makes pdfs (default command)."""
+
+    perform(make_all_in_directory)
+
+
+def make_all_in_directory() -> None:
+    """Makes reference solution, correct outputs, verifies programs and makes pdfs in cwd."""
+
+    make_reference_solution_in_directory()
+    make_reference_outputs_in_directory()
+    verify_all_solutions_in_directory()
+    make_pdf_in_directory()
+
+
+# ----------------------------------------------------------------------------
+# help
+# ----------------------------------------------------------------------------
+
+
+@app.command()
+def help(ctx: typer.Context):
+    """Print help message."""
+    print(ctx.parent.get_help())  # type: ignore
+
+
+# ----------------------------------------------------------------------------
 # main
 # ----------------------------------------------------------------------------
 
 
 def main() -> None:
-    app()
+    if len(sys.argv) == 1:  # xapuça perquè no sé com fer que el default sigui make_all
+        make_all()
+    else:
+        app()
 
 
 if __name__ == "__main__":
