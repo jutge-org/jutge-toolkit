@@ -120,6 +120,10 @@ class Compiler:
         """Returns the command to execute the program."""
         return f"./{self.executable()}"
 
+    def cleanup(self) -> None:
+        """Cleans up after all the process."""
+        pass
+
 
 class Compiler_GCC(Compiler):
 
@@ -144,43 +148,37 @@ class Compiler_GCC(Compiler):
         return util.file_exists(self.executable())
 
     def compile_complex(self) -> bool:
-        # Modify the program
-        util.copy_file(self.source() + ".c", "modified.c")
-        ori = util.read_file("modified.c")
+        mod = f"{self.source()}-modified.c"
+        src = util.read_file(f"{self.source()}.{self.extension()}")
         main = util.read_file("main.c")
         util.write_file(
-            "modified.c",
-            """
+            mod,
+            f"""
 #define main main__3
 
-%s
+{src}
 
 #undef main
 #define main main__2
 
-%s
+{main}
 
 #undef main
 
-int main() {
+int main() {{
     return main__2();
-}
+}}
 
-"""
-            % (ori, main),
+""",
         )
 
-        # Compile modified program
         util.del_file(self.executable())
-        self.run_compiler(f"gcc {self.flags2()} modified.c -o {self.executable()} -lm")
-
-        # We are almost there
-        util.del_file("modified.c")
+        self.run_compiler(f"gcc {self.flags2()} {mod} -o {self.executable()} -lm")
+        util.del_file(mod)
         if util.file_exists(self.executable()):
             return True
         else:
-            print(Style.BRIGHT + Fore.RED + "Unreported error." + Style.RESET_ALL)
-            util.del_file(self.executable())
+            show.error("Error in compilation with main.c")
             return False
 
 
@@ -207,47 +205,37 @@ class Compiler_GXX(Compiler):
         return util.file_exists(self.executable())
 
     def compile_complex(self) -> bool:
-        # Modify the program
-        util.copy_file(self.source() + ".cc", "modified.cc")
-        ori = util.read_file("modified.cc")
+        mod = f"{self.source()}-modified.cc"
+        src = util.read_file(f"{self.source()}.{self.extension()}")
         main = util.read_file("main.cc")
         util.write_file(
-            "modified.cc",
-            """
+            mod,
+            f"""
 #define main main__3
 
-%s
+{src}
 
 #undef main
 #define main main__2
 
-%s
+{main}
 
 #undef main
 
-int main() {
+int main() {{
     return main__2();
-}
+}}
 
-"""
-            % (ori, main),
+""",
         )
 
-        # Compile modified program
         util.del_file(self.executable())
-        self.run_compiler("g++ " + self.flags2() + " modified.cc -o " + self.executable())
-        print(Style.BRIGHT + Fore.RED + "Compilation time exceeded!" + Style.RESET_ALL)
-        util.del_file(self.executable())
-        util.del_file("modified.cc")
-        return False
-
-        # We are almost there
-        util.del_file("modified.cc")
+        self.run_compiler(f"g++ {self.flags2()} {mod} -o {self.executable()}")
+        util.del_file(mod)
         if util.file_exists(self.executable()):
             return True
         else:
-            print(Style.BRIGHT + Fore.RED + "Unreported error." + Style.RESET_ALL)
-            util.del_file(self.executable())
+            show.error("Error in compilation with main.c")
             return False
 
 
@@ -257,7 +245,7 @@ class Compiler_JDK(Compiler):
 
     wrapper = """
 
-class WrapperMain {
+class SolutionWrapper {
 
     public static void main (String[] args) {
         try {
@@ -277,7 +265,7 @@ class WrapperMain {
         return "OpenJDK Runtime Environment"
 
     def executable(self) -> str:
-        return "Main.class"
+        return "SolutionWrapper.class"
 
     def flags1(self) -> str:
         return ""
@@ -289,37 +277,41 @@ class WrapperMain {
         return "java"
 
     def gen_wrapper(self):
-        util.write_file("wrapper.java", self.wrapper)
+        util.write_file("SolutionWrapper.java", self.wrapper)
 
     def del_wrapper(self):
-        util.del_file("wrapper.java")
+        util.del_file("SolutionWrapper.java")
 
     def compile_normal(self):
-        for f in glob.glob("*.class"):
-            util.del_file(f)
-        util.copy_file(self.source() + ".java", "Main.java")
         self.gen_wrapper()
-        self.run_compiler(f"javac {self.flags1()} wrapper.java")
+        self.run_compiler(f"javac {self.flags1()} solution.java")
+        self.run_compiler(f"javac {self.flags1()} SolutionWrapper.java")
         self.del_wrapper()
         return util.file_exists(self.executable())
 
-    def compile_complex(self):
+    def compile_complex(self) -> bool:
         # esta fet a sac!!! cal fer-ho be
 
         for f in glob.glob("*.class"):
             util.del_file(f)
         # create Solution.class
-        self.run_compiler(f"javac {self.flags1()} {self.source()}.java")
+        self.run_compiler(f"javac {self.flags1()} {self.source()}.{self.extension()}")
         # create Main.class
         self.run_compiler(f"javac {self.flags1()} main.java")
         # create JudgeMain.class
         self.gen_wrapper()
-        self.run_compiler(f"javac {self.flags1()} wrapper.java")
+        self.run_compiler(f"javac {self.flags1()} SolutionWrapper.java")
         self.del_wrapper()
-        return util.file_exists("Main.class")
+        for f in glob.glob("*.class"):
+            util.del_file(f)
+        return util.file_exists(self.executable())
 
     def execute_command(self) -> str:
-        return "Java Main"
+        return "java SolutionWrapper"
+
+    def cleanup(self) -> None:
+        for f in glob.glob("*.class"):
+            util.del_file(f)
 
 
 class Compiler_GHC(Compiler):
@@ -411,7 +403,7 @@ class Compiler_Python3(Compiler):
 
     def executable(self) -> str:
         # returs the same as the source file
-        return self.source() + self.extension()
+        return f"{self.source()}.{self.extension()}"
 
     def compile_normal(self):
         show.command("Python: nothing to compile")
