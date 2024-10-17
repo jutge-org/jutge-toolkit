@@ -273,7 +273,10 @@ def clean_files(forced=False):
     removed_list = []
     for dirpath, dirnames, filenames in os.walk("."):
         for filename in filenames:
-            if re.match(r".*\.exe|.*\.cor|problem\..*\.pdf|problem\..*\.ps|a\.out|.*\.class|.*~", filename):
+            if re.match(
+                r"__pycache__|solution-modified*|.*\.exe|.*\.cor|problem\..*\.pdf|problem\..*\.ps|a\.out|.*\.class|.*~",
+                filename,
+            ):
                 removed_list.append(dirpath + "/" + filename)
 
     if removed_list == []:
