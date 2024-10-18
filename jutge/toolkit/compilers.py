@@ -671,9 +671,11 @@ class Compiler_PRO2(Compiler):
         if not util.file_exists(self.executable()):
             return False
 
-        # no sé perquè fa això...
         util.system("(cd public && tar cf ../public.tar *)")
         util.system("(cd private && tar cf ../private.tar *)")
+
+        util.del_dir(workdir)
+
         return True
 
 

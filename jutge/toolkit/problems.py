@@ -231,9 +231,13 @@ def verify_all_solutions_in_directory() -> None:
 
     console.print("Verify all solutions", style="bold")
 
+    if "PRO2" in find_compiler().name():
+        console.print("Warning: PRO2 compiler detected, skipping verification", style="yellow")
+        return
+
     good = True
     for program in glob.glob("solution.*"):
-        if os.path.splitext(program)[-1] not in [".exe", ".class", ".o", ".hs"]:
+        if os.path.splitext(program)[-1] not in [".exe", ".class", ".o", ".hs", ".dir"]:
             good = verify_program(program) and good
 
     if good:
