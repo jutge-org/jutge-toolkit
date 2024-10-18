@@ -655,13 +655,17 @@ class Compiler_PRO2(Compiler):
         util.del_dir(workdir)
         os.mkdir(workdir)
 
+        if not util.file_exists("public"):
+            raise Exception("There is no public directory")
+        if not util.file_exists("private"):
+            raise Exception("There is no private directory")
+
         if util.file_exists("solution.cc"):
             util.copy_file("solution.cc", f"{workdir}/program.cc")
         elif util.file_exists("solution.hh"):
             util.copy_file("solution.hh", f"{workdir}/program.hh")
         else:
-            console.print("There is no solution.cc nor solution.hh", style="bold red")
-            return False
+            raise Exception("There is no solution.cc nor solution.hh file")
 
         util.system(f"cp public/* {workdir}")
         util.system(f"cp private/* {workdir}")
@@ -684,10 +688,10 @@ class Compiler_MakePRO2(Compiler):
     compilers.append("MakePRO2")
 
     def name(self) -> str:
-        return "Make for PRO2"
+        return "PRO2 Make"
 
     def executable(self) -> str:
-        return self.source() + ".makepro2.exe"
+        return f"{self.source()}.exe"
 
     def flags1(self) -> str:
         return ""
@@ -699,9 +703,6 @@ class Compiler_MakePRO2(Compiler):
         return "tar"
 
     def compile(self) -> bool:
-        util.del_file(self.executable())
-        util.del_dir(self.source() + ".dir")
-
         if not util.file_exists("solution"):
             raise Exception("There is no solution directory")
         if not util.file_exists("public"):
@@ -709,40 +710,25 @@ class Compiler_MakePRO2(Compiler):
         if not util.file_exists("private"):
             raise Exception("There is no private directory")
 
-        util.mkdir(self.source() + ".dir")
-        util.system("cp solution/*  public/* private/* " + self.source() + ".dir")
-        os.chdir(self.source() + ".dir")
+        workdir = f"{self.source()}.dir"
 
-        self.run_compiler("make program.exe 1> make.log")
+        util.del_file(self.executable())
+        util.del_dir(workdir)
+        util.mkdir(workdir)
+        util.system(f"cp solution/* public/* private/* {workdir}")
 
-        os.chdir("..")
+        with contextlib.chdir(workdir):
+            self.run_compiler("make program.exe 1> make.log")
+            if not util.file_exists("program.exe"):
+                return False
+            util.copy_file("program.exe", f"../{self.executable()}")
 
-        if util.file_exists(self.source() + ".dir/program.exe"):
-            util.copy_file(self.source() + ".dir/program.exe", "./" + self.executable())
+        util.system("(cd public && tar cf ../public.tar *)")
+        util.system("(cd private && tar cf ../private.tar *)")
+        util.system("(cd solution && tar cf ../solution.tar *)")
+        util.del_dir(workdir)
 
-        util.del_dir(self.source() + ".dir")
-
-        if util.file_exists(self.executable()):
-            util.system("(cd public && tar cf ../public.tar *)")
-            util.system("(cd private && tar cf ../private.tar *)")
-            util.system("(cd solution && tar cf ../solution.tar *)")
-            return True
-        else:
-            return False
-
-    def execute(self, tst, correct, iterations=1):
-        if correct:
-            ext = "cor"
-            print("./%s < %s.inp > %s.%s" % (self.executable(), tst, tst, ext), end="")
-        else:
-            ext = "makepro2.out"
-
-        """func.system("./%s < %s.inp > %s.%s" %
-                    (self.executable(), tst, tst, ext))"""
-        func = 'import os; os.system("./%s < %s.inp > %s.%s")' % (self.executable(), tst, tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-        # self.del_wrapper()
-        return time
+        return True
 
 
 ################################################################################

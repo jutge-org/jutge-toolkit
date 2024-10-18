@@ -1,0 +1,4 @@
+handler: std
+compilers: MakePRO2
+time_factor: [1.5, 1.5, 1.5]
+time_constant: [0.01, 0.01, 0.01]

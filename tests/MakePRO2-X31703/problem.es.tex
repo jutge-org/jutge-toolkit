@@ -1,0 +1,95 @@
+\Problem{Práctica de PRO2 - Primavera 2023 - entrega final provisional}
+
+\Statement
+
+
+Este problema permite hacer entregas de prueba de la práctica completa. 
+Tened en cuenta que:
+
+\begin{itemize}
+\item
+no es el canal para hacer la entrega definitiva de la práctica
+
+\item
+el problema del Jutge de la entrega definitiva {\bf puede contener
+juegos de prueba o condiciones diferentes} de los que aparecen en este
+problema
+
+\item
+las entregas realizadas en este problema no serán tenidas en cuenta
+para la nota de la práctica
+
+\item
+en esta entrega no pedimos carpetas generadas mediante {\tt doxygen},
+pero los ficheros de las clases pueden llevar todos los comentarios
+{\tt doxygen} que queráis; de hecho recomendamos que incluyáis las
+especificaciones de todas las operaciones y que sean lo más
+definitivas posible
+
+\end{itemize}
+
+\Input
+
+Una secuencia de instrucciones y datos que siguen el formato del enunciado de
+la práctica y del juego de pruebas público.
+
+\Output
+
+Una secuencia de resultados que siguen el formato del enunciado de la
+práctica y del juego de pruebas público.
+
+\Observation
+
+El Jutge prueba vuestras entregas mediante 4 juegos de pruebas:
+
+
+\begin{itemize}
+\item
+  sample: el juego de pruebas público
+\item
+  privat1: combinación de todos los juegos de pruebas de la entrega intermedia
+\item
+  privat2: un poco de todo, salvo eficiencia
+\item
+  privat3:  eficiencia 
+
+\end{itemize}
+
+
+En un fichero llamado {\tt practica.tar} tenéis que entregar
+\begin{itemize}
+\item
+  Los ficheros {.hh} y {.cc}  de las clases y el programa principal
+\item
+  El fichero Makefile, que usaremos para generar y probar el ejecutable
+\end{itemize}
+Tened en cuenta  las siguientes restricciones:
+\begin{itemize}
+\item
+  El fichero que contiene el programa principal se ha de llamar {\tt program.cc}
+\item
+  El Makefile ha de generar un ejecutable llamado {\tt program.exe} 
+\item
+  Es importante que uséis las opciones de compilación definidas en el menú Documentation $\rightarrow$ Compilers $\rightarrow$ PRO2 de {\tt www.jutge.org} para funcionar en igualdad de condiciones con el Jutge
+  %Altrament us arrisqueu a patir dos tipus de problemes: excés de temps durant la compilació ({\tt compilation time exceeded}) o excés de temps durant l'execució.
+\item
+  No usar la opción {\tt -D\_GLIBCXX\_DEBUG} o usarla de forma incorrecta
+  podrá ser penalizado
+\end{itemize}
+
+Producid el fichero {\tt practica.tar} con la instrucción Linux
+\begin{verbatim}
+tar -cvf practica.tar fitxer1 fitxer2 fitxer3 ...
+\end{verbatim}
+desde el directorio/carpeta donde tengáis los ficheros que vais a
+entregar.  Incluid en vuestro Makefile una regla con esta instrucción,
+de forma que el {\tt .tar} se pueda generar ejecutando {\tt make
+practica.tar}. Con eso reduciréis el riesgo de error en sucesivas
+entregas.  El Jutge no acepta {\tt .tar} donde los ficheros estén
+dentro de carpetas. Recomendamos usar {\tt GNU tar} para reducir el
+riesgo de que el fichero {\tt practica.tar} sea incompatible con el
+Jutge. 
+
+
+\Sample
+
