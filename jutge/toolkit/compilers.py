@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+import contextlib
 import glob
 import os
+import shlex
 import shutil
 import subprocess
 import timeit
@@ -647,43 +649,32 @@ class Compiler_PRO2(Compiler):
     def extension(self) -> str:
         return "cc"
 
-    def execute(self, tst, correct, iterations=1):
-        if correct:
-            ext = "cor"
-            print(f"./{self.executable()} < {tst}.inp > {tst}.{ext}", end="")
-        else:
-            ext = "pro2.out"
-
-        """func.system("./%s < %s.inp > %s.%s" %
-                    (self.executable(), tst, tst, ext))"""
-        func = 'import os; os.system("./%s < %s.inp > %s.%s")' % (self.executable(), tst, tst, ext)
-        time = timeit.timeit(func, number=iterations) / iterations
-        return time
-
     def compile(self) -> bool:
         util.del_file(self.executable())
-        util.del_dir(self.source() + ".dir")
-        os.mkdir(self.source() + ".dir")
+        workdir = f"{self.source()}.dir"
+        util.del_dir(workdir)
+        os.mkdir(workdir)
 
         if util.file_exists("solution.cc"):
-            util.system("cp solution.cc " + self.source() + ".dir/" + "program.cc")
+            util.copy_file("solution.cc", f"{workdir}.dir/program.cc")
         elif util.file_exists("solution.hh"):
-            util.system("cp solution.hh " + self.source() + ".dir/program.hh")
+            util.copy_file("solution.hh", f"{workdir}.dir/program.hh")
         else:
-            print("There is no solution.cc nor solution.hh")
-
-        util.system("cp public/* " + self.source() + ".dir")
-        util.system("cp private/* " + self.source() + ".dir")
-
-        os.chdir(self.source() + ".dir")
-        self.run_compiler(f"g++ {self.flags1()} *.cc -o ../{self.executable()}")
-        os.chdir("..")
-        if util.file_exists(self.executable()):
-            util.system("(cd public && tar cf ../public.tar *)")
-            util.system("(cd private && tar cf ../private.tar *)")
-            return True
-        else:
+            console.print("There is no solution.cc nor solution.hh", style="bold red")
             return False
+
+        util.system(f"cp public/* {workdir}")
+        util.system(f"cp private/* {workdir}")
+
+        with contextlib.chdir(workdir):
+            self.run_compiler(f"g++ {self.flags1()} *.cc -o ../{self.executable()}")
+        if not util.file_exists(self.executable()):
+            return False
+
+        # no sé perquè fa això...
+        util.system("(cd public && tar cf ../public.tar *)")
+        util.system("(cd private && tar cf ../private.tar *)")
+        return True
 
 
 class Compiler_MakePRO2(Compiler):

@@ -4,13 +4,15 @@
 from setuptools import setup
 from os import system
 
-version = "3.0.1"
+version = "4.0.0"
 
 setup(
     name="jutge-toolkit",
     packages=["jutge.toolkit"],
     install_requires=[
-		"chardet",
+        "typer",
+        "rich",
+        "chardet",
         "pyyaml",
         "colorama",
         "lizard",
@@ -28,7 +30,6 @@ setup(
         "pandas",
         "scipy",
         "simpy",
-		"typer",
     ],
     version=version,
     description="Toolkit to make problems for Jutge.org",

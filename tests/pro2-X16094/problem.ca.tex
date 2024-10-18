@@ -1,0 +1,35 @@
+\Problem{Modificacions de la classe Estudiant}
+
+\Statement
+
+Volem modificar la classe \emph{Estudiant} eliminant l'atribut
+privat \texttt{amb\_nota} que enregistra si l'estudiant té nota i modificant
+totes les funcions de la classe afectades per l'eliminació de l'atribut. Feu
+servir un valor especial de \texttt{nota}, per exemple -1, per a quan
+l'estudiant no tingui nota.
+
+En segon lloc, volem implementar noves operacions: els operadors $==$ i $!=$, i una altra que serveixi per exemple com a auxiliar
+d'un \texttt{sort} de vectors d'estudiants.
+
+\begin{verbatim}   
+  bool operator==(const Estudiant& est) const;
+  /* Pre: cert */
+  /* Post: el resultat indica si el p.i. i est tenen el mateix DNI */
+
+  bool operator!=(const Estudiant& est) const;
+  /* Pre: cert */
+  /* Post: el resultat indica si el p.i. i est tenen DNIs diferents */
+
+  static bool comp(const Estudiant& e1, const Estudiant& e2);
+  /* Pre: cert  */
+  /* Post: el resultat indica si e1 te DNI mes petit que e2 */
+\end{verbatim}
+
+No feu servir consultores de la classe, treballeu directament amb els camps.
+
+\Observation
+Tingueu en compte que als fitxers p\'ublics (icona del gatet) hi ha un  fitxer \texttt{Estudiant.hh} amb les novetats incorporades.
+  
+Noteu que només heu d'enviar el fitxer \texttt{Estudiant.cc}, i que el
+Jutge en prova totes les operacions. Per tant, abans d'enviar la
+solució al Jutge, assegureu-vos que funcionen correctament.
