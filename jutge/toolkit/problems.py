@@ -119,6 +119,7 @@ def make_reference_solution_in_directory() -> None:
     console.print("Making the reference solution", style="bold")
 
     compiler = find_compiler()
+    console.print(f"Using {compiler.name()} compiler", style="dim yellow")
     if not compiler.compile():
         fatal("Compilation error")
 
@@ -159,7 +160,7 @@ def make_reference_outputs_in_directory() -> None:
             os.rename("output.png", tst + ".cor")
         outsize = os.path.getsize(tst + ".cor")
 
-        console.print(f"time: {time:.6f}\t\tsize: {util.convert_bytes(outsize)}")
+        console.print(f"\ttime: {time:.6f} size: {util.convert_bytes(outsize)}")
 
 
 # ----------------------------------------------------------------------------
@@ -232,7 +233,7 @@ def verify_all_solutions_in_directory() -> None:
     console.print("Verify all solutions", style="bold")
 
     if "PRO2" in find_compiler().name():
-        console.print("Warning: PRO2 compiler detected, skipping verification", style="yellow")
+        console.print("Warning: PRO2 compiler detected, skipping verification", style="dim yellow")
         return
 
     good = True

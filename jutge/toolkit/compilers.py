@@ -675,6 +675,7 @@ class Compiler_PRO2(Compiler):
         if not util.file_exists(self.executable()):
             return False
 
+        print("Creating tar files")
         util.system("(cd public && tar cf ../public.tar *)")
         util.system("(cd private && tar cf ../private.tar *)")
 
@@ -688,7 +689,7 @@ class Compiler_MakePRO2(Compiler):
     compilers.append("MakePRO2")
 
     def name(self) -> str:
-        return "PRO2 Make"
+        return "MakePRO2"
 
     def executable(self) -> str:
         return f"{self.source()}.exe"
@@ -715,7 +716,9 @@ class Compiler_MakePRO2(Compiler):
         util.del_file(self.executable())
         util.del_dir(workdir)
         util.mkdir(workdir)
-        util.system(f"cp solution/* public/* private/* {workdir}")
+        for dir in ["public", "private", "solution"]:
+            for f in glob.glob(f"{dir}/*"):
+                shutil.copy(f, workdir)
 
         with contextlib.chdir(workdir):
             self.run_compiler("make program.exe 1> make.log")
@@ -723,9 +726,11 @@ class Compiler_MakePRO2(Compiler):
                 return False
             util.copy_file("program.exe", f"../{self.executable()}")
 
+        print("Creating tar files")
         util.system("(cd public && tar cf ../public.tar *)")
         util.system("(cd private && tar cf ../private.tar *)")
         util.system("(cd solution && tar cf ../solution.tar *)")
+
         util.del_dir(workdir)
 
         return True
