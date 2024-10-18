@@ -656,9 +656,9 @@ class Compiler_PRO2(Compiler):
         os.mkdir(workdir)
 
         if util.file_exists("solution.cc"):
-            util.copy_file("solution.cc", f"{workdir}.dir/program.cc")
+            util.copy_file("solution.cc", f"{workdir}/program.cc")
         elif util.file_exists("solution.hh"):
-            util.copy_file("solution.hh", f"{workdir}.dir/program.hh")
+            util.copy_file("solution.hh", f"{workdir}/program.hh")
         else:
             console.print("There is no solution.cc nor solution.hh", style="bold red")
             return False
