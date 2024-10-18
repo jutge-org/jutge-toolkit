@@ -10,6 +10,7 @@ setup(
     name="jutge-toolkit",
     packages=["jutge.toolkit"],
     install_requires=[
+		"chardet",
         "pyyaml",
         "colorama",
         "lizard",
@@ -27,6 +28,7 @@ setup(
         "pandas",
         "scipy",
         "simpy",
+		"typer",
     ],
     version=version,
     description="Toolkit to make problems for Jutge.org",
