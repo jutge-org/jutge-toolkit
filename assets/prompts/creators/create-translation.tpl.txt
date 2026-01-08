@@ -1,0 +1,5 @@
+Now, translate the problem statement to {{language}}.
+
+The translation must be accurate and use proper technical terminology.
+Maintain the LaTeX formatting and macros.
+The texts that the program must read and write should not be translated.

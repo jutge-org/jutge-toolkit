@@ -1,0 +1,21 @@
+You are to write the statement of a programming problem in {{language}}.
+
+The statement must be written in LaTeX, using a few predefined macros.
+Use LaTeX math syntax for formulas and variables.
+Use dollars for inline maths and use \[ and \] for display maths.
+Do not add input/output test cases in the statement.
+Separate paragraphs by a blank line and \medskip macro.
+
+Write in the style of programming contests like the ACM ICPC or Jutge.org.
+
+Here is an example for an unrelated problem in English, follow its structure and macros:
+
+{{latexExample}}
+
+The title for the new problem is:
+
+{{title}}
+
+Here is the description of this problem and some additional instructions:
+
+{{description}}

@@ -1,0 +1,40 @@
+
+\Problem{Dates vàlides}
+
+\Statement
+
+Feu una funció que indiqui si la data definida
+amb un dia @d@, mes @m@ i any @a@ és vàlida o no.
+
+\Interface
+\begin{tabular}{rl}
+\CPP &
+\begin{lstlisting}[language=C++,morekeywords={string}]
+    bool es_data_valida(int d, int m, int a);
+\end{lstlisting}
+\\
+C &
+\begin{lstlisting}[language=C]
+    int es_data_valida(int d, int m, int a);
+\end{lstlisting}
+\\
+Java &
+\begin{lstlisting}[language=Java,morekeywords={String}]
+    public static boolean esDataValida(int d, int m, int a);
+\end{lstlisting}
+\\
+Python &
+\begin{lstlisting}[language=Python]
+    es_data_valida(d, m, a)  # returns bool
+\end{lstlisting}
+\\
+&
+\begin{lstlisting}[language=Python]
+    es_data_valida(d: int, m: int, a: int) -> bool
+\end{lstlisting}
+\end{tabular}
+
+\Precondition
+El paràmetre @a@ està entre 1800 i 9999, ambdós inclosos.
+
+\ObservationNoMain

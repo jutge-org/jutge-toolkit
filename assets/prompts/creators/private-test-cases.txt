@@ -1,0 +1,6 @@
+Now, write a private test case file to check the correctness (not the efficiency) of the program.
+
+Only the input should be given, the output will be computed from it.
+Private test cases must be written in plain text format and in the same format that the program reads.
+Private test cases should cover edge cases.
+Limit the number of test cases to a dozen.

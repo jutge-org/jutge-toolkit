@@ -1,0 +1,26 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.indentSize": "tabSize",
+    "editor.detectIndentation": false,
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/.next": true,
+        "**/data/quizzes": true,
+        "**/prisma/generated": true
+    },
+    "explorer.sortOrder": "filesFirst",
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "[java]": {
+        "editor.defaultFormatter": "redhat.java"
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    }
+}

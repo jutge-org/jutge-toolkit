@@ -1,0 +1,46 @@
+
+\Problem{Valid dates}
+
+\Statement
+
+Write a function that tells if the date defined by
+a day @d@, month @m@ and year @y@ is valid or not.
+
+\Interface
+\begin{tabular}{rl}
+\CPP &
+\begin{lstlisting}[language=C++,morekeywords={string}]
+    bool is_valid_date(int d, int m, int y);
+\end{lstlisting}
+\\
+C &
+\begin{lstlisting}[language=C]
+    int is_valid_date(int d, int m, int y);
+\end{lstlisting}
+\\
+Java &
+\begin{lstlisting}[language=Java,morekeywords={String}]
+    public static boolean isValidDate(int d, int m, int y);
+\end{lstlisting}
+\\
+Python &
+\begin{lstlisting}[language=Python]
+    is_valid_date(d, m, y)  # returns bool
+\end{lstlisting}
+\\
+&
+\begin{lstlisting}[language=Python]
+    is_valid_date(d: int, m: int, y: int) -> bool
+\end{lstlisting}
+\end{tabular}
+
+\medskip
+
+To write this function,
+it is convinient to use the function for leap years
+of the exercise~\Link{problem://problems\@jutge.org:problems/p1/jpetit/traspas-funcio.pbm}.
+
+\Precondition
+The parameter @y@ is between 1800 and 9999, both included.
+
+\ObservationNoMain

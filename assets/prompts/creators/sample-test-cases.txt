@@ -1,0 +1,6 @@
+Now, write a sample test case file to illustrate the input that the program must read according to the problem statement.
+
+Only the input should be given, the output will be computed from it.
+Sample test cases must be written in plain text format and in the same format that the program reads.
+Sample test cases should be relatively small but cover interesting cases but not all edge cases.
+If the problem statement features some examples, include them as part of the sample test cases.

@@ -1,0 +1,10 @@
+Now, write a solution in {{proglang}} to solve this problem
+
+It must be written in an idiomatic way and only include relevant comments.
+The code must be efficient and handle all edge cases.
+The code must read from standard input and write to standard output.
+The code must be well written and easy to understand to novices.
+The code does not have to check the preconditions stated in the problem statement.
+Do not use any non-standard libraries.
+
+{{proglangPrompt}}

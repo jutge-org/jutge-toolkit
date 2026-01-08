@@ -1,0 +1,19 @@
+# Maximum of two integer numbers
+
+Write a program that reads two numbers and prints their maximum.
+
+## Input
+
+Input consists of two integer numbers.
+
+## Output
+
+Print a line with the maximum of the two numbers.
+
+## Author
+
+Unknown (en: Carlos Molina)
+
+## Draft
+
+Draft generated with **new-jutge-toolkit**.
