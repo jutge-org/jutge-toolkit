@@ -18,6 +18,7 @@ import { makeCmd } from './make'
 import { quizCmd } from './quiz'
 import { upgradeCmd } from './upgrade'
 import { uploadCmd } from './upload'
+import { askCmd } from './ask'
 
 program.name(Object.keys(packageJson.bin as Record<string, string>)[0] as string)
 program.alias(Object.keys(packageJson.bin as Record<string, string>)[1] as string)
@@ -40,6 +41,7 @@ if (settings.developer) {
 }
 program.addCommand(upgradeCmd)
 program.addCommand(aboutCmd)
+program.addCommand(askCmd)
 
 try {
     await program.parseAsync()

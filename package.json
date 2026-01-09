@@ -40,6 +40,8 @@
     },
     "files": [
         "dist",
+        "toolkit",
+        "docs",
         "assets"
     ],
     "dependencies": {
