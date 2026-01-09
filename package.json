@@ -1,7 +1,7 @@
 {
     "name": "@jutge.org/toolkit",
     "description": "Toolkit to prepare problems for Jutge.org",
-    "version": "4.1.0",
+    "version": "4.2.0",
     "homepage": "https://jutge.org",
     "author": {
         "name": "Jutge.org",
