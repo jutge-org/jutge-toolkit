@@ -85,5 +85,16 @@ bun publish
 echo ""
 echo "🎉 Successfully published version $NEW_VERSION to npm!"
 echo ""
-echo "Don't forget to push your changes and tags to git:"
-echo "  git push && git push --tags"
+
+# Ask whether to push to git
+read -p "Do you want to push changes and tags to git? (y/N): " push_confirm
+
+if [[ $push_confirm =~ ^[Yy]$ ]]; then
+    echo ""
+    echo "📤 Pushing to git..."
+    git push && git push --tags
+    echo "✅ Successfully pushed to git!"
+else
+    echo "⚠️  Skipping git push. Don't forget to push later:"
+    echo "  git push && git push --tags"
+fi
