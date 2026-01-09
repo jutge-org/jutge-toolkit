@@ -82,16 +82,14 @@ jtk --version
 
     4. **Test** by typing `gcc --version` in the terminal.
 
+    5. **Compile programs:**
+
+        ```bash
+        gcc myprogram.c -o myprogram.exe
+        g++ myprogram.cpp -o myprogram.exe
+        ```
+
     Other options are to install [MinGW-w64](http://mingw-w64.org/doku.php) or use the compiler provided by [MSYS2](https://www.msys2.org/).
-
-## Compile programs
-
-```bash
-gcc myprogram.c -o myprogram.exe
-g++ myprogram.cpp -o myprogram.exe
-```
-
-That's it! Just run `w64devkit.exe` whenever you need the compiler.
 
 - Java: You only need Java if you plan to use Java programs in your problems. The toolkit uses the `java` and `javac` commands to run and compile Java programs, respectively.
 
@@ -110,3 +108,7 @@ That's it! Just run `w64devkit.exe` whenever you need the compiler.
 - Set environment variables permanently with `[System.Environment]::SetEnvironmentVariable('VARIABLE', 'value', 'User')`.
 
 - Console font doesn't support Unicode: The default console font (Raster Fonts) doesn't support many Unicode characters. Change to a font like "Consolas", "Lucida Console", or "Cascadia Code" in your PowerShell window properties.
+
+```
+
+```
