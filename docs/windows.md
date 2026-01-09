@@ -73,7 +73,25 @@ jtk --version
 
 - C/C++ Compiler: You only need a C/C++ compiler if you plan to use C/C++ programs in your problems. The toolkit uses `gcc` and `g++` commands to compile C and C++ programs, respectively.
 
-    TBD: Describe how to install GCC/G++ on Windows (e.g., via MinGW or WSL).
+    We suggest using [w64devkit](https://github.com/skeeto/w64devkit), a portable C and C++ development kit for Windows. Here are the steps to install it:
+    1. **Download** the latest `.exe` file from https://github.com/skeeto/w64devkit/releases.
+
+    2. **Extract** by double-clicking the downloaded file and choosing a destination (e.g., `C:\w64devkit`).
+
+    3. **Run** `w64devkit.exe` from the extracted folder to open a terminal with gcc and g++ available.
+
+    4. **Test** by typing `gcc --version` in the terminal.
+
+    Other options are to install [MinGW-w64](http://mingw-w64.org/doku.php) or use the compiler provided by [MSYS2](https://www.msys2.org/).
+
+## Compile programs
+
+```bash
+gcc myprogram.c -o myprogram.exe
+g++ myprogram.cpp -o myprogram.exe
+```
+
+That's it! Just run `w64devkit.exe` whenever you need the compiler.
 
 - Java: You only need Java if you plan to use Java programs in your problems. The toolkit uses the `java` and `javac` commands to run and compile Java programs, respectively.
 
