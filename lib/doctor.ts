@@ -3,6 +3,9 @@ import terminalLink from 'terminal-link'
 import tui from './tui'
 import { nothing } from './utils'
 
+// Regular expression to split lines in a cross-platform way
+const lineSep = /\r?\n/
+
 export async function probePython3(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('python3 --version')
     const { stdout } = await execa({ reject: false })`python3 --version`
@@ -27,7 +30,7 @@ export async function probePythonModule(showInfo: boolean = false, module: strin
 export async function probeGCC(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('g++ --version')
     const { stdout } = await execa({ reject: false })`g++ --version`
-    const version = stdout.split('\n')[0]!.trim()
+    const version = stdout.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
     return stdout.startsWith('Apple clang') || stdout.startsWith('g++')
 }
@@ -35,7 +38,7 @@ export async function probeGCC(showInfo: boolean = false): Promise<boolean> {
 export async function probeHaskell(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('ghc --version')
     const { stdout } = await execa({ reject: false })`ghc --version`
-    const version = stdout.split('\n')[0]!.trim()
+    const version = stdout.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
     return stdout.startsWith('The Glorious Glasgow Haskell Compilation System')
 }
@@ -43,7 +46,7 @@ export async function probeHaskell(showInfo: boolean = false): Promise<boolean> 
 export async function probeClojure(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('clj --version')
     const { stdout } = await execa({ reject: false })`clj --version`
-    const version = stdout.split('\n')[0]!.trim()
+    const version = stdout.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
     return stdout.startsWith('Clojure')
 }
@@ -51,7 +54,7 @@ export async function probeClojure(showInfo: boolean = false): Promise<boolean> 
 export async function probeJava(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('javac -version')
     const { stdout } = await execa({ reject: false })`javac -version`
-    const version = stdout.split('\n')[0]!.trim()
+    const version = stdout.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
     return stdout.startsWith('javac')
 }
@@ -59,7 +62,7 @@ export async function probeJava(showInfo: boolean = false): Promise<boolean> {
 export async function probeRust(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('rustc --version')
     const { stdout } = await execa({ reject: false })`rustc --version`
-    const version = stdout.split('\n')[0]!.trim()
+    const version = stdout.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
     return stdout.startsWith('rustc')
 }
@@ -67,27 +70,23 @@ export async function probeRust(showInfo: boolean = false): Promise<boolean> {
 export async function probePdfLaTeX(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('pdflatex --version')
     const { stdout } = await execa({ reject: false })`pdflatex --version`
-    const version = stdout.split('\n')[0]!.trim()
+    const version = stdout.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
-    return true
     return stdout.includes('pdfTeX')
 }
 
 export async function probeXeLaTeX(showInfo: boolean = false): Promise<boolean> {
-    console.log('SOMHI')
     if (showInfo) tui.command('xelatex --version')
     const { stdout } = await execa({ reject: false })`xelatex --version`
-    console.log('OUTPUT:', stdout)
-    const version = stdout.split('\n')[0]!.trim()
+    const version = stdout.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
-    return true
     return stdout.includes('XeTeX')
 }
 
 export async function probePandoc(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('pandoc --version')
     const { stdout } = await execa({ reject: false })`pandoc --version`
-    const version = stdout.split('\n')[0]!.trim()
+    const version = stdout.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
     return stdout.startsWith('pandoc') && stdout.includes('+lua')
 }
@@ -95,7 +94,7 @@ export async function probePandoc(showInfo: boolean = false): Promise<boolean> {
 export async function probeImageMagick(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('magick --version')
     const { stdout } = await execa({ reject: false })`magick --version`
-    const version = stdout.split('\n')[0]!.trim()
+    const version = stdout.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
     return stdout.startsWith('Version: ImageMagick')
 }
