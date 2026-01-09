@@ -77,7 +77,7 @@ export async function probeXeLaTeX(showInfo: boolean = false): Promise<boolean> 
     const { stdout } = await execa({ reject: false })`xelatex --version`
     const version = stdout.split('\n')[0]!.trim()
     if (showInfo) console.log(version)
-    return stdout.startsWith('XeTeX')
+    return stdout.includes('XeTeX')
 }
 
 export async function probePandoc(showInfo: boolean = false): Promise<boolean> {
