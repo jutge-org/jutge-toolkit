@@ -76,6 +76,7 @@ export async function probePdfLaTeX(showInfo: boolean = false): Promise<boolean>
 export async function probeXeLaTeX(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('xelatex --version')
     const { stdout } = await execa({ reject: false })`xelatex --version`
+    console.log('OUTPUT:', stdout)
     const version = stdout.split('\n')[0]!.trim()
     if (showInfo) console.log(version)
     return true
