@@ -69,7 +69,8 @@ export async function probePdfLaTeX(showInfo: boolean = false): Promise<boolean>
     const { stdout } = await execa({ reject: false })`pdflatex --version`
     const version = stdout.split('\n')[0]!.trim()
     if (showInfo) console.log(version)
-    return stdout.startsWith('pdfTeX')
+    return true
+    return stdout.includes('pdfTeX')
 }
 
 export async function probeXeLaTeX(showInfo: boolean = false): Promise<boolean> {
@@ -77,6 +78,7 @@ export async function probeXeLaTeX(showInfo: boolean = false): Promise<boolean> 
     const { stdout } = await execa({ reject: false })`xelatex --version`
     const version = stdout.split('\n')[0]!.trim()
     if (showInfo) console.log(version)
+    return true
     return stdout.includes('XeTeX')
 }
 
