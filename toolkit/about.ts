@@ -21,6 +21,9 @@ export const aboutCmd = new Command('about')
         for (const contributor of packageJson.contributors!) {
             showPerson(contributor)
         }
+        tui.print('')
+        tui.print('Documentation:')
+        tui.url('https://github.com/jutge-org/new-jutge-toolkit/tree/main/docs')
     })
 
 function showPerson(person: string | { name: string; email?: string; url?: string }) {
