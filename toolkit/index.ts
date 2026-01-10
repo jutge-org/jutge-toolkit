@@ -25,6 +25,7 @@ program.alias(Object.keys(packageJson.bin as Record<string, string>)[1] as strin
 program.version(packageJson.version)
 program.description(packageJson.description!)
 program.helpCommand('help [command]', 'Display help for command') // To get the message with uppercase :-)
+program.addHelpText('after', '\nMore documentation:\n  https://github.com/jutge-org/new-jutge-toolkit/tree/main/docs')
 
 program.addCommand(configCmd)
 program.addCommand(cloneCmd)
