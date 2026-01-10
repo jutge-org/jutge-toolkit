@@ -53,10 +53,12 @@ export async function probeClojure(showInfo: boolean = false): Promise<boolean> 
 
 export async function probeJava(showInfo: boolean = false): Promise<boolean> {
     if (showInfo) tui.command('javac -version')
-    const { stdout } = await execa({ reject: false })`javac -version`
-    const version = stdout.split(lineSep)[0]!.trim()
+    // funnily, javac writes its version to stderr in some implementations
+    const { stdout, stderr } = await execa({ reject: false })`javac -version`
+    const output = stdout || stderr
+    const version = output.split(lineSep)[0]!.trim()
     if (showInfo) console.log(version)
-    return stdout.startsWith('javac')
+    return output.startsWith('javac')
 }
 
 export async function probeRust(showInfo: boolean = false): Promise<boolean> {
