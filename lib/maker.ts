@@ -482,22 +482,6 @@ Draft generated with \\textbf{new-jutge-toolkit}.
             return
         }
 
-        // check magick engine
-        if (!(await doctor.probeImageMagick())) {
-            tui.error('ImageMagick (magick) not found')
-            return
-        }
-
-        // convert .eps files to png
-        // TODO: Why?
-        /*
-        const files = (await Array.fromAsync(glob('*.eps', { cwd: tmpDir }))).sort()
-        for (const file of files) {
-            tui.command(`magick ${file} ${file.replace(/\.eps$/, '.png')}`)
-            await execa({ cwd: tmpDir })`magick ${file} ${file.replace(/\.eps$/, '.png')}`
-        }
-        */
-
         // create lua files
         const luaSource = join(projectDir(), 'assets', 'lua', 'fixCodeBlocks.lua')
         await cp(luaSource, join(tmpDir, 'fixCodeBlocks.lua'))

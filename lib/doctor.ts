@@ -91,14 +91,6 @@ export async function probePandoc(showInfo: boolean = false): Promise<boolean> {
     return stdout.startsWith('pandoc') && stdout.includes('+lua')
 }
 
-export async function probeImageMagick(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('magick --version')
-    const { stdout } = await execa({ reject: false })`magick --version`
-    const version = stdout.split(lineSep)[0]!.trim()
-    if (showInfo) console.log(version)
-    return stdout.startsWith('Version: ImageMagick')
-}
-
 export async function checkPython3(): Promise<void> {
     if (await probePython3(true)) {
         tui.success('Python3 seems installed')
@@ -189,16 +181,6 @@ export async function checkPandoc(): Promise<void> {
         tui.warning('Pandoc with Lua support does not appear to be installed')
         tui.print('You will not be able to generate text statements (HTML, TXT, MD)')
         tui.print('See https://pandoc.org/installing.html')
-    }
-}
-
-export async function checkImageMagick(): Promise<void> {
-    if (await probeImageMagick(true)) {
-        tui.success('ImageMagick seems installed')
-    } else {
-        tui.warning('ImageMagick does not appear to be installed')
-        tui.print('You will not be able to convert images for text statements')
-        tui.print('See https://imagemagick.org/script/download.php')
     }
 }
 

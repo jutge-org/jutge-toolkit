@@ -69,12 +69,6 @@ Choose the installation instructions for your operating system:
         sudo apt-get install pandoc
         ```
 
-    - **ImageMagick** (for image processing):
-
-        ```bash
-        sudo apt-get install imagemagick
-        ```
-
     - **Python 3** (if using Python in your problems):
 
         ```bash
@@ -141,12 +135,6 @@ Choose the installation instructions for your operating system:
         brew install pandoc
         ```
 
-    - **ImageMagick** (for image processing):
-
-        ```bash
-        brew install imagemagick
-        ```
-
     - **Python 3** (if using Python):
 
         ```bash
@@ -204,12 +192,6 @@ Choose the installation instructions for your operating system:
 
         ```powershell
         winget install --id JohnMacFarlane.Pandoc
-        ```
-
-    - **ImageMagick** (for image processing):
-
-        ```powershell
-        winget install --id ImageMagick.ImageMagick
         ```
 
     - **Python 3** (if using Python):

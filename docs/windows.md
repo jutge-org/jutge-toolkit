@@ -59,14 +59,6 @@ jtk --version
     winget install --id JohnMacFarlane.Pandoc
     ```
 
-- Image Magick: ImageMagick is required to process images in problem statements. It is not necessary but recommended.
-
-    Install it easily using the Windows Package Manager (`winget`):
-
-    ```powershell
-    winget install --id ImageMagick.ImageMagick
-    ```
-
 - Python 3: You only need Python 3 if you plan to use Python scripts in your problems.
 
     Install Python from https://www.python.org/downloads/windows/. Make sure to check the option to add Python to the system PATH during installation. The toolkit uses `python3` command to run Python scripts.
