@@ -6,99 +6,219 @@ import { nothing } from './utils'
 // Regular expression to split lines in a cross-platform way
 const lineSep = /\r?\n/
 
-export async function probePython3(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('python3 --version')
+// Memoization utility that caches Promises using a Map
+// Caches the Promise itself, so concurrent calls share the same Promise
+function memoize<Args extends unknown[], Return>(
+    fn: (...args: Args) => Promise<Return>,
+    keyFn?: (...args: Args) => string,
+): (...args: Args) => Promise<Return> {
+    const cache = new Map<string, Promise<Return>>()
+    return (...args: Args): Promise<Return> => {
+        const key = keyFn ? keyFn(...args) : JSON.stringify(args)
+        if (!cache.has(key)) {
+            cache.set(key, fn(...args))
+        }
+        return cache.get(key)!
+    }
+}
+
+// Shared helpers that execute commands and return both result and version info
+// These are memoized so commands are only executed once
+type ProbeResult = {
+    result: boolean
+    version: string
+    stdout?: string
+    stderr?: string
+}
+
+async function _checkPython3(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`python3 --version`
     const version = stdout.trim()
-    if (showInfo) console.log(version)
-    return version.startsWith('Python 3')
-}
-
-export async function probePythonModule(showInfo: boolean = false, module: string): Promise<boolean> {
-    if (showInfo) tui.command(`python3 -m pip show ${module}`)
-    const { exitCode } = await execa({ reject: false })`python3 -m pip show ${module}`
-    if (showInfo) {
-        if (exitCode === 0) {
-            tui.success(`Module ${module} is installed`)
-        } else {
-            tui.warning(`Module ${module} is not installed`)
-        }
+    return {
+        result: version.startsWith('Python 3'),
+        version,
+        stdout,
     }
-    return exitCode === 0
 }
 
-export async function probeGCC(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('g++ --version')
+const checkPython3Memoized = memoize(_checkPython3)
+
+export async function probePython3(): Promise<boolean> {
+    const { result } = await checkPython3Memoized()
+    return result
+}
+
+async function _checkPythonModule(module: string): Promise<ProbeResult> {
+    const { exitCode, stdout, stderr } = await execa({ reject: false })`python3 -m pip show ${module}`
+    return {
+        result: exitCode === 0,
+        version: exitCode === 0 ? 'installed' : 'not installed',
+        stdout,
+        stderr,
+    }
+}
+
+const checkPythonModuleMemoized = memoize(_checkPythonModule, (module: string) => module)
+
+export async function probePythonModule(module: string): Promise<boolean> {
+    const { result } = await checkPythonModuleMemoized(module)
+    return result
+}
+
+async function _checkGCC(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`g++ --version`
     const version = stdout.split(lineSep)[0]!.trim()
-    if (showInfo) console.log(version)
-    return stdout.startsWith('Apple clang') || stdout.startsWith('g++')
+    return {
+        result: stdout.startsWith('Apple clang') || stdout.startsWith('g++'),
+        version,
+        stdout,
+    }
 }
 
-export async function probeHaskell(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('ghc --version')
+const checkGCCMemoized = memoize(_checkGCC)
+
+export async function probeGCC(): Promise<boolean> {
+    const { result } = await checkGCCMemoized()
+    return result
+}
+
+async function _checkHaskell(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`ghc --version`
     const version = stdout.split(lineSep)[0]!.trim()
-    if (showInfo) console.log(version)
-    return stdout.startsWith('The Glorious Glasgow Haskell Compilation System')
+    return {
+        result: stdout.startsWith('The Glorious Glasgow Haskell Compilation System'),
+        version,
+        stdout,
+    }
 }
 
-export async function probeClojure(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('clj --version')
+const checkHaskellMemoized = memoize(_checkHaskell)
+
+export async function probeHaskell(): Promise<boolean> {
+    const { result } = await checkHaskellMemoized()
+    return result
+}
+
+async function _checkClojure(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`clj --version`
     const version = stdout.split(lineSep)[0]!.trim()
-    if (showInfo) console.log(version)
-    return stdout.startsWith('Clojure')
+    return {
+        result: stdout.startsWith('Clojure'),
+        version,
+        stdout,
+    }
 }
 
-export async function probeJava(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('javac -version')
+const checkClojureMemoized = memoize(_checkClojure)
+
+export async function probeClojure(): Promise<boolean> {
+    const { result } = await checkClojureMemoized()
+    return result
+}
+
+async function _checkJava(): Promise<ProbeResult> {
     // funnily, javac writes its version to stderr in some implementations
     const { stdout, stderr } = await execa({ reject: false })`javac -version`
     const output = stdout || stderr
     const version = output.split(lineSep)[0]!.trim()
-    if (showInfo) console.log(version)
-    return output.startsWith('javac')
+    return {
+        result: output.startsWith('javac'),
+        version,
+        stdout,
+        stderr,
+    }
 }
 
-export async function probeRust(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('rustc --version')
+const checkJavaMemoized = memoize(_checkJava)
+
+export async function probeJava(): Promise<boolean> {
+    const { result } = await checkJavaMemoized()
+    return result
+}
+
+async function _checkRust(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`rustc --version`
     const version = stdout.split(lineSep)[0]!.trim()
-    if (showInfo) console.log(version)
-    return stdout.startsWith('rustc')
+    return {
+        result: stdout.startsWith('rustc'),
+        version,
+        stdout,
+    }
 }
 
-export async function probePdfLaTeX(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('pdflatex --version')
+const checkRustMemoized = memoize(_checkRust)
+
+export async function probeRust(): Promise<boolean> {
+    const { result } = await checkRustMemoized()
+    return result
+}
+
+async function _checkPdfLaTeX(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`pdflatex --version`
     const version = stdout.split(lineSep)[0]!.trim()
-    if (showInfo) console.log(version)
-    return stdout.includes('pdfTeX')
+    return {
+        result: stdout.includes('pdfTeX'),
+        version,
+        stdout,
+    }
 }
 
-export async function probeXeLaTeX(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('xelatex --version')
+const checkPdfLaTeXMemoized = memoize(_checkPdfLaTeX)
+
+export async function probePdfLaTeX(): Promise<boolean> {
+    const { result } = await checkPdfLaTeXMemoized()
+    return result
+}
+
+async function _checkXeLaTeX(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`xelatex --version`
     const version = stdout.split(lineSep)[0]!.trim()
-    if (showInfo) console.log(version)
-    return stdout.includes('XeTeX')
+    return {
+        result: stdout.includes('XeTeX'),
+        version,
+        stdout,
+    }
 }
 
-export async function probePandoc(showInfo: boolean = false): Promise<boolean> {
-    if (showInfo) tui.command('pandoc --version')
+const checkXeLaTeXMemoized = memoize(_checkXeLaTeX)
+
+export async function probeXeLaTeX(): Promise<boolean> {
+    const { result } = await checkXeLaTeXMemoized()
+    return result
+}
+
+async function _checkPandoc(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`pandoc --version`
     const version = stdout.split(lineSep)[0]!.trim()
-    if (showInfo) console.log(version)
-    return stdout.startsWith('pandoc') && stdout.includes('+lua')
+    return {
+        result: stdout.startsWith('pandoc') && stdout.includes('+lua'),
+        version,
+        stdout,
+    }
+}
+
+const checkPandocMemoized = memoize(_checkPandoc)
+
+export async function probePandoc(): Promise<boolean> {
+    const { result } = await checkPandocMemoized()
+    return result
 }
 
 export async function checkPython3(): Promise<void> {
-    if (await probePython3(true)) {
+    tui.command('python3 --version')
+    const { result, version } = await checkPython3Memoized()
+    console.log(version)
+    if (result) {
         tui.success('Python3 seems installed')
         const modules = 'turtle-pil yogi easyinput'.split(' ')
         for (const m of modules) {
-            await probePythonModule(true, m)
+            tui.command(`python3 -m pip show ${m}`)
+            const { result: isModuleInstalled } = await checkPythonModuleMemoized(m)
+            if (isModuleInstalled) {
+                tui.success(`Module ${m} is installed`)
+            } else {
+                tui.warning(`Module ${m} is not installed`)
+            }
         }
     } else {
         tui.warning('Python3 does not appear to be installed')
@@ -107,7 +227,10 @@ export async function checkPython3(): Promise<void> {
     }
 }
 export async function checkGCC(): Promise<void> {
-    if (await probeGCC(true)) {
+    tui.command('g++ --version')
+    const { result, version } = await checkGCCMemoized()
+    console.log(version)
+    if (result) {
         tui.success('C/C++ seems installed')
     } else {
         tui.warning('C/C++ does not appear to be installed')
@@ -117,7 +240,10 @@ export async function checkGCC(): Promise<void> {
 }
 
 export async function checkHaskell(): Promise<void> {
-    if (await probeHaskell(true)) {
+    tui.command('ghc --version')
+    const { result, version } = await checkHaskellMemoized()
+    console.log(version)
+    if (result) {
         tui.success('Haskell seems installed')
     } else {
         tui.warning('Haskell does not appear to be installed')
@@ -127,7 +253,10 @@ export async function checkHaskell(): Promise<void> {
 }
 
 export async function checkClojure(): Promise<void> {
-    if (await probeClojure(true)) {
+    tui.command('clj --version')
+    const { result, version } = await checkClojureMemoized()
+    console.log(version)
+    if (result) {
         tui.success('Clojure seems installed')
     } else {
         tui.warning('Clojure does not appear to be installed')
@@ -137,7 +266,10 @@ export async function checkClojure(): Promise<void> {
 }
 
 export async function checkJava(): Promise<void> {
-    if (await probeJava(true)) {
+    tui.command('javac -version')
+    const { result, version } = await checkJavaMemoized()
+    console.log(version)
+    if (result) {
         tui.success('Java seems installed')
     } else {
         tui.warning('Java does not appear to be installed')
@@ -147,7 +279,10 @@ export async function checkJava(): Promise<void> {
 }
 
 export async function checkRust(): Promise<void> {
-    if (await probeRust(true)) {
+    tui.command('rustc --version')
+    const { result, version } = await checkRustMemoized()
+    console.log(version)
+    if (result) {
         tui.success('Rust seems installed')
     } else {
         tui.warning('Rust does not appear to be installed')
@@ -157,7 +292,10 @@ export async function checkRust(): Promise<void> {
 }
 
 export async function checkPdfLaTeX(): Promise<void> {
-    if (await probePdfLaTeX(true)) {
+    tui.command('pdflatex --version')
+    const { result, version } = await checkPdfLaTeXMemoized()
+    console.log(version)
+    if (result) {
         tui.success('LaTeX seems installed')
     } else {
         tui.warning('LaTeX does not appear to be installed')
@@ -167,7 +305,10 @@ export async function checkPdfLaTeX(): Promise<void> {
 }
 
 export async function checkXeLaTeX(): Promise<void> {
-    if (await probeXeLaTeX(true)) {
+    tui.command('xelatex --version')
+    const { result, version } = await checkXeLaTeXMemoized()
+    console.log(version)
+    if (result) {
         tui.success('XeLaTeX seems installed')
     } else {
         tui.warning('XeLaTeX does not appear to be installed')
@@ -177,7 +318,10 @@ export async function checkXeLaTeX(): Promise<void> {
 }
 
 export async function checkPandoc(): Promise<void> {
-    if (await probePandoc(true)) {
+    tui.command('pandoc --version')
+    const { result, version } = await checkPandocMemoized()
+    console.log(version)
+    if (result) {
         tui.success('Pandoc with Lua support seems installed')
     } else {
         tui.warning('Pandoc with Lua support does not appear to be installed')
