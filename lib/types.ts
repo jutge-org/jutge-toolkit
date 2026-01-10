@@ -1,11 +1,10 @@
-import { title } from 'node:process'
 import { z } from 'zod'
 
 export const Handler = z.object({
     handler: z.enum(['std', 'graphic', 'quiz']).default('std'),
     solution: z.string().default('C++'),
     source_modifier: z.enum(['none', 'no_main', 'structs']).default('none'),
-    compilers: z.enum(['RunPython', 'RunHaskell', 'RunClojure', 'GHC']).nullable().default(null),
+    compilers: z.enum(getDefinedCompilerIds()).nullable().default(null),
 })
 
 export type Handler = z.infer<typeof Handler>
@@ -156,3 +155,61 @@ export const QuizzQuestion = z.discriminatedUnion('type', [
 ])
 
 export type QuizzQuestion = z.infer<typeof QuizzQuestion>
+
+function getDefinedCompilerIds(): string[] {
+    return [
+        'BEEF',
+        'Chicken',
+        'Circuits',
+        'Clang',
+        'Clang++17',
+        'CLISP',
+        'Clojure',
+        'Codon',
+        'Crystal',
+        'Erlang',
+        'F2C',
+        'FBC',
+        'FPC',
+        'G++',
+        'G++11',
+        'G++17',
+        'GCC',
+        'GCJ',
+        'GDC',
+        'GFortran',
+        'GHC',
+        'GNAT',
+        'Go',
+        'GObjC',
+        'GPC',
+        'Guile',
+        'IVL08',
+        'JDK',
+        'Julia',
+        'Kotlin',
+        'Lua',
+        'MakePRO2',
+        'MonoCS',
+        'MyPy',
+        'Nim',
+        'nodejs',
+        'P1++',
+        'P2C',
+        'Perl',
+        'PHP',
+        'PRO2',
+        'Python',
+        'Python3',
+        'Quiz',
+        'R',
+        'Ruby',
+        'RunClojure',
+        'RunHaskell',
+        'RunPython',
+        'Rust',
+        'Stalin',
+        'WS',
+        'Zig',
+    ]
+}
