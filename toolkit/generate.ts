@@ -161,16 +161,21 @@ Provide an interesting prompt to customize the image content. For example:
     - "A star made of sparkling diamonds on a black background."
     - "A minimalist image with a white background using Van Gogh style."
 
+If no prompt is provided, the original problem title will be used.
+
 The new image will be saved as award.png in the problem directory, overriding any existing file.`,
     )
 
     .option('-d, --directory <path>', 'problem directory', '.')
     .option('-m, --model <model>', 'graphic AI model to use', 'openai/dall-e-3')
-    .argument('[prompt]', 'prompt to generate the image', 'A colorful image on a white background. ')
+    .argument('[prompt]', 'prompt to generate the image', '')
 
     .action(async (prompt, { directory, model }) => {
         const output = join(directory, 'award.png')
         const problem = await newProblem(directory)
+        if (prompt.trim() === '') {
+            prompt = problem.problemLangYmls[problem.originalLanguage!].title || 'A colorful award'
+        }
         const image = await generateImage(model, prompt)
         await sharp(image).resize(512, 512).toFile(output)
         await tui.image(output, 20, 10)
