@@ -1,7 +1,7 @@
 import { encode } from 'gpt-tokenizer'
 
 import { estimateCost } from 'gpt-tokenizer/model/gpt-5'
-import { igniteModel, LlmModel, loadModels, logger, Message } from 'multi-llm-ts'
+import { igniteModel, LlmModel, loadModels, logger, Message, type LlmResponse } from 'multi-llm-ts'
 import OpenAI from 'openai'
 import tui from './tui'
 import ora from 'ora'
@@ -15,7 +15,11 @@ export async function complete(model: string, systemPrompt: string, userPrompt: 
     const providerName = parts[0]!
     const modelName = parts[1]!
 
-    const config = { apiKey: process.env[keys[providerName]!] || '' }
+    const apiKey = process.env[keys[providerName]!] || ''
+    if (!apiKey) {
+        throw new Error(`Environment variable ${keys[providerName]} not set`)
+    }
+    const config = { apiKey }
 
     const models = await loadModels(providerName, config)
     const chat = models!.chat.find((m) => m.id === modelName)!
@@ -25,8 +29,15 @@ export async function complete(model: string, systemPrompt: string, userPrompt: 
     if (settings.showPrompts) tui.gray(`[SYSTEM PROMPT] ${systemPrompt}`)
     if (settings.showPrompts) tui.gray(`[USER PROMPT] ${userPrompt}`)
     const spinner = ora(`Generating response with model ${model}`).start()
-    const response = await bot.complete(messages)
+    let response: LlmResponse
+    try {
+        response = await bot.complete(messages)
+    } catch (error) {
+        spinner.stop()
+        throw error
+    }
     spinner.stop()
+    console.log(response)
     const answer = response.content!
     if (settings.showAnswers) tui.gray(`[ANSWER] ${answer}`)
     return answer
@@ -39,7 +50,13 @@ export async function listModels(): Promise<ModelInfo> {
     const providers = Object.keys(keys).sort()
     for (const providerName of providers) {
         if (providerName === 'ollama') continue // Ollama models are local, skip for now
-        const config = { apiKey: process.env[keys[providerName]!] || '' }
+
+        const apiKey = process.env[keys[providerName]!] || ''
+        if (!apiKey) {
+            throw new Error(`Environment variable ${keys[providerName]} not set`)
+        }
+        const config = { apiKey }
+
         const models = await loadModels(providerName, config)
         if (models === null) continue
         result[providerName] = {}
