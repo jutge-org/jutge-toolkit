@@ -102,7 +102,7 @@ export abstract class Compiler {
     ): Promise<void> {
         const exePath = `${sourcePath}.exe`
 
-        const fullExecutablePath = resolve(exePath)
+        const fullExecutablePath = resolve(join(directory, exePath))
         await this.rmInDir(directory, outputPath)
         const input = await this.getInput(directory, inputPath)
 

@@ -25,7 +25,7 @@ export const makeCmd = new Command('make')
         }
 
         console.log()
-        // await tui.image(join(projectDir(), 'assets', 'images', 'jutge-toolkit.png'), 8, 4)
+        await tui.image(join(projectDir(), 'assets', 'images', 'jutge-toolkit.png'), 8, 4)
 
         const errors: Record<string, string> = {} // directory -> error message
 
@@ -49,7 +49,7 @@ export const makeCmd = new Command('make')
                         await maker.makeExecutables()
                     }
                     if (tasks.includes('cor')) {
-                        await maker.makeCorrects()
+                        await maker.makeCorrectOutputs()
                     }
                     if (tasks.includes('pdf')) {
                         await maker.makePdfStatements()

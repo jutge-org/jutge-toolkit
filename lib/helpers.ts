@@ -44,5 +44,5 @@ export async function findRealDirectories(directories: string[]): Promise<string
             }
         }
     }
-    return realDirectories
+    return realDirectories.sort()
 }

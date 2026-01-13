@@ -117,7 +117,8 @@ function json(content: any): void {
 }
 
 async function image(path: string, width: number, height: number): Promise<void> {
-    console.log(await terminalImage.file(path, { width, height }))
+    // for some strange reason does not work anymore
+    // console.log(await terminalImage.file(path, { width, height }))
 }
 
 function fileLink(dir: string, path?: string): string {

@@ -63,7 +63,7 @@ export class Maker {
 
     public async makeProblem() {
         await this.makeGoldenExecutable()
-        await this.makeCorrects()
+        await this.makeCorrectOutputs()
         await this.checkSolutions()
         await this.makePdfStatements()
         await this.makeTextualStatements()
@@ -137,7 +137,7 @@ export class Maker {
         }
     }
 
-    async makeCorrect(testcase: string, compiler: Compiler, sourcePath: string): Promise<ExecutionResult> {
+    async makeCorrectOutput(testcase: string, compiler: Compiler, sourcePath: string): Promise<ExecutionResult> {
         return await this.runTestcase(
             testcase,
             `${testcase}.inp`,
@@ -188,14 +188,14 @@ export class Maker {
         }
     }
 
-    public async makeCorrects() {
+    public async makeCorrectOutputs() {
         const compiler = this.selectCompiler()
         await tui.section(`Making correct outputs with golden solution`, async () => {
-            await tui.section(`Executing testcases using ${compiler.name()}`, async () => {
+            await tui.section(`Using ${compiler.name()}`, async () => {
                 const results: ExecutionResult[] = []
 
                 for (const testcase of this.problem.testcases) {
-                    results.push(await this.makeCorrect(testcase, compiler, this.problem.goldenSolution!))
+                    results.push(await this.makeCorrectOutput(testcase, compiler, this.problem.goldenSolution!))
                 }
 
                 console.log()
