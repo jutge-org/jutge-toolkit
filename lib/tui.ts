@@ -1,3 +1,4 @@
+import { highlight } from 'cli-highlight'
 import boxen from 'boxen'
 import chalk from 'chalk'
 import { marked } from 'marked'
@@ -108,12 +109,12 @@ async function markdown(content: string): Promise<void> {
 
 function yaml(content: any): void {
     const output = YAML.stringify(content, null, 2).trim()
-    print(output)
+    print(highlight(output, { language: 'yaml' }))
 }
 
 function json(content: any): void {
     const output = JSON.stringify(content, null, 2)
-    print(output)
+    print(highlight(output, { language: 'json' }))
 }
 
 async function image(path: string, width: number, height: number): Promise<void> {
