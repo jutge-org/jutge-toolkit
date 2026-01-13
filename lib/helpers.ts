@@ -1,7 +1,7 @@
 import { exists } from 'fs/promises'
 import { projectDir, readText } from './utils'
 import { join } from 'path'
-import { normalize, resolve } from 'node:path'
+import { normalize, relative, resolve } from 'node:path'
 import { languageNames } from './data'
 
 export function getTitleFromStatement(statement: string): string | null {
@@ -44,5 +44,5 @@ export async function findRealDirectories(directories: string[]): Promise<string
             }
         }
     }
-    return realDirectories.sort()
+    return realDirectories.map((d) => normalize(d)).sort()
 }
