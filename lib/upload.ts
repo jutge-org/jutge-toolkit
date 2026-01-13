@@ -1,6 +1,5 @@
 import { input, password as input_password } from '@inquirer/prompts'
-import archiver from 'archiver'
-import { createWriteStream } from 'fs'
+import extract from 'extract-zip'
 import { exists, glob, mkdir } from 'fs/promises'
 import { basename, join, normalize } from 'path'
 import YAML from 'yaml'
@@ -11,8 +10,8 @@ import type { Problem } from './problem'
 import { settings } from './settings'
 import tui from './tui'
 import { ProblemInfo } from './types'
-import { createFileFromPath, nanoid12, nanoid8, readJsonInDir, toolkitPrefix, writeYamlInDir } from './utils'
-import extract from 'extract-zip'
+import { createFileFromPath, nanoid12, nanoid8, readYaml, toolkitPrefix, writeYamlInDir } from './utils'
+import { createZipFromFiles, type FileToArchive } from './zip-creation'
 
 export async function uploadProblemInDirectory(directory: string): Promise<void> {
     const zipFiles: string[] = []
@@ -20,8 +19,8 @@ export async function uploadProblemInDirectory(directory: string): Promise<void>
 
     for (const realDirectory of await findRealDirectories([directory])) {
         const problem = await newProblem(realDirectory)
-        problems.push(problem)
         const zipFile = await zippingProblem(problem)
+        problems.push(problem)
         zipFiles.push(zipFile)
     }
 
@@ -29,111 +28,96 @@ export async function uploadProblemInDirectory(directory: string): Promise<void>
         throw new Error(`No problem found in directory ${directory}`)
     }
 
-    if (problems.length >= 1 && problems[0]!.structure === 'single') {
-        // single case
-        const problem = problems[0]
-        const rootDir = normalize(join(problems[0]!.directory, '..'))
-        // extract each zip into its language subdirectory
-        const zipDir = join(rootDir, toolkitPrefix() + '-zip', nanoid8())
-        await mkdir(zipDir, { recursive: true })
-        for (let i = 0; i < problems.length; i++) {
-            const zipFile = zipFiles[i]!
-            const problem = problems[i]!
-            await extract(zipFile, { dir: join(zipDir, problem.language!) })
-        }
-        // archive the rootDir
-        const zipFilePath = join(zipDir, `${basename(rootDir)}.zip`)
-        const output = createWriteStream(zipFilePath)
-        const archive = archiver('zip', { zlib: { level: 9 } })
+    const isSingleStructure = problems.length >= 1 && problems[0]!.structure === 'single'
 
-        // Wrap the completion in a Promise
-        const zipPromise = new Promise<void>((resolve, reject) => {
-            output.on('close', function () {
-                // console.log(`Archive created: ${archive.pointer()} total bytes`)
-                resolve() // ← Resolve when done
-            })
-
-            output.on('error', reject) // ← Handle output stream errors
-            archive.on('error', reject) // ← Handle archive errors
-            archive.on('warning', function (err) {
-                if (err.code === 'ENOENT') {
-                    console.warn(err)
-                } else {
-                    reject(err)
-                }
-            })
-        })
-
-        // Pipe archive data to the file
-        archive.pipe(output)
-
-        for (const problem of problems) {
-            const directory = join(zipDir, problem.language!)
-
-            const files = glob('*/*', { cwd: directory })
-            const list = await Array.fromAsync(files)
-            for (const file of list) {
-                archive.file(join(directory, file), { name: join(problem.language!, basename(file)) })
-            }
-        }
-
-        // Finalize the archive (this does not end immediately, thus the Promise)
-        await archive.finalize()
-        await zipPromise // ← Wait for the file to actually be written
-
-        let info = null
-        if (await exists(join(rootDir, 'problem.yml'))) {
-            info = ProblemInfo.parse(readJsonInDir(rootDir, 'problem.yml'))
-            info = await updateProblemInJutgeOrg(rootDir, info, zipFilePath)
-        } else {
-            info = await createProblemInJutgeOrg(rootDir, zipFilePath)
-        }
-        tui.print(YAML.stringify(info, null, 4).trim())
-        tui.url(`https://jutge.org/problems/${info.problem_nm}`)
-        for (const language of problems[0]!.languages) {
-            tui.url(`https://jutge.org/problems/${info.problem_nm}_${language}`)
-        }
+    if (isSingleStructure) {
+        await handleSingleStructureUpload(problems, zipFiles)
     } else {
-        // multi case
-        const zipFilePath = zipFiles[0]!
-        let info = problems[0]!.problemYml
-        if (info) {
-            info = await updateProblemInJutgeOrg(directory, info, zipFilePath)
-        } else {
-            info = await createProblemInJutgeOrg(directory, zipFilePath)
+        await handleMultiStructureUpload(problems[0]!.directory, problems[0]!, zipFiles[0]!)
+    }
+}
+
+async function handleSingleStructureUpload(problems: Problem[], zipFiles: string[]): Promise<void> {
+    const problem = problems[0]!
+    const rootDir = normalize(join(problem.directory, '..'))
+    const zipDir = join(rootDir, toolkitPrefix() + '-zip', nanoid8())
+
+    await mkdir(zipDir, { recursive: true })
+    await extractZipsToLanguageDirs(problems, zipFiles, zipDir)
+
+    const zipFilePath = await createMultiLanguageZip(problems, zipDir, rootDir)
+    const info = await createOrUpdateProblem(rootDir, zipFilePath)
+
+    displayProblemInfo(info, problem.languages)
+}
+
+async function handleMultiStructureUpload(directory: string, problem: Problem, zipFilePath: string): Promise<void> {
+    const info = await createOrUpdateProblem(directory, zipFilePath, problem.problemYml)
+    displayProblemInfo(info, problem.languages)
+}
+
+async function extractZipsToLanguageDirs(problems: Problem[], zipFiles: string[], zipDir: string): Promise<void> {
+    for (let i = 0; i < problems.length; i++) {
+        const zipFile = zipFiles[i]!
+        const problem = problems[i]!
+        await extract(zipFile, { dir: join(zipDir, problem.language!) })
+    }
+}
+
+async function createMultiLanguageZip(problems: Problem[], zipDir: string, rootDir: string): Promise<string> {
+    const zipFilePath = join(zipDir, `${basename(rootDir)}.zip`)
+    const filesToArchive: FileToArchive[] = []
+
+    for (const problem of problems) {
+        const directory = join(zipDir, problem.language!)
+        const files = await Array.fromAsync(glob('*/*', { cwd: directory }))
+
+        for (const file of files) {
+            filesToArchive.push({
+                sourcePath: join(directory, file),
+                archivePath: join(problem.language!, basename(file)),
+            })
         }
-        tui.print(YAML.stringify(info, null, 4).trim())
-        tui.url(`https://jutge.org/problems/${info.problem_nm}`)
-        for (const language of problems[0]!.languages) {
-            tui.url(`https://jutge.org/problems/${info.problem_nm}_${language}`)
-        }
+    }
+
+    await createZipFromFiles(filesToArchive, zipFilePath)
+    return zipFilePath
+}
+
+async function createOrUpdateProblem(
+    directory: string,
+    zipFilePath: string,
+    existingInfo?: ProblemInfo | null,
+): Promise<ProblemInfo> {
+    const ymlPath = join(directory, 'problem.yml')
+    if (existingInfo || (await exists(ymlPath))) {
+        const info = existingInfo || ProblemInfo.parse(await readYaml(ymlPath))
+        return await updateProblemInJutgeOrg(directory, info, zipFilePath)
+    } else {
+        return await createProblemInJutgeOrg(directory, zipFilePath)
+    }
+}
+
+function displayProblemInfo(info: ProblemInfo, languages: string[]): void {
+    tui.yaml(info)
+    tui.url(`https://jutge.org/problems/${info.problem_nm}`)
+    for (const language of languages) {
+        tui.url(`https://jutge.org/problems/${info.problem_nm}_${language}`)
     }
 }
 
 async function zippingProblem(problem: Problem): Promise<string> {
-    const directory = problem.directory
     return await tui.section('Ziping problem', async () => {
-        await tui.section('Checking .inp/.cor files', async () => {
-            // TODO: check that each .inp has a corresponding .cor file
-            // TODO: check that date of .cor is not before .inp nor before solution/main files
-            const inps = await Array.fromAsync(glob('*.inp', { cwd: directory }))
-            const cors = await Array.fromAsync(glob('*.cor', { cwd: directory }))
-            if (inps.length !== cors.length) {
-                throw new Error(
-                    `Number of .inp files (${inps.length}) does not match number of .cor files (${cors.length})`,
-                )
-            }
-            tui.success(`Looks good`)
-        })
+        await validateInpCorFiles(problem.directory)
 
-        const tmpDir = join(directory, toolkitPrefix() + '-zip', nanoid8())
+        const tmpDir = join(problem.directory, toolkitPrefix() + '-zip', nanoid8())
         const base = basename(process.cwd())
         const zipFilePath = join(tmpDir, `${base}.zip`)
         await mkdir(tmpDir, { recursive: true })
 
         await tui.section('Creating zip file', async () => {
             tui.directory(tmpDir)
-            await createZipFile(directory, zipFilePath, base)
+            await createZipFile(problem.directory, zipFilePath, base)
             tui.success(`Created zip file ${base}.zip at ${tui.hyperlink(tmpDir)}`)
         })
 
@@ -141,35 +125,79 @@ async function zippingProblem(problem: Problem): Promise<string> {
     })
 }
 
+async function validateInpCorFiles(directory: string): Promise<void> {
+    await tui.section('Checking .inp/.cor files', async () => {
+        const inps = await Array.fromAsync(glob('*.inp', { cwd: directory }))
+        const cors = await Array.fromAsync(glob('*.cor', { cwd: directory }))
+
+        if (inps.length !== cors.length) {
+            throw new Error(
+                `Number of .inp files (${inps.length}) does not match number of .cor files (${cors.length})`,
+            )
+        }
+        tui.success(`Looks good`)
+    })
+}
+
+async function createZipFile(directory: string, zipFilePath: string, base: string): Promise<void> {
+    const patterns = [
+        'README.{md,txt}',
+        'problem.yml',
+        'handler.yml',
+        'problem.[a-z][a-z].{yml,tex}',
+        'solution.*',
+        'main.*',
+        '*.{inp,cor}',
+        'award.{html,png}',
+        '*.png',
+    ]
+    const exclusions = ['.exe', '.o', '.hi', '~']
+
+    const filesToArchive: FileToArchive[] = []
+
+    for (const pattern of patterns) {
+        const files = await Array.fromAsync(glob(pattern, { cwd: directory }))
+        const sortedFiles = files.sort()
+
+        for (const file of sortedFiles) {
+            if (exclusions.some((ext) => file.endsWith(ext))) continue
+
+            tui.print(`  add ${file}`)
+            filesToArchive.push({
+                sourcePath: join(directory, file),
+                archivePath: join(base, file),
+            })
+        }
+    }
+
+    await createZipFromFiles(filesToArchive, zipFilePath)
+}
+
 async function createProblemInJutgeOrg(directory: string, zipFilePath: string): Promise<ProblemInfo> {
     return await tui.section('Creating problem in Jutge.org', async () => {
-        const info = {
+        const info: ProblemInfo = {
             problem_nm: '',
             passcode: nanoid12(),
             created_at: '',
             updated_at: '',
         }
-        const jutge = new JutgeApiClient()
 
-        await tui.section('Loging in into Jutge.org', async () => {
-            await login(jutge)
-        })
+        const jutge = new JutgeApiClient()
+        await loginToJutge(jutge)
 
         await tui.section('Creating problem in Jutge.org', async () => {
             const file = await createFileFromPath(zipFilePath, 'application/zip')
             const { id } = await jutge.instructor.problems.legacyCreateWithTerminal(info.passcode, file)
             const problem_nm = await showTerminalOutput(id)
+
             if (!problem_nm) throw new Error('Failed to get problem name')
+
             info.problem_nm = problem_nm
             info.created_at = new Date().toISOString()
             info.updated_at = new Date().toISOString()
         })
 
-        await tui.section('Creating problem.yml', async () => {
-            await writeYamlInDir(directory, 'problem.yml', info)
-            tui.success(`Created problem.yml`)
-        })
-
+        await saveProblemYml(directory, info, 'Created')
         tui.print('')
         tui.success(`Problem ${info.problem_nm} created successfully`)
 
@@ -184,10 +212,7 @@ async function updateProblemInJutgeOrg(
 ): Promise<ProblemInfo> {
     return await tui.section('Updating problem in Jutge.org', async () => {
         const jutge = new JutgeApiClient()
-
-        await tui.section('Loging in into Jutge.org', async () => {
-            await login(jutge)
-        })
+        await loginToJutge(jutge)
 
         await tui.section('Updating problem in Jutge.org', async () => {
             const file = await createFileFromPath(zipFilePath, 'application/zip')
@@ -196,11 +221,7 @@ async function updateProblemInJutgeOrg(
             info.updated_at = new Date().toISOString()
         })
 
-        await tui.section('Updating problem.yml', async () => {
-            await writeYamlInDir(directory, 'problem.yml', info)
-            tui.success(`Updated problem.yml`)
-        })
-
+        await saveProblemYml(directory, info, 'Updated')
         tui.print('')
         tui.success(`Problem ${info.problem_nm} updated successfully`)
 
@@ -208,91 +229,48 @@ async function updateProblemInJutgeOrg(
     })
 }
 
-async function createZipFile(directory: string, zipFilePath: string, base: string) {
-    const output = createWriteStream(zipFilePath)
-    const archive = archiver('zip', { zlib: { level: 9 } })
-
-    // Wrap the completion in a Promise
-    const zipPromise = new Promise<void>((resolve, reject) => {
-        output.on('close', function () {
-            // console.log(`Archive created: ${archive.pointer()} total bytes`)
-            resolve() // ← Resolve when done
-        })
-
-        output.on('error', reject) // ← Handle output stream errors
-        archive.on('error', reject) // ← Handle archive errors
-        archive.on('warning', function (err) {
-            if (err.code === 'ENOENT') {
-                console.warn(err)
-            } else {
-                reject(err)
-            }
-        })
+async function saveProblemYml(directory: string, info: ProblemInfo, action: 'Created' | 'Updated'): Promise<void> {
+    await tui.section(`${action === 'Created' ? 'Creating' : 'Updating'} problem.yml`, async () => {
+        await writeYamlInDir(directory, 'problem.yml', info)
+        tui.success(`${action} problem.yml`)
     })
-
-    // Pipe archive data to the file
-    archive.pipe(output)
-
-    const add = async (pattern: string) => {
-        const files = glob(pattern, { cwd: directory })
-        const list = await Array.fromAsync(files)
-        const sortedList = list.sort()
-        for (const file of sortedList) {
-            if (file.endsWith('.exe')) continue // skip executables
-            if (file.endsWith('.o')) continue // skip object files
-            if (file.endsWith('.hi')) continue // skip Haskell interface files
-            if (file.endsWith('~')) continue // skip backup files
-            tui.print(`  add ${file}`)
-            archive.file(join(directory, file), { name: join(base, file) })
-        }
-    }
-
-    // Add files according to Jutge.org problem structure
-    await add('README.{md,txt}')
-    await add('problem.yml')
-    await add('handler.yml')
-    await add('problem.[a-z][a-z].{yml,tex}')
-    await add('solution.*')
-    await add('main.*')
-    await add('*.{inp,cor}')
-    await add('award.{html,png}')
-    await add('*.png')
-
-    // Finalize the archive (this does not end immediately, thus the Promise)
-    await archive.finalize()
-    await zipPromise // ← Wait for the file to actually be written
 }
 
-// returns the found problem_nm
+async function loginToJutge(jutge: JutgeApiClient): Promise<void> {
+    await tui.section('Loging in into Jutge.org', async () => {
+        let email = process.env.JUTGE_EMAIL
+        let password = process.env.JUTGE_PASSWORD
+
+        if (!email || !password) {
+            tui.warning('set JUTGE_EMAIL and JUTGE_PASSWORD environment variables to login without prompt')
+            email = await input({ message: 'Jutge.org email:', default: settings.email || '' })
+            password = await input_password({ message: 'Jutge.org password:' })
+        }
+
+        await jutge.login({ email, password })
+    })
+}
+
 async function showTerminalOutput(id: string): Promise<string | null> {
-    let problem_nm: string | undefined = undefined
-
     const jutge = new JutgeApiClient()
-
     const response = await fetch(`${jutge.JUTGE_API_URL}/webstreams/${id}`)
+
     if (response.body === null) return null
 
+    let problem_nm: string | undefined = undefined
     const reader = response.body.getReader()
+
     while (true) {
         const { done, value } = await reader.read()
         if (done) return problem_nm || null
+
         const text = new TextDecoder().decode(value as Uint8Array)
         tui.print(text)
-        const matchCreated = text.match(/Problem ([A-Z]\d{5}) created./)
+
+        const matchCreated = text.match(/Problem ([A-Z]\d{5}) created\./)
         if (matchCreated) problem_nm = matchCreated[1]
-        const matchUpdated = text.match(/Problem ([A-Z]\d{5}) updated./)
+
+        const matchUpdated = text.match(/Problem ([A-Z]\d{5}) updated\./)
         if (matchUpdated) problem_nm = matchUpdated[1]
     }
-}
-
-// TODO: improve login mechanism
-async function login(jutge: JutgeApiClient): Promise<void> {
-    let email = process.env.JUTGE_EMAIL
-    let password = process.env.JUTGE_PASSWORD
-    if (!email || !password) {
-        tui.warning('set JUTGE_EMAIL and JUTGE_PASSWORD environment variables to login without prompt')
-        email = await input({ message: 'Jutge.org email:', default: settings.email || '' })
-        password = await input_password({ message: 'Jutge.org password:' })
-    }
-    await jutge.login({ email, password })
 }
