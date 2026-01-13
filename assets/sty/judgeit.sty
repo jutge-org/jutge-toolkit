@@ -188,6 +188,7 @@
     \item \textbf{#1:} ~ #3 \hfill \fbox{\textbf{~#2 \TxtPoints~}}
     \end{itemize}
 }
+
 \newcommand{\ObservationElastic}{
     \TxtObservationElastic
 }
@@ -268,16 +269,12 @@
 % Entre cometes dobles (double quoted).
 \newcommand{\qq}[1]{``\texttt{\small #1}''}
 
-% Sense cometes per� el mateix est�l (unquoted).
+% Sense cometes però el mateix estil (unquoted).
 \newcommand{\uq}[1]{\texttt{\small #1}}
 
 
-\newcommand{\directori}{}
-
-\newcommand{\enllac}[1]{\texttt{#1}}
-
 \providecommand{\Link}[1]{
-    \texttt{#1}
+    \texttt{#1} % TODO: hyperlink
 }
 
 
@@ -302,25 +299,24 @@
 \lstset{literate={->}{$\rightarrow$}1 {<=}{$\le$}1 {>=}{$\ge$}1 {!=}{$\neq$}1 {<<}{$<\!\!\!<$}2 {>>}{$>\!\!\!>$}2}
 \lstset{xleftmargin=0.25cm}
 
-%\lstMakeShortInline@       Aquesta comanda el principal, perqu� aqu� hem potinejat les @,
+%\lstMakeShortInline@       Aquesta comanda el principal, perquè aquí hem potinejat les @,
 
 
 \renewcommand{\footnote}[1]{ (#1)}
-
-
 
 \newcommand{\UseHaskell}{
     \lstset{language=Haskell}
     \lstset{columns=fullflexible}
     \lstset{literate={<=}{$\le$}1 {>=}{$\ge$}1 {/=}{$\neq$}1 {->}{$\rightarrow$}1 {=>}{$\Rightarrow$}1}
-    \lstset{deletekeywords={insert}}
+}
+
+\newcommand{\UseClojure}{
+    \lstset{language=Clojure}
+    \lstset{columns=fullflexible}
 }
 
 \newcommand{\UsePython}{
     \lstset{language=Python}
     \lstset{columns=fullflexible}
-    %\lstset{literate={<=}{$\le$}1 {>=}{$\ge$}1 {/=}{$\neq$}1 {->}{$\rightarrow$}1 {=>}{$\Rightarrow$}1}
 }
 
-
-\newcommand{\CPP}{C++}
