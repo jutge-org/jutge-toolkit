@@ -34,7 +34,7 @@
         "lint": "eslint .",
         "format": "bun prettier --write .",
         "depcheck": "bunx depcheck",
-        "dev": "bun build --target bun --minify --outfile dist/index.js ./toolkit --watch",
+        "dev": "bun build --target bun --outfile dist/index.js ./toolkit --watch",
         "build": "bun build --target bun --minify --outfile dist/index.js ./toolkit ",
         "update-jutge-client": "(cd lib ; rm -f jutge_api_client.ts ; https --download https://api.jutge.org/clients/download/typescript)"
     },
@@ -56,6 +56,7 @@
         "env-paths": "^3.0.0",
         "eslint": "^9.39.2",
         "execa": "^9.6.1",
+        "extract-zip": "^2.0.1",
         "gpt-tokenizer": "^3.4.0",
         "handlebars": "^4.7.8",
         "image-size": "^2.0.2",
@@ -86,7 +87,7 @@
         "@types/image-size": "^0.8.0",
         "@types/marked": "^6.0.0",
         "@types/marked-terminal": "^6.1.1",
-        "@types/node": "^25.0.6",
+        "@types/node": "^25.0.7",
         "@types/ora": "^3.2.0",
         "@types/semver": "^7.7.1"
     },

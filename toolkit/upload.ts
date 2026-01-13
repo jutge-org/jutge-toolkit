@@ -1,6 +1,5 @@
 import { Command } from '@commander-js/extra-typings'
-import { uploadProblem } from '../lib/upload'
-import { newProblem } from '../lib/problem'
+import { uploadProblemInDirectory } from '../lib/upload'
 
 export const uploadCmd = new Command('upload')
     .summary('Upload problem to Jutge.org')
@@ -15,6 +14,5 @@ If problem.yml does not exist, a new problem will be created at Jutge.org and pr
     .option('-d, --directory <directory>', 'problem directory', '.')
 
     .action(async ({ directory }) => {
-        const problem = await newProblem(directory)
-        await uploadProblem(problem)
+        await uploadProblemInDirectory(directory)
     })

@@ -45,9 +45,6 @@ export class Clojure_Compiler extends Compiler {
 
     override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
         await nothing()
-
-        tui.warning(`No compilation available for Clojure`)
-
         return sourcePath
     }
 

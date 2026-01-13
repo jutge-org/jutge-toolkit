@@ -37,7 +37,7 @@ export class Problem {
     }
 
     public async load() {
-        await tui.section('Loading problem', async () => {
+        await tui.section(`Loading problem from ${this.directory}`, async () => {
             await this.loadStructure()
             await this.loadLanguages()
             await this.loadHandler()
