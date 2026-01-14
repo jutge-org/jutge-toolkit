@@ -137,6 +137,11 @@ export class Problem {
                 )
                 this.handler.source_modifier = 'no_main'
             }
+
+            if (this.handler.handler === 'circuits') {
+                this.handler.solution = 'Verilog'
+            }
+
             tui.yaml(this.handler)
 
             if (this.handler.handler === 'quiz') {
@@ -200,7 +205,9 @@ export class Problem {
         await tui.section('Determining golden solution', async () => {
             const { proglangExtensions } = await import('./data')
 
-            if (this.handler.compilers === 'RunPython') {
+            if (this.handler.handler === 'circuits') {
+                this.goldenSolution = 'solution.v'
+            } else if (this.handler.compilers === 'RunPython') {
                 this.goldenSolution = 'solution.py'
             } else if (this.handler.compilers === 'RunHaskell' || this.handler.compilers === 'GHC') {
                 this.goldenSolution = 'solution.hs'

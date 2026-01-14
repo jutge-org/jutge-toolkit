@@ -18,6 +18,7 @@ export const proglangNames: Record<string, string> = {
     clj: 'Clojure',
     java: 'Java',
     rs: 'Rust',
+    v: 'Verilog',
 }
 
 export const proglangExtensions: Record<string, string> = invert(proglangNames)

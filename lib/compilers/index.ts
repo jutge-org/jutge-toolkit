@@ -10,6 +10,7 @@ import { Rust_Compiler } from './rust'
 import { RunPython_Compiler } from './run-python'
 import { RunHaskell_Compiler } from './run-haskell'
 import { RunClojure_Compiler } from './run-clojure'
+import { Verilog_Compiler } from './verilog'
 
 const compilersRegistryById: Record<string, new () => Compiler> = {
     C: GCC_Compiler,
@@ -19,6 +20,7 @@ const compilersRegistryById: Record<string, new () => Compiler> = {
     Clojure: Clojure_Compiler,
     Java: Java_Compiler,
     Rust: Rust_Compiler,
+    Verilog: Verilog_Compiler,
 
     RunPython: RunPython_Compiler,
     RunHaskell: RunHaskell_Compiler,
@@ -33,6 +35,7 @@ const compilersRegistryByExtension: Record<string, new () => Compiler> = {
     clj: Clojure_Compiler,
     java: Java_Compiler,
     rs: Rust_Compiler,
+    v: Verilog_Compiler,
 }
 
 export function getCompilerById(id: string): Compiler {

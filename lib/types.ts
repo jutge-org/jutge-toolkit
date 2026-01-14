@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const Handler = z.object({
-    handler: z.enum(['std', 'graphic', 'quiz']).default('std'),
+    handler: z.enum(['std', 'graphic', 'quiz', 'circuits']).default('std'),
     solution: z.string().default('C++'),
     source_modifier: z.enum(['none', 'no_main', 'structs']).default('none'),
     compilers: z.enum(getDefinedCompilerIds()).nullable().default(null),
