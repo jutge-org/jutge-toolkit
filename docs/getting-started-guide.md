@@ -1,6 +1,6 @@
 # Jutge Toolkit - Getting Started Guide
 
-Welcome to the New Jutge Toolkit! This guide will help you install and start using the toolkit to create, manage, and upload programming problems to Jutge.org. Information about problem formats will be provided in a separate document.
+Welcome to the New Jutge Toolkit! This guide will help you start using the toolkit to create, manage, and upload programming problems to Jutge.org. Information about problem formats will be provided in a separate document.
 
 ## What is Jutge Toolkit?
 
@@ -14,196 +14,11 @@ Jutge Toolkit is a command-line application that helps you create and manage pro
 
 ## Installation
 
-Choose the installation instructions for your operating system:
-
-### Linux Installation
-
-1. **Install Bun (JavaScript runtime)**
-
-    Open a terminal and run:
-
-    ```bash
-    curl -fsSL https://bun.sh/install | bash
-    ```
-
-    After installation, close and reopen your terminal, or run:
-
-    ```bash
-    source ~/.bashrc
-    ```
-
-2. **Install Jutge Toolkit**
-
-    ```bash
-    bun install --global "@jutge.org/toolkit"
-    ```
-
-3. **Verify installation**
-
-    ```bash
-    jtk --version
-    ```
-
-    You should see the version number displayed.
-
-4. **Check dependencies**
-
-    ```bash
-    jtk doctor
-    ```
-
-    This command will show which tools are installed on your system. Don't worry if some are missing - you only need to install the ones for the programming languages and features you plan to use.
-
-5. **Install recommended dependencies (optional)**
-
-    Depending on your needs, you may want to install:
-    - **LaTeX** (for PDF statements):
-
-        ```bash
-        sudo apt-get install texlive-xetex texlive-fonts-recommended texlive-lang-european
-        ```
-
-    - **Pandoc** (for converting statements to different formats):
-
-        ```bash
-        sudo apt-get install pandoc
-        ```
-
-    - **Python 3** (if using Python in your problems):
-
-        ```bash
-        sudo apt-get install python3
-        ```
-
-    - **GCC/G++** (if using C/C++ in your problems):
-        ```bash
-        sudo apt-get install build-essential
-        ```
-
-### macOS Installation
-
-1. **Install Bun (JavaScript runtime)**
-
-    Open Terminal and run:
-
-    ```bash
-    curl -fsSL https://bun.sh/install | bash
-    ```
-
-    After installation, close and reopen your terminal.
-
-2. **Install Jutge Toolkit**
-
-    ```bash
-    bun install --global "@jutge.org/toolkit"
-    ```
-
-3. **Verify installation**
-
-    ```bash
-    jtk --version
-    ```
-
-    You should see the version number displayed.
-
-4. **Check dependencies**
-
-    ```bash
-    jtk doctor
-    ```
-
-    This command will show which tools are installed on your system.
-
-5. **Install recommended dependencies (optional)**
-
-    We recommend using Homebrew to install additional tools. If you don't have Homebrew, install it first:
-
-    ```bash
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    ```
-
-    Then install the tools you need:
-    - **LaTeX** (for PDF statements):
-
-        ```bash
-        brew install --cask mactex
-        ```
-
-    - **Pandoc** (for converting statements):
-
-        ```bash
-        brew install pandoc
-        ```
-
-    - **Python 3** (if using Python):
-
-        ```bash
-        brew install python3
-        ```
-
-    - **C/C++ Compiler** (if using C/C++):
-
-        macOS comes with Clang compiler. Install Xcode Command Line Tools:
-
-        ```bash
-        xcode-select --install
-        ```
-
-### Windows Installation
-
-1. **Open PowerShell**
-
-    Press Windows key, type "PowerShell", and open it. Remember to reopen PowerShell after installing each tool.
-
-2. **Install Bun (JavaScript runtime)**
-
-    Visit https://bun.sh/ and follow the installation instructions for Windows. It is easy!
-
-3. **Install Jutge Toolkit**
-
-    ```powershell
-    bun install --global "@jutge.org/toolkit"
-    ```
-
-    The first installation may take a while. If it fails with a `mkdir` error, try again - it's usually a transient error.
-
-4. **Verify installation**
-
-    ```powershell
-    jtk --version
-    ```
-
-    You should see the version number displayed.
-
-5. **Check dependencies**
-
-    ```powershell
-    jtk doctor
-    ```
-
-    This command will show which tools are installed on your system.
-
-6. **Install recommended dependencies (optional)**
-    - **LaTeX** (for PDF statements):
-
-        Install MiKTeX from https://miktex.org/download. During installation, select the option to install missing packages on-the-fly.
-
-    - **Pandoc** (for converting statements):
-
-        ```powershell
-        winget install --id JohnMacFarlane.Pandoc
-        ```
-
-    - **Python 3** (if using Python):
-
-        Install from https://www.python.org/downloads/windows/. Make sure to check "Add Python to PATH" during installation.
-
-    - **C/C++ Compiler** (if using C/C++):
-
-        We recommend w64devkit:
-        1. Download from https://github.com/skeeto/w64devkit/releases
-        2. Extract to a folder (e.g., `C:\w64devkit`)
-        3. Run `w64devkit.exe` to open a terminal with GCC available
+For installation instructions, please refer to the guide for your operating system:
+
+- [Linux Installation Guide](link-to-linux-guide)
+- [macOS Installation Guide](link-to-macos-guide)
+- [Windows Installation Guide](link-to-windows-guide)
 
 ## Getting Started
 
@@ -231,14 +46,14 @@ Before we dive into configuration, it's important to know how to get help:
 
 3. **Get help using JutgeAI:**
 
-    You can ask questions about the toolkit in human language using the `ask` command and get answers generated by JutgeAI and formatted in arkdown:
+    You can ask questions about the toolkit in human language using the `ask` command and get answers generated by JutgeAI and formatted in markdown:
 
     ```bash
     jtk ask "How to create a new problem?"
-    jtk ask "Com puc crear un problema nou?" --model "google/gemini-2.5-flash-lite"
+    jtk ask "Com puc crear un problema nou?" --model "openai/gpt-5-nano"
     ```
 
-    For this to work, you need to have set up an AI API key (see "Setting Up AI Features" below).
+    For this to work, you need to have set up an AI API key (see your platform-specific installation guide).
 
 4. **View information about the toolkit:**
 
@@ -270,41 +85,6 @@ Before using the toolkit, you should configure it with your preferences:
 
     This opens your default text editor with the configuration file.
 
-### Setting Up AI Features (Optional)
-
-If you want to use JutgeAI features to generate problems and content, you need to set up API keys:
-
-**For Google Gemini (Free for UPC users):**
-
-1. Visit https://aistudio.google.com/ and sign in
-2. Click "Get API key" in the sidebar
-3. Click "Create API key"
-4. Copy the generated key
-5. Set the environment variable:
-    - **Linux/macOS:** Add to `~/.bashrc` or `~/.zshrc`:
-        ```bash
-        export GEMINI_API_KEY="your-key-here"
-        ```
-    - **Windows PowerShell (permanent):**
-        ```powershell
-        [System.Environment]::SetEnvironmentVariable('GEMINI_API_KEY', 'your-key-here', 'User')
-        ```
-
-**For OpenAI (Paid):**
-
-1. Create an account at https://platform.openai.com/
-2. Navigate to API Keys section
-3. Create a new secret key
-4. Set the environment variable:
-    - **Linux/macOS:** Add to `~/.bashrc` or `~/.zshrc`:
-        ```bash
-        export OPENAI_API_KEY="your-key-here"
-        ```
-    - **Windows PowerShell (permanent):**
-        ```powershell
-        [System.Environment]::SetEnvironmentVariable('OPENAI_API_KEY', 'your-key-here', 'User')
-        ```
-
 ### Your First Problem
 
 #### Option 1: Create from Template
@@ -315,12 +95,12 @@ If you want to use JutgeAI features to generate problems and content, you need t
     jtk clone
     ```
 
-    This will show you available templates and create a new problem directory.
+    This will show you available templates and create a new problem directory under `./new-problem.pbm`.
 
-2. **Or clone a specific template:**
+2. **Or clone a specific template and place it into a particular directory:**
 
     ```bash
-    jtk clone standard/maximum-of-2-integers.pbm -d my-problem.pbm
+    jtk clone standard/maximum-of-2-integers.pbm -d my-new-problem.pbm
     ```
 
 #### Option 2: Create with AI
@@ -328,7 +108,7 @@ If you want to use JutgeAI features to generate problems and content, you need t
 1. **Create a problem using JutgeAI:**
 
     ```bash
-    jtk generate problem -d factorial.pbm
+    jtk generate problem
     ```
 
     The toolkit will ask you for:
@@ -337,14 +117,18 @@ If you want to use JutgeAI features to generate problems and content, you need t
     - Original language
     - Programming language for the solution
 
-2. **Review the generated content** in the `factorial.pbm` directory.
+    Be specific about the problem description. Here is a possible example:
+
+    > The task is to read all numbers in the input and print how much of them are prime numbers. Add a cute, short story around it. The input will only contain natural numbers less than 2^32-1.
+
+2. **Review the generated content** in the `my-problem.pbm` directory.
 
 ### Building Your Problem
 
 Once you have a problem directory, you can generate all necessary files:
 
 ```bash
-cd factorial.pbm
+cd my-problem.pbm
 jtk make
 ```
 
@@ -353,14 +137,15 @@ This command will:
 - Compile solutions
 - Generate correct outputs for test cases
 - Create PDF statements
-- Generate HTML and text versions
+- Generate HTML, Markdown and Text versions of the statements
 
 To make only specific elements:
 
 ```bash
-jtk make pdf          # Only PDF statements
 jtk make exe          # Only compile executables
 jtk make cor          # Only generate correct outputs
+jtk make pdf          # Only PDF statements
+jtk make html         # Only HTML statements
 ```
 
 ### Testing Solutions
@@ -368,7 +153,7 @@ jtk make cor          # Only generate correct outputs
 To verify a solution against your golden solution:
 
 ```bash
-jtk verify solution.py
+jtk verify candidate.py
 ```
 
 This will run the solution against all test cases and compare outputs.
@@ -384,7 +169,7 @@ jtk generate translations en es ca
 **Add solutions in other languages:**
 
 ```bash
-jtk generate solutions python java cpp
+jtk generate solutions python java cc
 ```
 
 **Generate test case generators:**
@@ -423,7 +208,7 @@ When your problem is ready:
 jtk upload
 ```
 
-If this is a new problem, it will be created on Jutge.org and a `problem.yml` file will be generated with the problem ID. For subsequent uploads, the problem will be updated.
+If this is a new problem, it will be created on Jutge.org and a `problem.yml` file will be generated with the problem ID. For subsequent uploads, the problem will be updated. Do not modify `problem.yml`!
 
 ## Common Commands Reference
 
@@ -478,31 +263,19 @@ jtk doctor                          # Check system dependencies
 
 ## Troubleshooting
 
-**Command not found after installation:**
-
-- Close and reopen your terminal
-- Check that Bun is properly installed: `bun --version`
-
-**Permission errors on Linux/macOS:**
-
-- You may need to add execution permissions to Bun's installation directory
-
 **AI features not working:**
 
 - Verify your API keys are set correctly
 - Check you have internet connectivity
 - Ensure the model name is correct in your configuration
 
-**LaTeX compilation fails:**
-
-- Make sure you have a complete LaTeX distribution installed
-- On Windows, ensure MiKTeX can install packages automatically
-
 **Problems with specific compilers:**
 
 - Run `jtk doctor` to see which compilers are available
 - Install only the compilers you need for your problems
 
+For platform-specific troubleshooting, refer to your installation guide.
+
 ---
 
-You're now ready to start creating problems with Jutge Toolkit! If you have questions or need help, don't hesitate to consult the documentation or reach out to the community.
+You're now ready to start creating problems with Jutge Toolkit! If you have questions or need help, don't hesitate to consult the documentation, use the `ask` command or reach out to the community.
