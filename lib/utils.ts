@@ -191,3 +191,25 @@ export function convertStringToItsType(value: string): string | number | boolean
     // Return as string
     return value
 }
+export async function createGitIgnoreFile(directory: string) {
+    const content = `
+# Ignore jtk generated files
+
+jtk-*
+
+# Ignore disposable files
+
+*~
+*.pdf
+*.exe
+*.hi
+*.o
+*.class
+*.jar
+*.pyc
+a.out
+__pycache__/
+
+`
+    await writeTextInDir(directory, '.gitignore', content)
+}

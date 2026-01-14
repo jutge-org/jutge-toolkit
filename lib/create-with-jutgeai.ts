@@ -10,7 +10,7 @@ import { getPromptForProglang, getTitleFromStatement } from './helpers'
 import { settings } from './settings'
 import tui from './tui'
 import { Specification } from './types'
-import { nothing, projectDir, readText, readYaml, writeTextInDir, writeYaml, writeYamlInDir } from './utils'
+import { createGitIgnoreFile, nothing, projectDir, readText, readYaml, writeTextInDir, writeYaml, writeYamlInDir } from './utils'
 
 const promptsDir = join(projectDir(), 'assets', 'prompts')
 
@@ -41,6 +41,7 @@ export async function createProblemWithJutgeAI(
     const generator = new ProblemGenerator(spec, model)
     await generator.run()
     await generator.save(directory)
+    await createGitIgnoreFile(directory)
     tui.success(`Created problem ${tui.hyperlink(directory)}`)
 }
 
@@ -395,6 +396,7 @@ The following information is based on estimations from token counts and do not r
             await writeYamlInDir(path, 'handler.yml', handlerYml)
 
             await writeTextInDir(path, 'README.md', this.problemReadme)
+
         })
     }
 }

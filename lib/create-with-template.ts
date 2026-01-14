@@ -1,11 +1,10 @@
-import tree from 'tree-node-cli'
 import { confirm, select, Separator } from '@inquirer/prompts'
 import { cp, exists, glob } from 'fs/promises'
 import path from 'path'
-import tui from './tui'
-import { projectDir, readText, readTextInDir } from './utils'
 import { title } from 'radash'
-import { dir } from 'console'
+import tree from 'tree-node-cli'
+import tui from './tui'
+import { createGitIgnoreFile, projectDir, readTextInDir } from './utils'
 
 const templatesDir = path.join(projectDir(), 'assets', 'problems')
 
@@ -58,5 +57,9 @@ export async function createProblemWithTemplate(directory: string, template: str
     }
 
     await cp(templatePath, directory, { recursive: true })
+    await createGitIgnoreFile(directory)
     tui.success(`Created problem ${tui.hyperlink(directory)} from template ${template}`)
 }
+
+
+
