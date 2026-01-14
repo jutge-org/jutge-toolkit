@@ -47,7 +47,7 @@ echo "🔢 Bumping version ($VERSION_TYPE)..."
 bunx npm version $VERSION_TYPE
 
 # Get the new version number
-NEW_VERSION=$(node -p "require('./package.json').version")
+NEW_VERSION=$(bun -p "require('./package.json').version")
 echo "✅ Version bumped to $NEW_VERSION"
 echo ""
 
