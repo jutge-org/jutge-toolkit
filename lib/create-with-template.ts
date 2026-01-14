@@ -59,7 +59,6 @@ export async function createProblemWithTemplate(directory: string, template: str
     await cp(templatePath, directory, { recursive: true })
     await createGitIgnoreFile(directory)
     tui.success(`Created problem ${tui.hyperlink(directory)} from template ${template}`)
+    const treeFiles = tree(directory, { allFiles: true, dirsFirst: false })
+    console.log(treeFiles)
 }
-
-
-
