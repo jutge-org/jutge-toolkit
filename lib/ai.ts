@@ -37,7 +37,6 @@ export async function complete(model: string, systemPrompt: string, userPrompt: 
         throw error
     }
     spinner.stop()
-    console.log(response)
     const answer = response.content!
     if (settings.showAnswers) tui.gray(`[ANSWER] ${answer}`)
     return answer

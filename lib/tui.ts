@@ -1,12 +1,11 @@
 import { highlight } from 'cli-highlight'
 import boxen from 'boxen'
 import chalk from 'chalk'
-import { marked } from 'marked'
-import { markedTerminal } from 'marked-terminal'
 import { resolve } from 'path'
 import terminalImage from 'terminal-image'
 import terminalLink from 'terminal-link'
 import YAML from 'yaml'
+import { nothing } from './utils'
 
 let indentation = 0
 
@@ -101,10 +100,8 @@ function print(text: string = ''): void {
 }
 
 async function markdown(content: string): Promise<void> {
-    // @ts-expect-error: i don't know why types are not working here but seems to work at runtime
-    marked.use(markedTerminal())
-    const output = await marked.parse(content)
-    console.log(output)
+    await nothing()
+    print(highlight(content, { language: 'markdown' }))
 }
 
 function yaml(content: any): void {

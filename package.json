@@ -63,8 +63,6 @@
         "handlebars": "^4.7.8",
         "image-size": "^2.0.2",
         "inquirer-checkbox-plus-plus": "^1.1.1",
-        "marked": "^17.0.1",
-        "marked-terminal": "^7.3.0",
         "multi-llm-ts": "^4.6.2",
         "nanoid": "^5.1.6",
         "openai": "^6.15.0",
@@ -87,8 +85,6 @@
         "typescript-eslint": "^8.51.0",
         "@types/archiver": "^7.0.0",
         "@types/image-size": "^0.8.0",
-        "@types/marked": "^6.0.0",
-        "@types/marked-terminal": "^6.1.1",
         "@types/node": "^25.0.7",
         "@types/ora": "^3.2.0",
         "@types/semver": "^7.7.1"
