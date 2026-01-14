@@ -1,13 +1,6 @@
 import archiver from 'archiver'
 import { createWriteStream } from 'fs'
 
-export interface ZipOptions {
-    directory: string
-    zipFilePath: string
-    base: string
-    patterns?: string[]
-}
-
 export interface FileToArchive {
     sourcePath: string
     archivePath: string
