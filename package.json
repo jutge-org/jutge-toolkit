@@ -40,6 +40,7 @@
         "update-jutge-client": "(cd lib ; rm -f jutge_api_client.ts ; https --download https://api.jutge.org/clients/download/typescript)"
     },
     "files": [
+        "README.md",
         "dist",
         "toolkit",
         "docs",
