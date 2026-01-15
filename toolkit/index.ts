@@ -19,6 +19,7 @@ import { quizCmd } from './quiz'
 import { upgradeCmd } from './upgrade'
 import { uploadCmd } from './upload'
 import { askCmd } from './ask'
+import { convertCmd } from './convert'
 
 program.name(Object.keys(packageJson.bin as Record<string, string>)[0] as string)
 program.alias(Object.keys(packageJson.bin as Record<string, string>)[1] as string)
@@ -34,6 +35,7 @@ program.addCommand(makeCmd)
 program.addCommand(uploadCmd)
 program.addCommand(cleanCmd)
 program.addCommand(verifyCmd)
+program.addCommand(convertCmd)
 program.addCommand(doctorCmd)
 if (settings.developer) {
     program.addCommand(quizCmd)
