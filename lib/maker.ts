@@ -280,8 +280,8 @@ export class Maker {
     
 \\documentclass[11pt]{article}
 
-\\usepackage{judgeit}
-\\usepackage{judgeit.${language}}
+\\usepackage{jutge}
+\\usepackage{jutge.${language}}
 
 \\begin{document}
 
@@ -361,12 +361,12 @@ Draft generated with \\textbf{new-jutge-toolkit}.
             await cp(source, join(tmpDir, path))
         }
         await cpSty('picins.sty')
-        await cpSty('judgeit.sty')
-        if (language === 'ca') await cpSty('judgeit.ca.sty')
-        if (language === 'es') await cpSty('judgeit.es.sty')
-        if (language === 'en') await cpSty('judgeit.en.sty')
-        if (language === 'fr') await cpSty('judgeit.fr.sty')
-        if (language === 'de') await cpSty('judgeit.de.sty')
+        await cpSty('jutge.sty')
+        if (language === 'ca') await cpSty('jutge.ca.sty')
+        if (language === 'es') await cpSty('jutge.es.sty')
+        if (language === 'en') await cpSty('jutge.en.sty')
+        if (language === 'fr') await cpSty('jutge.fr.sty')
+        if (language === 'de') await cpSty('jutge.de.sty')
     }
 
     public async makeTextualStatements(tasks: Array<'txt' | 'html' | 'md'> = ['txt', 'html', 'md']) {
@@ -408,8 +408,8 @@ Draft generated with \\textbf{new-jutge-toolkit}.
     
 \\documentclass[11pt]{article}
 
-\\usepackage{judgeit}
-\\usepackage{judgeit.${language}}
+\\usepackage{jutge}
+\\usepackage{jutge.${language}}
 
 % redefine commands to simplify text output
 \\renewcommand{\\Sample}{}
