@@ -283,9 +283,6 @@ export class Maker {
 \\usepackage{judgeit}
 \\usepackage{judgeit.${language}}
 
-% TODO?
-\\lstMakeShortInline@
-
 \\begin{document}
 
 \\providecommand{\\SampleOneCol}{${samples1c}} 
@@ -413,9 +410,6 @@ Draft generated with \\textbf{new-jutge-toolkit}.
 
 \\usepackage{judgeit}
 \\usepackage{judgeit.${language}}
-
-% TODO?
-\\lstMakeShortInline@
 
 % redefine commands to simplify text output
 \\renewcommand{\\Sample}{}

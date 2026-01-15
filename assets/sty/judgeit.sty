@@ -17,29 +17,34 @@
     ItalicFont=texgyrecursor-italic.otf,
     BoldItalicFont=texgyrecursor-bolditalic.otf
 ]
+\usepackage{unicode-math}
+\setmainfont{texgyrepagella-regular.otf}[
+    BoldFont=texgyrepagella-bold.otf,
+    ItalicFont=texgyrepagella-italic.otf,
+    BoldItalicFont=texgyrepagella-bolditalic.otf
+]
+\setmathfont{texgyrepagella-math.otf}
 
 %remove for xelatex
 %\usepackage{mathpazo}
 %\usepackage{helvet}
 %\usepackage{courier}
 
+\usepackage{moreverb} % for verbatimtabinput
 \usepackage{mdwlist}
-\usepackage{shortvrb}
 \usepackage{picins}
 \usepackage{pstricks}
 \usepackage{pst-tree}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{geometry}
-\usepackage{moreverb}
 \usepackage{multicol}
 %\usepackage[utf8]{inputenc} %remove for xelatex
 \usepackage{listings}
 \usepackage{textcomp}
 \usepackage{chessboard}
 \usepackage{tikz}
-\usepackage{wasysym}
-\usepackage{eurosym}
+%\usepackage{wasysym} % remove because not used
 \usepackage{color}
 
 
@@ -53,10 +58,6 @@
 
 \setlength{\parindent}{0cm}
 \pagestyle{empty}
-
-\MakeShortVerb\|
-
-\newenvironment{NoShortVerb}{\DeleteShortVerb\|}{\MakeShortVerb\|}
 
 
 \newcommand{\mysection}[1]{\subsection*{#1}}
@@ -284,9 +285,7 @@
 
 \lstset{language=C++}
 \lstset{columns=flexible}
-%\lstset{basewidth={1em,1em}}
 \lstset{keepspaces=true}
-\lstset{morekeywords={string,include,cin,cout,endl}}
 \lstset{stringstyle=\ttfamily}
 \lstset{commentstyle={}}
 \lstset{numberstyle=\tiny\sffamily}
@@ -296,11 +295,6 @@
 \lstset{showstringspaces=false}
 \lstset{upquote=true}
 \lstset{texcl=true}
-\lstset{literate={->}{$\rightarrow$}1 {<=}{$\le$}1 {>=}{$\ge$}1 {!=}{$\neq$}1 {<<}{$<\!\!\!<$}2 {>>}{$>\!\!\!>$}2}
-\lstset{xleftmargin=0.25cm}
-
-%\lstMakeShortInline@       Aquesta comanda el principal, perquè aquí hem potinejat les @,
-
 
 \renewcommand{\footnote}[1]{ (#1)}
 
