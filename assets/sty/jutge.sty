@@ -1,0 +1,316 @@
+% \usepackage{html}
+
+% added for xelatex
+\usepackage{fontspec}
+\setmainfont{texgyrepagella-regular.otf}[
+    BoldFont=texgyrepagella-bold.otf,
+    ItalicFont=texgyrepagella-italic.otf,
+    BoldItalicFont=texgyrepagella-bolditalic.otf
+]
+\setsansfont{texgyreheros-regular.otf}[
+    BoldFont=texgyreheros-bold.otf,
+    ItalicFont=texgyreheros-italic.otf,
+    BoldItalicFont=texgyreheros-bolditalic.otf
+]
+\setmonofont{texgyrecursor-regular.otf}[
+    BoldFont=texgyrecursor-bold.otf,
+    ItalicFont=texgyrecursor-italic.otf,
+    BoldItalicFont=texgyrecursor-bolditalic.otf
+]
+\usepackage{unicode-math}
+\setmainfont{texgyrepagella-regular.otf}[
+    BoldFont=texgyrepagella-bold.otf,
+    ItalicFont=texgyrepagella-italic.otf,
+    BoldItalicFont=texgyrepagella-bolditalic.otf
+]
+\setmathfont{texgyrepagella-math.otf}
+
+%remove for xelatex
+%\usepackage{mathpazo}
+%\usepackage{helvet}
+%\usepackage{courier}
+
+\usepackage{moreverb} % for verbatimtabinput
+\usepackage{mdwlist}
+\usepackage{picins}
+\usepackage{pstricks}
+\usepackage{pst-tree}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{geometry}
+\usepackage{multicol}
+%\usepackage[utf8]{inputenc} %remove for xelatex
+\usepackage{listings}
+\usepackage{textcomp}
+\usepackage{chessboard}
+\usepackage{tikz}
+%\usepackage{wasysym} % remove because not used
+\usepackage{color}
+
+
+
+\geometry{
+    a4paper,twoside,
+    left=2.75cm,right=2.75cm,
+    top=3cm,bottom=3cm,
+    marginparwidth=3cm,
+}
+
+\setlength{\parindent}{0cm}
+\pagestyle{empty}
+
+
+\newcommand{\mysection}[1]{\subsection*{#1}}
+
+\newcommand{\Problem}[1]{
+    \def\PbmTitle{#1}
+}
+
+\newcommand{\ProblemId}[1]{
+    \def\PbmId{#1}
+}
+
+\def\PbmEvent{}
+\newcommand{\ProblemEvent}[1]{
+    \def\PbmEvent{\\#1}
+}
+
+\newcommand{\Statement}{
+    \vspace*{-2cm}
+    {\LARGE{\emph{\textbf{Jutge.org}}}}
+    \\[1.5mm]
+    The Virtual Learning Environment for Computer Programming
+
+    \vspace*{1.5cm}
+
+    \hrule~\\[1mm]
+    {\Large{\textbf{\PbmTitle\hfill\PbmId}}}
+    \PbmEvent
+    \vspace*{2mm}
+    \hrule
+    \bigskip
+}
+
+\newcommand{\Specification}{
+    \mysection{\TxtSpecification}
+}
+
+\newcommand{\Input}{
+    \mysection{\TxtInput}
+}
+
+\newcommand{\Output}{
+    \mysection{\TxtOutput}
+}
+
+\newcommand{\Sample}{
+    \SampleTwoCol
+}
+
+\newcommand{\SampleSession}{
+    \mysection{\TxtSampleSession}
+    {\footnotesize\verbatimtabinput{sample.dt}}
+}
+
+\newcommand{\SampleInput}[2]{
+    \mysection{\TxtSampleInput\ #2}
+    {\footnotesize\verbatimtabinput{#1.inp}}
+}
+
+
+
+\newcommand{\SampleOutput}[3][]{
+    \mysection{\TxtSampleOutput\ #3}
+    \ifthenelse{\equal{#1}{}}{
+        \footnotesize\verbatimtabinput{#2.cor}
+    }{
+        \includegraphics[width=7cm]{#2.cor.png}
+        \\{\footnotesize #1}
+    }
+}
+
+\newcommand{\SampleTwoColInputOutput}[3][]{
+    \setlength{\columnseprule}{0.5pt}
+    \begin{multicols}{2}\raggedcolumns
+        \SampleInput{#2}{#3}%\vfill
+        \columnbreak
+        \SampleOutput[#1]{#2}{#3}%\vfill
+    \end{multicols}
+}
+
+\newcommand{\SampleOneColInputOutput}[3][]{
+    \SampleInput{#2}{#3}
+    \SampleOutput[#1]{#2}{#3}
+}
+
+
+\newcommand{\Precondition}{
+    \mysection{\TxtPrecondition}
+}
+
+\newcommand{\Samples}{
+    \mysection{\TxtSamples}
+}
+
+\newcommand{\Observation}{
+    \mysection{\TxtObservation}
+}
+
+\newcommand{\Observations}{
+    \mysection{\TxtObservations}
+}
+
+\newcommand{\Hint}{
+    \mysection{\TxtHint}
+}
+
+\newcommand{\Scoring}{
+    \mysection{\TxtScores}
+}
+
+\newcommand{\Interface}{
+    \mysection{\TxtInterface}
+}
+
+
+\newcommand{\Score}[3]{
+    \begin{itemize}
+
+    \setlength{\fboxrule}{0.05pt}
+    \item \textbf{#1:} \hfill \fbox{\textbf{~#2 \TxtPoints~}}
+
+    #3
+    \end{itemize}
+}
+
+\newcommand{\ShortScore}[3]{
+    \begin{itemize}
+    \setlength{\fboxrule}{0.05pt}
+    \item \textbf{#1:} ~ #3 \hfill \fbox{\textbf{~#2 \TxtPoints~}}
+    \end{itemize}
+}
+
+\newcommand{\ObservationElastic}{
+    \TxtObservationElastic
+}
+
+\newcommand{\ObservationElasticII}{
+    \TxtObservationElasticII
+}
+
+\newcommand{\ObservationNoMain}{
+    \Observation
+    \TxtObservationNoMain
+}
+
+\newcommand{\ObservationNoMainPlural}{
+    \Observation
+    \TxtObservationNoMainPlural
+}
+
+\newcommand{\ObservationNoMainTuples}{
+    \Observation
+    \TxtObservationNoMainTuples
+}
+
+\newcommand{\ObservationNoMainClasses}{
+    \Observation
+    \TxtObservationNoMainClasses
+}
+
+\newcommand{\ObservationNoMainTuplesPlural}{
+    \Observation
+    \TxtObservationNoMainTuplesPlural
+}
+
+
+\newcommand{\ProblemInformation}{
+    \mysection{\TxtProblemInformation}
+}
+
+\newcommand{\Author}{{\TxtAuthor{}}}
+
+\newcommand{\Translator}{
+    {\TxtTranslator}
+}
+
+\newcommand{\Generation}{
+    {\TxtGeneration}
+}
+
+
+\newcommand{\DoProblem}[1]{
+    \clearpage
+    \input{problem.#1.tex}
+    \Solution
+}
+
+\newcommand{\Solution}{
+    % empty
+}
+
+\newcommand{\FigureL}[2]{
+    \parpic[l]{\includegraphics[#1]{#2}}
+}
+
+\newcommand{\FigureC}[2]{
+    \begin{center}
+        \includegraphics[#1]{#2}
+    \end{center}
+}
+
+\newcommand{\FigureR}[2]{
+    \parpic[r]{\includegraphics[#1]{#2}}
+}
+
+
+% Entre cometes simples (quoted).
+\newcommand{\q}[1]{`\texttt{\small #1}'}
+
+% Entre cometes dobles (double quoted).
+\newcommand{\qq}[1]{``\texttt{\small #1}''}
+
+% Sense cometes però el mateix estil (unquoted).
+\newcommand{\uq}[1]{\texttt{\small #1}}
+
+
+\providecommand{\Link}[1]{
+    \texttt{#1} % TODO: hyperlink
+}
+
+
+
+
+%%% LISTINGS
+
+\lstset{language=C++}
+\lstset{columns=flexible}
+\lstset{keepspaces=true}
+\lstset{stringstyle=\ttfamily}
+\lstset{commentstyle={}}
+\lstset{numberstyle=\tiny\sffamily}
+\lstset{numbersep=-5pt}
+\lstset{keywordstyle=\bfseries}
+\lstset{identifierstyle=\itshape}
+\lstset{showstringspaces=false}
+\lstset{upquote=true}
+\lstset{texcl=true}
+
+\renewcommand{\footnote}[1]{ (#1)}
+
+\newcommand{\UseHaskell}{
+    \lstset{language=Haskell}
+    \lstset{columns=fullflexible}
+    \lstset{literate={<=}{$\le$}1 {>=}{$\ge$}1 {/=}{$\neq$}1 {->}{$\rightarrow$}1 {=>}{$\Rightarrow$}1}
+}
+
+\newcommand{\UseClojure}{
+    \lstset{language=Clojure}
+    \lstset{columns=fullflexible}
+}
+
+\newcommand{\UsePython}{
+    \lstset{language=Python}
+    \lstset{columns=fullflexible}
+}
+
