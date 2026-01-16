@@ -1,4 +1,27 @@
-% \usepackage{html}
+%remove for xelatex
+%\usepackage{mathpazo}
+%\usepackage{helvet}
+%\usepackage{courier}
+
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{moreverb} % for verbatimtabinput
+\usepackage{mdwlist}
+\usepackage{picins}
+\usepackage{pstricks}
+\usepackage{pst-tree}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{geometry}
+\usepackage{multicol}
+%\usepackage[utf8]{inputenc} %remove for xelatex
+\usepackage{listings}
+\usepackage{textcomp}
+\usepackage{chessboard}
+\usepackage{tikz}
+%\usepackage{wasysym} % remove because not used
+\usepackage{color}
+
 
 % added for xelatex
 \usepackage{fontspec}
@@ -24,29 +47,6 @@
     BoldItalicFont=texgyrepagella-bolditalic.otf
 ]
 \setmathfont{texgyrepagella-math.otf}
-
-%remove for xelatex
-%\usepackage{mathpazo}
-%\usepackage{helvet}
-%\usepackage{courier}
-
-\usepackage{graphicx}
-\usepackage{moreverb} % for verbatimtabinput
-\usepackage{mdwlist}
-\usepackage{picins}
-\usepackage{pstricks}
-\usepackage{pst-tree}
-\usepackage{graphicx}
-\usepackage{amsmath}
-\usepackage{geometry}
-\usepackage{multicol}
-%\usepackage[utf8]{inputenc} %remove for xelatex
-\usepackage{listings}
-\usepackage{textcomp}
-\usepackage{chessboard}
-\usepackage{tikz}
-%\usepackage{wasysym} % remove because not used
-\usepackage{color}
 
 
 \geometry{
@@ -275,7 +275,7 @@
 
 
 \providecommand{\Link}[1]{
-    \texttt{#1} % TODO: hyperlink
+    \href{https://jutge.org/problems/#1}{\textbf{#1}}
 }
 
 
