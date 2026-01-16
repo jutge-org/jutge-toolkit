@@ -1,0 +1,34 @@
+    
+\documentclass[11pt]{article}
+
+\usepackage{jutge}
+\usepackage{{curly jutgeLanguage}}
+
+% redefine commands to simplify text output
+\renewcommand{\Sample}{}
+\renewcommand{\Statement}{}
+\renewcommand{\Problem}[1]{\section{#1}}
+\ProblemId{{curly id}}
+
+% redefine figure commands to avoid troubles with \parpic
+\renewcommand{\FigureL}[2]{\includegraphics[#1]{#2}}
+\renewcommand{\FigureC}[2]{\includegraphics[#1]{#2}}
+\renewcommand{\FigureR}[2]{\includegraphics[#1]{#2}}
+
+\begin{document}
+
+\DoProblem{{curly language}} 
+
+
+\subsection*{\TxtAuthor}
+{{author}}
+
+{{#if translator}}
+    {{language}}: {{translator}}
+{{/if}}
+
+\subsection*{Draft}
+
+Draft generated with \textbf{new-jutge-toolkit}.
+
+\end{document}

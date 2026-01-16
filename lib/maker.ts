@@ -1,3 +1,4 @@
+import Handlebars from 'handlebars'
 import chalk from 'chalk'
 import { execa } from 'execa'
 import { cp, exists, glob, mkdir, rename } from 'fs/promises'
@@ -22,6 +23,8 @@ import type { Compiler } from './compilers/base'
 import { languageNames } from './data'
 import { newProblem, Problem } from './problem'
 import * as doctor from './doctor'
+
+const latexDir = join(projectDir(), 'assets', 'latex')
 
 export async function newMaker(directory: string): Promise<Maker> {
     const problem = await newProblem(directory)
@@ -276,30 +279,23 @@ export class Maker {
 
         const [samples1c, samples2c] = await this.makeSamples(tmpDir, language)
 
-        const root = `
-    
-\\documentclass[11pt]{article}
+        const rootTemplate = await readText(join(latexDir, 'root-pdf.tpl.tex'))
 
-\\usepackage{jutge}
-\\usepackage{jutge.${language}}
+        // because Handlebars escapes curly braces, we need to define a helper to help latex macros
+        Handlebars.registerHelper('curly', function (value) {
+            return '{' + value + '}'
+        })
 
-\\begin{document}
-
-\\providecommand{\\SampleOneCol}{${samples1c}} 
-\\providecommand{\\SampleTwoCol}{${samples2c}} 
-\\ProblemId{{DRAFT ${language}}}
-\\DoProblem{${language}}
-
-\\ProblemInformation
-\\Author: ${author}\\\\ ${translator ? `(${language}: ${translator})` : ''}
-\\Generation: ${date}
-
-\\subsection*{Draft}
-Draft generated with \\textbf{new-jutge-toolkit}.
-
-\\end{document}
-
-        `
+        const root = Handlebars.compile(rootTemplate)({
+            language,
+            jutgeLanguage: `jutge.${language}`,
+            id: `DRAFT (${language})`,
+            samples1c,
+            samples2c,
+            author,
+            translator,
+            date,
+        })
 
         // copy files to tmpDir
         // TODO: only copy needed files
@@ -404,37 +400,21 @@ Draft generated with \\textbf{new-jutge-toolkit}.
         const authorEmail = this.problem.problemLangYmls[language].author_email || 'unknown email'
         const translator = this.problem.problemLangYmls[language].translator || ''
 
-        const root = `
-    
-\\documentclass[11pt]{article}
+        const rootTemplate = await readText(join(latexDir, 'root-text.tpl.tex'))
 
-\\usepackage{jutge}
-\\usepackage{jutge.${language}}
+        // because Handlebars escapes curly braces, we need to define a helper to help latex macros
+        Handlebars.registerHelper('curly', function (value) {
+            return '{' + value + '}'
+        })
 
-% redefine commands to simplify text output
-\\renewcommand{\\Sample}{}
-\\renewcommand{\\Statement}{}
-\\renewcommand{\\Problem}[1]{\\section{#1}}
-\\renewcommand{\\ProblemId}[1]{DRAFT ${language}}
-
-% redefine figure commands to avoid troubles with \\parpic
-\\renewcommand{\\FigureL}[2]{\\includegraphics[#1]{#2}}
-\\renewcommand{\\FigureC}[2]{\\includegraphics[#1]{#2}}
-\\renewcommand{\\FigureR}[2]{\\includegraphics[#1]{#2}}
-
-\\begin{document}
-
-\\DoProblem{${language}}
-
-\\subsection*{\\TxtAuthor}
-${author} ${translator ? `(${language}: ${translator})` : ''}
-
-\\subsection*{Draft}
-Draft generated with \\textbf{new-jutge-toolkit}.
-
-\\end{document}
-
-        `
+        const root = Handlebars.compile(rootTemplate)({
+            language,
+            jutgeLanguage: `jutge.${language}`,
+            id: `DRAFT (${language})`,
+            author,
+            translator,
+            date,
+        })
 
         // copy files to tmpDir
         // TODO: only copy needed files
@@ -464,7 +444,6 @@ Draft generated with \\textbf{new-jutge-toolkit}.
             .replace(/\\end{htmlonly}/g, '')
             .replace(/\\begin{minipage}/g, '')
             .replace(/\\end{minipage}/g, '')
-            .replace(/\.eps}/g, '}')
         await writeText(join(tmpDir, `problem.${language}.tex`), tex2)
 
         // copy style files

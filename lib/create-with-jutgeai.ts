@@ -24,6 +24,7 @@ import tree from 'tree-node-cli'
 
 const promptsDir = join(projectDir(), 'assets', 'prompts')
 
+// TODO: make dynamic to speed up loading times
 const latexExample = await readText(join(promptsDir, 'examples', 'statement.tex'))
 const statementCoda = await readText(join(promptsDir, 'examples', 'statement-coda.tex'))
 const systemPrompt = await readText(join(promptsDir, 'creators', 'system-prompt.txt'))
