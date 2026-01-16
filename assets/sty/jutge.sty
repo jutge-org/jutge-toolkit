@@ -30,6 +30,7 @@
 %\usepackage{helvet}
 %\usepackage{courier}
 
+\usepackage{graphicx}
 \usepackage{moreverb} % for verbatimtabinput
 \usepackage{mdwlist}
 \usepackage{picins}
@@ -46,7 +47,6 @@
 \usepackage{tikz}
 %\usepackage{wasysym} % remove because not used
 \usepackage{color}
-
 
 
 \geometry{
@@ -298,6 +298,9 @@
 
 \renewcommand{\footnote}[1]{ (#1)}
 
+% for backward compatibility but deprecated
+\providecommand{\CPP}{C++}
+
 \newcommand{\UseHaskell}{
     \lstset{language=Haskell}
     \lstset{columns=fullflexible}
@@ -312,5 +315,12 @@
 \newcommand{\UsePython}{
     \lstset{language=Python}
     \lstset{columns=fullflexible}
+    \lstset{literate={<=}{$\le$}1 {>=}{$\ge$}1 {/=}{$\neq$}1 {->}{$\rightarrow$}1 {=>}{$\Rightarrow$}1}
+}
+
+\newcommand{\UseCPP}{
+    \lstset{language=CPP}
+    \lstset{columns=fullflexible}
+    \lstset{literate={<=}{$\le$}1 {>=}{$\ge$}1 {/=}{$\neq$}1 {->}{$\rightarrow$}1 {=>}{$\Rightarrow$}1}
 }
 
