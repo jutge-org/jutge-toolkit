@@ -138,11 +138,36 @@ In this case, it was necessary to use \verb|\lstset{language=C++}| to set the la
 The former use of at signs (@) and vertical bars (|) to include inline code snippets is deprecated because \textbf{pandoc} does not support it and introduced conflicts with other packages. You will have to replace them with \verb|\lstinline| or with \verb|\verb|| as shown above. Statements with at signs for inline listings can be automatically converted using \texttt{jtk convert transform-at-signs}.
 
 
+\paragraph{Hyperlinks.}
+
+Hyperlinks can be included in the statement using the \textbf{hyperref} package. 
+For example, visit \href{https://jutge.org}{Jutge.org} for more information.
+In the PDF and HTML versions, the link will be clickable, in the Markdown version, the URL will be displayed as required, but the Text version will only show the link text (Why? Can we fix it?).
+
+\medskip
+In addition, the \verb|Link| macro is provided to include links to other Jutge.org problems: 
+See the Hello World problem \Link{P68688}. Adding the language suffix is not recommended.
+
+
 \paragraph{Colors.}
 
-Colors can be used in the statement using the \texttt{color} package. 
+Colors can be used in the statement using the \textbf{color} package. 
 For instance, \textcolor{red}{this text is red}, \textcolor{blue}{this text is blue}, and \textcolor{green}{this text is green}.
 Of course, colors are not supported in the Text and Markdown versions of the statement.
+
+
+\paragraph{Columns.}
+
+The statement can also include multiple columns using the \textbf{multicol} package.
+Here is an example with two columns:
+
+\begin{multicols}{2}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+
+\end{multicols} 
+
+This is shown in the PDF version only, as multiple columns are not supported in HTML, Text, or Markdown.
 
 
 \paragraph{PS Tricks.}
