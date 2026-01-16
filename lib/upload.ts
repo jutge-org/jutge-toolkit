@@ -148,7 +148,7 @@ async function createZipFile(directory: string, zipFilePath: string, base: strin
         'main.*',
         '*.{inp,cor}',
         'award.{html,png}',
-        '*.png',
+        '*.{png,jpg,jpeg,gif,svg,pdf,eps}',
     ]
     const exclusions = ['.exe', '.o', '.hi', '~']
 
