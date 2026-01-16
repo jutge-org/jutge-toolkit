@@ -30,6 +30,8 @@ There are four types of problems in Jutge.org:
 
 - **Graphic problems**: Similar to standard problems but involve graphical output to file `output.png` rather than standard output, typically (but not necessarily) solved using Python's graphical libraries.
 
+-- **Circuit problems**: A subtype of problems where users must implement digital circuits using the Verilog programming language. These problems use formal verification techniques and do not need test cases for evaluation. These are not covered in this document.
+
 - **Games**: Problems where users must implement an AI to play a game against other users or predefined strategies. These problems often involve turn-based gameplay and require users to implement specific functions to decide their moves. These are not covered in this document.
 
 - **Quizzes**: Problems where users must answer multiple-choice questions. These are not covered in this document.
@@ -235,6 +237,8 @@ There are also optional arguments that may be used:
 - `compilers`: Compiler that Jutge.org will use to correct the problem. If specified, this will be the only compiler available on the website if a user wants to send their submission. You will find a list of available compilers at https://jutge.org/documentation/compilers. Beware that, for historic reasons, `compilers` is not a list of compilers; it is just a single compiler.
 
 - `func_name`: Name of the function requested in case the problem only asks for a function (this must be used along with `source_modifier: no_main`).
+
+- `hide_html`: If set to `1`, the statement will not be shown in HTML in the Jutge.org website; use it sparingly.
 
 - `invisible_main`: If set to `1`, the `main.cc` file will not be provided to users. This is used by problems that do not require writing a `main` function.
 

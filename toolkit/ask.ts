@@ -32,7 +32,7 @@ export async function loadDocumentation(): Promise<string> {
     const documentsDir = join(projectDir(), 'docs')
     const toolkitDir = join(projectDir(), 'toolkit')
 
-    const documentPaths = await Array.fromAsync(glob('*.md', { cwd: documentsDir }))
+    const documentPaths = await Array.fromAsync(glob('*.{md,tex}', { cwd: documentsDir }))
     const sourcePaths = await Array.fromAsync(glob('*.ts', { cwd: toolkitDir }))
 
     const documents = await all(documentPaths.map((file) => readTextInDir(documentsDir, file)))
