@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint'
 export default tseslint.config(
     eslint.configs.recommended,
     tseslint.configs.recommended,
-    [globalIgnores(['postcss.config.mjs', 'eslint.config.mjs', 'lib/jutge_api_client.ts', 'assets/**', 'dist/**'])],
+    [globalIgnores(['eslint.config.mjs', 'lib/jutge_api_client.ts', 'assets/**', 'dist/**'])],
 
     tseslint.configs.recommendedTypeChecked,
     {

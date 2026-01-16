@@ -21,6 +21,11 @@
         "type": "git",
         "url": "git+https://github.com/jutge-org/new-jutge-toolkit.git"
     },
+    "keywords": [
+        "jutge.org",
+        "cli",
+        "command line interface"
+    ],
     "publishConfig": {
         "access": "public"
     },
@@ -29,14 +34,14 @@
     "bin": {
         "jutge-toolkit": "dist/index.js",
         "jtk": "dist/index.js",
-        "dev": "toolkit/index.ts"
+        "jtk-dev": "toolkit/index.ts"
     },
     "scripts": {
         "lint": "eslint .",
         "format": "bun prettier --write .",
         "depcheck": "bunx depcheck",
         "dev": "bun build --target bun --outfile dist/index.js ./toolkit --watch",
-        "build": "bun build --target bun --minify --outfile dist/index.js ./toolkit ",
+        "build": "bun build --target bun --minify --outfile dist/index.js ./toolkit",
         "update-jutge-client": "(cd lib ; rm -f jutge_api_client.ts ; https --download https://api.jutge.org/clients/download/typescript)"
     },
     "files": [
@@ -68,7 +73,6 @@
         "nanoid": "^5.1.6",
         "openai": "^6.15.0",
         "ora": "^9.0.0",
-        "prettier": "^3.7.4",
         "pretty-bytes": "^7.1.0",
         "pretty-ms": "^9.3.0",
         "radash": "^12.1.1",
@@ -83,6 +87,7 @@
         "zod-validation-error": "^5.0.0"
     },
     "devDependencies": {
+        "prettier": "^3.7.4",
         "typescript-eslint": "^8.51.0",
         "@types/archiver": "^7.0.0",
         "@types/image-size": "^0.8.0",
