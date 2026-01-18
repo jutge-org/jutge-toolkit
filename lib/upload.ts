@@ -74,7 +74,7 @@ async function createMultiLanguageZip(problems: Problem[], zipDir: string, rootD
         for (const file of files) {
             filesToArchive.push({
                 sourcePath: join(directory, file),
-                archivePath: join(problem.language!, basename(file)),
+                archivePath: join(basename(rootDir), problem.language!, basename(file)),
             })
         }
     }
@@ -146,6 +146,8 @@ async function createZipFile(directory: string, zipFilePath: string, base: strin
         'problem.[a-z][a-z].{yml,tex}',
         'solution.*',
         'main.*',
+        'proto.txt', // circuits
+        'problem.v', // circuits
         '*.{inp,cor}',
         'award.{html,png}',
         '*.{png,jpg,jpeg,gif,svg,pdf,eps}',
