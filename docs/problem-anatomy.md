@@ -386,6 +386,10 @@ Python solutions should have all their executable code inside an `if __name__ ==
 
 Java solutions must have their `main` function placed in a `Main` class. See https://jutge.org/documentation/compilers/JDK for some examples.
 
+## Code templates
+
+Some problems may provide a code template where users can fill in with their own implementation. Code templates are named `code.ext`, where `ext` is the standard extension that corresponds to the selected programming language. For instance, a problem may contain `code.cc` and `code.py` in order to provide code templates in C++ and Python3.
+
 ## Scores
 
 In order to score submissions according to the correct test cases they pass, the file `scores.yml` must exist. `scores.yml` describes the scoring of a problem using YAML syntax. The scores are given through a list of partial scores. Each partial score contains the following fields:
