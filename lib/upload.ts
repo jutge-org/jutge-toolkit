@@ -146,8 +146,7 @@ async function createZipFile(directory: string, zipFilePath: string, base: strin
         'problem.[a-z][a-z].{yml,tex}',
         'solution.*',
         'main.*',
-        'proto.txt', // circuits
-        'problem.v', // circuits
+        'code.*',
         '*.{inp,cor}',
         'award.{html,png}',
         '*.{png,jpg,jpeg,gif,svg,pdf,eps}',
