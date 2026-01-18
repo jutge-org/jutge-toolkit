@@ -7,8 +7,8 @@
 % redefine commands to simplify text output
 \renewcommand{\Sample}{}
 \renewcommand{\Statement}{}
-\renewcommand{\Problem}[1]{\section{#1}}
-\ProblemId{{curly id}}
+\renewcommand{\Problem}[1]{}. % hide problem title
+\ProblemId{} % hide problem id
 
 % redefine figure commands to avoid troubles with \parpic
 \renewcommand{\FigureL}[2]{\includegraphics[#1]{#2}}
@@ -18,24 +18,5 @@
 \begin{document}
 
 \DoProblem{{curly language}} 
-
-\ProblemInformation
-
-\Author\ {{author}}
-{{#if translator}}
-    \\ 
-    \Translator {{translator}}
-{{/if}}
-
-\bigskip
-
-\Generation {{date}}
-
-\bigskip
-
-\copyright\ \emph{Jutge.org}, 2006--{{year}}.
-\\
-\href{https://jutge.org}{https://jutge.org}
-
 
 \end{document}

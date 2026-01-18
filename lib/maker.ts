@@ -26,9 +26,9 @@ import * as doctor from './doctor'
 
 const latexDir = join(projectDir(), 'assets', 'latex')
 
-export async function newMaker(directory: string): Promise<Maker> {
+export async function newMaker(directory: string, problem_nm: string): Promise<Maker> {
     const problem = await newProblem(directory)
-    return new Maker(problem)
+    return new Maker(problem, problem_nm)
 }
 
 type ExecutionResult = {
@@ -41,9 +41,11 @@ type ExecutionResult = {
 
 export class Maker {
     problem: Problem
+    problem_nm: string
 
-    public constructor(problem: Problem) {
+    public constructor(problem: Problem, problem_nm: string) {
         this.problem = problem
+        this.problem_nm = problem_nm
     }
 
     async showDirectory() {
@@ -271,10 +273,10 @@ export class Maker {
         const tmpDir = join(tmpDirBase, language)
         await mkdir(tmpDir)
 
-        const date = new Date().toISOString().substring(0, 10)
+        const date = new Date().toISOString()
         const year = new Date().getFullYear()
-        const author = this.problem.problemLangYmls[language].author || 'Unknown'
-        const authorEmail = this.problem.problemLangYmls[language].author_email || 'unknown email'
+        const author = this.problem.problemLangYmls[this.problem.originalLanguage!].author || 'Unknown'
+        const authorEmail = this.problem.problemLangYmls[this.problem.originalLanguage!].author_email || 'unknown email'
         const translator = this.problem.problemLangYmls[language].translator || ''
 
         const [samples1c, samples2c] = await this.makeSamples(tmpDir, language)
@@ -289,12 +291,13 @@ export class Maker {
         const root = Handlebars.compile(rootTemplate)({
             language,
             jutgeLanguage: `jutge.${language}`,
-            id: `DRAFT (${language})`,
+            id: `${this.problem_nm}\\_${language}`,
             samples1c,
             samples2c,
             author,
             translator,
             date,
+            year,
         })
 
         // copy files to tmpDir
@@ -394,13 +397,13 @@ export class Maker {
         const tmpDir = join(tmpDirBase, language)
         await mkdir(tmpDir)
 
-        const date = new Date().toISOString().substring(0, 10)
+        const date = new Date().toISOString()
         const year = new Date().getFullYear()
         const author = this.problem.problemLangYmls[language].author || 'Unknown'
         const authorEmail = this.problem.problemLangYmls[language].author_email || 'unknown email'
         const translator = this.problem.problemLangYmls[language].translator || ''
 
-        const rootTemplate = await readText(join(latexDir, 'root-text.tpl.tex'))
+        const rootTemplate = await readText(join(latexDir, 'root-text-short.tpl.tex'))
 
         // because Handlebars escapes curly braces, we need to define a helper to help latex macros
         Handlebars.registerHelper('curly', function (value) {
@@ -410,7 +413,8 @@ export class Maker {
         const root = Handlebars.compile(rootTemplate)({
             language,
             jutgeLanguage: `jutge.${language}`,
-            id: `DRAFT (${language})`,
+            id: `${this.problem_nm}\\_${language}`,
+            year,
             author,
             translator,
             date,

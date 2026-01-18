@@ -12,8 +12,9 @@ export const makeCmd = new Command('make')
     .option('-d, --directories <directories...>', 'problem directories', ['.'])
     .option('-i, --ignore-errors', 'ignore errors on a directory and continue processing', false)
     .option('-e, --only-errors', 'only show errors at the final summary', false)
+    .option('-p, --problem_nm <problem_nm>', 'problem nm', 'DRAFT')
 
-    .action(async (tasks, { directories, ignoreErrors, onlyErrors }) => {
+    .action(async (tasks, { directories, ignoreErrors, onlyErrors, problem_nm }) => {
         if (tasks.length === 0) {
             tasks = ['all']
         }
@@ -35,7 +36,7 @@ export const makeCmd = new Command('make')
             try {
                 tui.title(`Making problem in directory ${tui.hyperlink(directory, resolve(directory))}`)
 
-                const maker = await newMaker(directory)
+                const maker = await newMaker(directory, problem_nm)
 
                 // If tasks include 'all', run makeProblem
                 if (tasks.includes('all')) {
