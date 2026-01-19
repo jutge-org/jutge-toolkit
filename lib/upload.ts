@@ -15,7 +15,7 @@ export async function uploadProblemInDirectory(directory: string): Promise<void>
 
     function accept(file: string): boolean {
         const extensionsToExclude = ['.exe', '.o', '.hi', '~', '.bak', '.class', '.pyc', '.pyo']
-        const preffixesToExclude = [toolkitPrefix() + '-', '__MACOSX', '__pycache__']
+        const prefixesToExclude = [toolkitPrefix() + '-', '__MACOSX', '.DS_Store', '.', '__pycache__']
 
         for (const ext of extensionsToExclude) {
             if (file.endsWith(ext)) {
@@ -24,8 +24,8 @@ export async function uploadProblemInDirectory(directory: string): Promise<void>
         }
         const parts = normalize(file).split(sep)
         for (const part of parts) {
-            for (const preffix of preffixesToExclude) {
-                if (part.startsWith(preffix)) {
+            for (const prefix of prefixesToExclude) {
+                if (part.startsWith(prefix)) {
                     return false
                 }
             }
