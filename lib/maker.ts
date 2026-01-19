@@ -1,7 +1,7 @@
 import Handlebars from 'handlebars'
 import chalk from 'chalk'
 import { execa } from 'execa'
-import { cp, exists, glob, mkdir, rename } from 'fs/promises'
+import { cp, exists, glob, mkdir, rename, rm } from 'fs/promises'
 import { imageSizeFromFile } from 'image-size/fromFile'
 import { basename, dirname, join, normalize, resolve } from 'path'
 import prettyBytes from 'pretty-bytes'
@@ -67,11 +67,74 @@ export class Maker {
     }
 
     public async makeProblem() {
-        await this.makeGoldenExecutable()
-        await this.makeCorrectOutputs()
-        await this.checkSolutions()
-        await this.makePdfStatements()
-        await this.makeTextualStatements()
+        if (this.problem.handler.handler === 'game') {
+            return await this.makeGameProblem()
+        } else {
+            await this.makeGoldenExecutable()
+            await this.makeCorrectOutputs()
+            await this.checkSolutions()
+            await this.makePdfStatements()
+            await this.makeTextualStatements()
+        }
+    }
+
+    async makeGameProblem() {
+        // TODO: decide whether to clean or not
+
+        const docDir = join(this.problem.directory, 'Doc')
+        await tui.section(`Creating documentation in ${tui.hyperlink(this.problem.directory, 'Doc')}`, async () => {
+            tui.command('make all')
+            const { exitCode } = await execa({
+                stderr: 'inherit',
+                cwd: docDir,
+            })`make all`
+            if (exitCode === 0) {
+                tui.success('make completed successfully')
+            } else {
+                tui.error('make failed')
+                throw new Error('make failed')
+            }
+        })
+
+        const runnerDir = join(this.problem.directory, 'Runner')
+        await tui.section(`Compiling files in ${tui.hyperlink(this.problem.directory, 'Runner')}`, async () => {
+            tui.command('make all')
+            const { exitCode } = await execa({
+                stdout: 'inherit',
+                stderr: 'inherit',
+                cwd: runnerDir,
+            })`make all`
+            if (exitCode === 0) {
+                tui.success('make completed successfully')
+            } else {
+                tui.error('make failed')
+                throw new Error('make failed')
+            }
+        })
+
+        const publicDir = join(this.problem.directory, 'Public')
+        await tui.section(`Preparing files in ${tui.hyperlink(this.problem.directory, 'Public')}`, async () => {
+            await rm(publicDir, { recursive: true, force: true })
+            await mkdir(publicDir, { recursive: true })
+            const published = []
+            const hidden = []
+            const patterns = ['README.{txt,md}', 'Makefile', '*.cc', '*.hh', '*.cnf']
+            for (const pattern of patterns) {
+                const files = await Array.fromAsync(glob(pattern, { cwd: runnerDir }))
+                for (const file of files.sort()) {
+                    const sourcePath = join(runnerDir, file)
+                    const destPath = join(publicDir, file)
+                    if (this.problem.handler.game?.hide.includes(file)) {
+                        hidden.push(file)
+                    } else {
+                        published.push(file)
+                        await cp(sourcePath, destPath)
+                    }
+                }
+            }
+            tui.success(`Published files: ${published.join(' ')}`)
+            tui.warning(`Hidden files: ${hidden.join(' ')}`)
+        })
     }
 
     public async makeExecutable(program: string) {

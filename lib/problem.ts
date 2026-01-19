@@ -43,10 +43,12 @@ export class Problem {
             await this.loadHandler()
             await this.loadProblemYml()
             await this.loadOriginalLanguage()
-            await this.loadSolutions()
-            await this.loadGoldenSolution()
-            await this.loadTestcases()
-            await this.loadScores()
+            if (this.handler.handler !== 'game') {
+                await this.loadSolutions()
+                await this.loadGoldenSolution()
+                await this.loadTestcases()
+                await this.loadScores()
+            }
             await this.loadAwards()
         })
 
@@ -55,7 +57,7 @@ export class Problem {
             tui.error('No original language found')
             errors = true
         }
-        if (!this.goldenSolution) {
+        if (!this.goldenSolution && this.handler.handler !== 'game') {
             tui.error('No golden solution found')
             errors = true
         }

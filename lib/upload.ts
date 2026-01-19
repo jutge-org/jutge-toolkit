@@ -11,6 +11,7 @@ import tui from './tui'
 import { ProblemInfo } from './types'
 import { createFileFromPath, nanoid12, nanoid8, readYaml, toolkitPrefix, writeYamlInDir } from './utils'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
+import { zip } from 'radash'
 
 export async function uploadProblemInDirectory(directory: string): Promise<void> {
     const zipFiles: string[] = []
@@ -18,7 +19,7 @@ export async function uploadProblemInDirectory(directory: string): Promise<void>
 
     for (const realDirectory of await findRealDirectories([directory])) {
         const problem = await newProblem(realDirectory)
-        const zipFile = await zippingProblem(problem)
+        const zipFile = await zipProblem(problem)
         problems.push(problem)
         zipFiles.push(zipFile)
     }
@@ -45,6 +46,7 @@ async function handleSingleStructureUpload(problems: Problem[], zipFiles: string
     await extractZipsToLanguageDirs(problems, zipFiles, zipDir)
 
     const zipFilePath = await createMultiLanguageZip(problems, zipDir, rootDir)
+
     const info = await createOrUpdateProblem(rootDir, zipFilePath)
 
     displayProblemInfo(info, problem.languages)
@@ -105,9 +107,11 @@ function displayProblemInfo(info: ProblemInfo, languages: string[]): void {
     }
 }
 
-async function zippingProblem(problem: Problem): Promise<string> {
-    return await tui.section('Ziping problem', async () => {
-        await validateInpCorFiles(problem.directory)
+async function zipProblem(problem: Problem): Promise<string> {
+    return await tui.section('Zipping problem', async () => {
+        if (problem.handler.handler !== 'game') {
+            await validateInpCorFiles(problem.directory)
+        }
 
         const tmpDir = join(problem.directory, toolkitPrefix() + '-zip', nanoid8())
         const base = basename(process.cwd())
@@ -116,7 +120,11 @@ async function zippingProblem(problem: Problem): Promise<string> {
 
         await tui.section('Creating zip file', async () => {
             tui.directory(tmpDir)
-            await createZipFile(problem.directory, zipFilePath, base)
+            if (problem.handler.handler === 'game') {
+                await createGameZipFile(problem.directory, zipFilePath, base)
+            } else {
+                await createZipFile(problem.directory, zipFilePath, base)
+            }
             tui.success(`Created zip file ${base}.zip at ${tui.hyperlink(tmpDir)}`)
         })
 
@@ -163,6 +171,37 @@ async function createZipFile(directory: string, zipFilePath: string, base: strin
         for (const file of sortedFiles) {
             if (exclusions.some((ext) => file.endsWith(ext))) continue
 
+            tui.print(`  add ${file}`)
+            filesToArchive.push({
+                sourcePath: join(directory, file),
+                archivePath: join(base, file),
+            })
+        }
+    }
+
+    await createZipFromFiles(filesToArchive, zipFilePath)
+}
+
+async function createGameZipFile(directory: string, zipFilePath: string, base: string): Promise<void> {
+    const filesToArchive: FileToArchive[] = []
+    const patterns = [
+        'handler.yml',
+        'problem.[a-z][a-z].yml',
+        'Runner/README.{txt,md}',
+        'Runner/Makefile',
+        'Runner/*.{cc,hh,cnf}',
+        'Public/README.{txt,md}',
+        'Public/Makefile',
+        'Public/*.{cc,hh,cnf}',
+        'Doc/main.pdf',
+        'Viewer/**/*',
+    ]
+
+    for (const pattern of patterns) {
+        const files = await Array.fromAsync(glob(pattern, { cwd: directory }))
+        const sortedFiles = files.sort()
+
+        for (const file of sortedFiles) {
             tui.print(`  add ${file}`)
             filesToArchive.push({
                 sourcePath: join(directory, file),
