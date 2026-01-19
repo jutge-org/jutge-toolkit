@@ -6,7 +6,7 @@ import tui from '../lib/tui'
 import { nothing, projectDir } from '../lib/utils'
 
 export const makeCmd = new Command('make')
-    .description('Make problem elements')
+    .description('Make problem')
 
     .argument('[tasks...]', 'tasks to make: all|info|exe|cor|pdf|txt|md|html', ['all'])
     .option('-d, --directories <directories...>', 'problem directories', ['.'])
