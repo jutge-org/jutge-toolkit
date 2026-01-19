@@ -147,6 +147,7 @@ async function createZipFile(directory: string, zipFilePath: string, base: strin
         'solution.*',
         'main.*',
         'code.*',
+        'sample.dt',
         '*.{inp,cor}',
         'award.{html,png}',
         '*.{png,jpg,jpeg,gif,svg,pdf,eps}',
