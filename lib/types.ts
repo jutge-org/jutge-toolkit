@@ -39,10 +39,11 @@ export const Specification = z.object({
 export type Specification = z.infer<typeof Specification>
 
 export const ProblemInfo = z.object({
-    problem_nm: z.string(),
-    passcode: z.string(),
-    created_at: z.string(),
-    updated_at: z.string(),
+    problem_nm: z.string().default(''),
+    email: z.string().default(''),
+    passcode: z.string().default(''),
+    created_at: z.string().default(''),
+    updated_at: z.string().default(''),
 })
 
 export type ProblemInfo = z.infer<typeof ProblemInfo>

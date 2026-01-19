@@ -1,3 +1,5 @@
+// TODO: add AbstractProblem class that has child Problems (and they an have AbstractProblem as parent)
+
 import { exists, glob } from 'fs/promises'
 import { imageSizeFromFile } from 'image-size/fromFile'
 import { basename, join, normalize, sep } from 'path'

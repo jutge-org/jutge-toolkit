@@ -8,6 +8,8 @@ export const uploadCmd = new Command('upload')
 
 If problem.yml exists, the problem will be updated at Jutge.org using that information (which includes its problem id).
 If problem.yml does not exist, a new problem will be created at Jutge.org and problem.yml will be generated.
+
+Please clean the problem directory before uploading to avoid uploading unnecessary files.
 `,
     )
 
