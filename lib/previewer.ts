@@ -1,7 +1,7 @@
 import { rings } from '@dicebear/collection'
 import { createAvatar } from '@dicebear/core'
 import { execa } from 'execa'
-import { cp, exists, glob, mkdir, rm } from 'fs/promises'
+import { cp, exists, glob, mkdir, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { invert } from 'radash'
 import tui from '../lib/tui'
@@ -48,7 +48,7 @@ export class Previewer {
 
     async prepare() {
         await this.createWorkspace()
-        await this.separatePbmByLanguages()
+        await this.separateByLanguages()
         await this.readMetadata()
         for (const language of this.languages) {
             await tui.section(`Processing language ${language}`, async () => {
@@ -69,6 +69,7 @@ export class Previewer {
         }
         await this.exportFirstToSolve()
         await this.exportInformationYml()
+        await this.exportReadMd()
     }
 
     private async createWorkspace() {
@@ -92,18 +93,18 @@ export class Previewer {
         return false
     }
 
-    private async separatePbmByLanguages() {
+    private async separateByLanguages() {
         await tui.section('Detecting if there are language folders or not', async () => {
             const detector = await Array.fromAsync(glob('handler.yml', { cwd: this.directory }))
             if (detector.length === 0) {
-                await this.separateIncommingPbmByLanguagesWithFolders()
+                await this.separateByLanguagesWithFolders()
             } else {
-                await this.separateIncommingPbmByLanguagesWithoutFolders()
+                await this.separateByLanguagesWithoutFolders()
             }
         })
     }
 
-    private async separateIncommingPbmByLanguagesWithoutFolders() {
+    private async separateByLanguagesWithoutFolders() {
         await tui.section('Separating problem by languages without folders', async () => {
             // get all languages
             const ymls = await Array.fromAsync(glob('problem.[a-z][a-z].yml', { cwd: this.directory }))
@@ -130,7 +131,7 @@ export class Previewer {
         })
     }
 
-    private async separateIncommingPbmByLanguagesWithFolders() {
+    private async separateByLanguagesWithFolders() {
         await tui.section('Separating problem by languages with folders', async () => {
             // get all languages
             const languages = await Array.fromAsync(glob('[a-z][a-z]', { cwd: this.directory }))
@@ -553,6 +554,22 @@ export class Previewer {
             const infoFile = join(this.exportDir, 'information.yml')
             await writeYaml(infoFile, info)
             tui.success(`Generated ${tui.hyperlink(this.exportDir, 'information.yml')}`)
+        })
+    }
+
+    private async exportReadMd() {
+        await tui.section('Exporting README.md', async () => {
+            const text = `
+# Preview of problem ${this.problem_nm}
+
+This is a preview of the problem **${this.problem_nm}** prepared with [Jutge Toolkit](https://jutge.org).
+
+TODO: Add more information here.
+            `.trim()
+
+            const path = join(this.exportDir, 'README.md')
+            await writeFile(path, text)
+            tui.success(`Generated ${tui.hyperlink(this.exportDir, 'README.md')}`)
         })
     }
 }
