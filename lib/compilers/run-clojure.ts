@@ -1,7 +1,7 @@
 import { execa } from 'execa'
 import { join, parse } from 'path'
 import tui from '../tui'
-import type { Handler } from '../types'
+import type { HandlerInfo } from '../types'
 import { nothing, readText, toolkitPrefix, writeText } from '../utils'
 import { Compiler } from './base'
 
@@ -42,7 +42,7 @@ export class RunClojure_Compiler extends Compiler {
         return 'clj'
     }
 
-    override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileNormal(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         await nothing()
 
         tui.warning(`No compilation available for Clojure`)
@@ -50,13 +50,13 @@ export class RunClojure_Compiler extends Compiler {
         return sourcePath
     }
 
-    override async compileWithMain(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileWithMain(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         await nothing()
         throw new Error('Method not implemented.')
     }
 
     override async execute(
-        handler: Handler,
+        handler: HandlerInfo,
         directory: string,
         sourcePath: string,
         inputPath: string,

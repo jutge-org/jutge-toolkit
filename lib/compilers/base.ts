@@ -2,7 +2,7 @@ import { execa } from 'execa'
 import { exists, rm } from 'fs/promises'
 import { join, resolve, sep } from 'path'
 import tui from '../tui'
-import type { Handler } from '../types'
+import type { HandlerInfo } from '../types'
 import { readText, toolkitPrefix, writeText } from '../utils'
 
 export type CompilerInfo = {
@@ -59,7 +59,7 @@ export abstract class Compiler {
         }
     }
 
-    public async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    public async compileNormal(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         const exePath = `${sourcePath}.exe`
 
         await this.rmInDir(directory, exePath)
@@ -75,7 +75,7 @@ export abstract class Compiler {
         return exePath
     }
 
-    public async compileWithMain(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    public async compileWithMain(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         const exePath = `${sourcePath}.exe`
 
         tui.command(`add main.${this.extension()} to ${sourcePath}`)
@@ -94,7 +94,7 @@ export abstract class Compiler {
 
     // Default implementation of execute for compiled languages
     async execute(
-        handler: Handler,
+        handler: HandlerInfo,
         directory: string,
         sourcePath: string,
         inputPath: string,

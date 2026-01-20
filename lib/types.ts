@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const Handler = z.object({
+export const HandlerInfo = z.looseObject({
     handler: z.enum(['std', 'graphic', 'quiz', 'circuits', 'game']).default('std'),
     solution: z.string().default('C++'),
     source_modifier: z.enum(['none', 'no_main', 'structs']).default('none'),
@@ -12,7 +12,7 @@ export const Handler = z.object({
         .optional(),
 })
 
-export type Handler = z.infer<typeof Handler>
+export type HandlerInfo = z.infer<typeof HandlerInfo>
 
 export const Scores = z.array(
     z.object({
@@ -48,9 +48,29 @@ export const ProblemInfo = z.object({
 
 export type ProblemInfo = z.infer<typeof ProblemInfo>
 
+export const ProblemOriginalLangInfo = z.object({
+    title: z.string(),
+    author: z.string(),
+    email: z.string(),
+})
+
+export type ProblemOriginalLangInfo = z.infer<typeof ProblemOriginalLangInfo>
+
+export const ProblemTransationLangInfo = z.object({
+    title: z.string(),
+    translator: z.string(),
+    translator_email: z.string(),
+})
+
+export type ProblemTranslationLangInfo = z.infer<typeof ProblemTransationLangInfo>
+
+export const ProblemLangInfo = z.union([ProblemOriginalLangInfo, ProblemTransationLangInfo])
+
+export type ProblemLangInfo = z.infer<typeof ProblemLangInfo>
+
 export const Settings = z.object({
     name: z.string().min(1).default('John Doe'),
-    email: z.string().email().default('john.doe@example.com'),
+    email: z.string().default('john.doe@example.com'),
     defaultModel: z.string().default('google/gemini-2.5-flash-lite'),
     notifications: z.boolean().default(false),
     showPrompts: z.boolean().default(false),

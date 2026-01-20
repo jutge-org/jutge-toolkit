@@ -1,7 +1,7 @@
 import { execa } from 'execa'
 import { join, parse } from 'path'
 import tui from '../tui'
-import type { Handler } from '../types'
+import type { HandlerInfo } from '../types'
 import { nothing, toolkitPrefix } from '../utils'
 import { Compiler } from './base'
 
@@ -42,7 +42,7 @@ export class Java_Compiler extends Compiler {
         return 'java'
     }
 
-    override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileNormal(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         const classPath = 'Main.class'
 
         await this.rmInDir(directory, classPath)
@@ -58,7 +58,7 @@ export class Java_Compiler extends Compiler {
         return classPath
     }
 
-    override async compileWithMain(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileWithMain(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         const classPath = 'Main.class'
 
         tui.command(`add main.${this.extension()} to ${sourcePath}`)
@@ -78,7 +78,7 @@ export class Java_Compiler extends Compiler {
     }
 
     override async execute(
-        handler: Handler,
+        handler: HandlerInfo,
         directory: string,
         sourcePath: string,
         inputPath: string,

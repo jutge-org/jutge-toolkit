@@ -1,5 +1,5 @@
 import tui from '../tui'
-import { type Handler } from '../types'
+import { type HandlerInfo } from '../types'
 import { Compiler } from './base'
 import { execa } from 'execa'
 import { join } from 'path'
@@ -43,12 +43,12 @@ export class Clojure_Compiler extends Compiler {
         return 'clj'
     }
 
-    override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileNormal(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         await nothing()
         return sourcePath
     }
 
-    override async compileWithMain(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileWithMain(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         tui.command(`add main.${this.extension()} to ${sourcePath}`)
         await this.concatText(directory, [sourcePath, `main.${this.extension()}`], sourcePath)
 
@@ -58,7 +58,7 @@ export class Clojure_Compiler extends Compiler {
     }
 
     override async execute(
-        handler: Handler,
+        handler: HandlerInfo,
         directory: string,
         sourcePath: string,
         inputPath: string,

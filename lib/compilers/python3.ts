@@ -1,7 +1,7 @@
 import { execa } from 'execa'
 import { join } from 'path'
 import tui from '../tui'
-import type { Handler } from '../types'
+import type { HandlerInfo } from '../types'
 import { readText, toolkitPrefix, writeText } from '../utils'
 import { Compiler } from './base'
 
@@ -42,7 +42,7 @@ export class Python3_Compiler extends Compiler {
         return 'py'
     }
 
-    override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileNormal(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         const source = await readText(join(directory, sourcePath))
 
         tui.command(`tweak ${sourcePath} for turtle compatibility`)
@@ -66,7 +66,7 @@ export class Python3_Compiler extends Compiler {
         return sourcePath
     }
 
-    override async compileWithMain(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileWithMain(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         tui.command(`add main.${this.extension()} to ${sourcePath}`)
         await this.concatText(directory, [sourcePath, `main.${this.extension()}`], sourcePath)
 
@@ -86,7 +86,7 @@ export class Python3_Compiler extends Compiler {
     }
 
     override async execute(
-        handler: Handler,
+        handler: HandlerInfo,
         directory: string,
         sourcePath: string,
         inputPath: string,

@@ -6,7 +6,7 @@ import { basename, join, normalize, sep } from 'path'
 import tui from './tui'
 import { nothing, readYamlInDir } from './utils'
 import { languageNames } from './data'
-import { Handler, ProblemInfo, Scores } from './types'
+import { HandlerInfo, ProblemInfo, Scores } from './types'
 
 export async function newProblem(directory: string): Promise<Problem> {
     const problem = new Problem(directory)
@@ -21,7 +21,7 @@ export class Problem {
     directory: string
     structure: Structure = 'multi'
     language: string | null = null
-    handler!: Handler
+    handler!: HandlerInfo
     languages: string[] = []
     originalLanguage: string | null = null
     problemYml: ProblemInfo | null = null // TODO: use this field
@@ -134,7 +134,7 @@ export class Problem {
     private async loadHandler() {
         await tui.section('Loading handler.yml', async () => {
             const data = await readYamlInDir(this.directory, 'handler.yml')
-            this.handler = Handler.parse(data)
+            this.handler = HandlerInfo.parse(data)
             if (this.handler.source_modifier === 'structs') {
                 tui.warning(
                     'source_modifier "structs" is deprecated, using "no_main" instead. please update handler.yml',
