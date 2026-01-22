@@ -63,6 +63,7 @@
         "chalk": "^5.6.2",
         "cli-highlight": "^2.1.11",
         "commander": "^14.0.2",
+        "dayjs": "^1.11.19",
         "env-paths": "^3.0.0",
         "eslint": "^9.39.2",
         "execa": "^9.6.1",

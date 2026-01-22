@@ -1,3 +1,5 @@
+import os from 'os'
+import dayjs from 'dayjs'
 import { rings } from '@dicebear/collection'
 import { createAvatar } from '@dicebear/core'
 import { execa } from 'execa'
@@ -7,6 +9,8 @@ import { invert } from 'radash'
 import tui from '../lib/tui'
 import { existsInDir, nanoid8, nothing, readYaml, toolkitPrefix, writeText, writeYaml } from '../lib/utils'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
+import tree from 'tree-node-cli'
+import type { ProblemInfo } from './types'
 
 export class Previewer {
     // directory containing the problem to preview
@@ -18,9 +22,10 @@ export class Previewer {
 
     workDir: string
     exportDir: string
+    exportDirLang: string = 'to-be-set'
 
     // this will be set in the languages loop
-    workDirLang: string = '/to-be-set'
+    workDirLang: string = 'to-be-set'
     problem_id: string = 'to-be-set'
 
     // detected languages
@@ -54,6 +59,8 @@ export class Previewer {
             await tui.section(`Processing language ${language}`, async () => {
                 this.workDirLang = join(this.workDir, language)
                 this.problem_id = `${this.problem_nm}_${language}`
+                this.exportDirLang = join(this.exportDir, language)
+                await mkdir(this.exportDirLang, { recursive: true })
 
                 await this.prepareStatements(language)
                 await this.computeCodeMetrics(language)
@@ -70,6 +77,8 @@ export class Previewer {
         await this.exportFirstToSolve()
         await this.exportInformationYml()
         await this.exportReadMd()
+
+        console.log(tree(this.exportDir))
     }
 
     private async createWorkspace() {
@@ -305,8 +314,8 @@ export class Previewer {
             const golden_solution = await this.findGoldenSolution(language)
             tui.command(`jutge-code-metrics ${golden_solution}`)
             const { stdout } = await execa({ cwd: this.workDirLang })`jutge-code-metrics ${golden_solution}`
-            await writeText(join(this.exportDir, `${this.problem_id}.code-metrics.json`), stdout)
-            tui.success(`Generated ${tui.hyperlink(this.exportDir, `${this.problem_id}.code-metrics.json`)}`)
+            await writeText(join(this.exportDirLang, `code-metrics.json`), stdout)
+            tui.success(`Generated ${tui.hyperlink(this.exportDirLang, `code-metrics.json`)}`)
         })
     }
 
@@ -334,7 +343,7 @@ export class Previewer {
             return false
         }
 
-        const dst = join(this.exportDir, `${this.problem_id}.pbm`)
+        const dst = join(this.exportDirLang, `problem.pbm`)
         await mkdir(dst, { recursive: true })
         const files = await Array.fromAsync(glob('*', { cwd: this.workDirLang }))
         let count = 0
@@ -344,7 +353,7 @@ export class Previewer {
                 count++
             }
         }
-        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDir, `${this.problem_id}.pbm`)}`)
+        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, `problem.pbm`)}`)
     }
 
     private async exportProblemFiles_Game(language: string) {
@@ -399,7 +408,7 @@ export class Previewer {
             for (const extension of ['pdf', 'html', 'md', 'txt', 'yml']) {
                 const file = `problem.${language}.${extension}`
                 if (await existsInDir(this.workDirLang, file)) {
-                    await cp(join(this.workDirLang, file), join(this.exportDir, `${this.problem_id}.${extension}`))
+                    await cp(join(this.workDirLang, file), join(this.exportDirLang, file))
                     count++
                 }
             }
@@ -453,10 +462,8 @@ export class Previewer {
             }
         }
 
-        await createZipFromFiles(filesToZip, join(this.exportDir, `${this.problem_id}.zip`))
-        tui.success(
-            `Created ${tui.hyperlink(this.exportDir, `${this.problem_id}.zip`)} with ${filesToZip.length} files`,
-        )
+        await createZipFromFiles(filesToZip, join(this.exportDirLang, `public.zip`))
+        tui.success(`Created ${tui.hyperlink(this.exportDirLang, `public.zip`)} with ${filesToZip.length} files`)
     }
 
     private async exportZip_Game(language: string) {
@@ -524,18 +531,18 @@ export class Previewer {
             }
         }
 
-        await createZipFromFiles(filesToZip, join(this.exportDir, `${this.problem_id}.zip`))
+        await createZipFromFiles(filesToZip, join(this.exportDirLang, `${this.problem_id}.zip`))
         tui.success(
-            `Created ${tui.hyperlink(this.exportDir, `${this.problem_id}.zip`)} with ${filesToZip.length} files`,
+            `Created ${tui.hyperlink(this.exportDirLang, `${this.problem_id}.zip`)} with ${filesToZip.length} files`,
         )
     }
 
     private async exportViewer(language: string) {
         await tui.section('Exporting viewer', async () => {
-            await cp(join(this.workDirLang, 'Viewer'), join(this.exportDir, `${this.problem_id}.viewer`), {
+            await cp(join(this.workDirLang, 'Viewer'), join(this.exportDirLang, `${this.problem_id}.viewer`), {
                 recursive: true,
             })
-            tui.success(`Exported ${tui.hyperlink(this.exportDir, `${this.problem_id}.viewer`)}`)
+            tui.success(`Exported ${tui.hyperlink(this.exportDirLang, `${this.problem_id}.viewer`)}`)
         })
     }
 
@@ -559,13 +566,61 @@ export class Previewer {
 
     private async exportReadMd() {
         await tui.section('Exporting README.md', async () => {
+            const translations = this.languages
+                .map((language) => {
+                    const data = this.problem_ymls[language]
+                    const title = data.title
+                    let item = `- ${language}: ${title}\n`
+                    if (language !== this.original_language) {
+                        item += `  ${this.problem_ymls[language].translator} <${this.problem_ymls[language].translator_email}>`
+                    } else {
+                        item = ''
+                    }
+                    return item
+                })
+                .join('\n')
+
+            const original = this.languages
+                .map((language) => {
+                    const data = this.problem_ymls[language]
+                    const title = data.title
+                    let item = `- ${language}: ${title}\n`
+                    if (language !== this.original_language) {
+                        item = ''
+                    } else {
+                        item += `  ${this.problem_ymls[language].author} <${this.problem_ymls[language].email}>`
+                    }
+                    return item
+                })
+                .join('\n')
+
             const text = `
 # Preview of problem ${this.problem_nm}
 
-This is a preview of the problem **${this.problem_nm}** prepared with [Jutge Toolkit](https://jutge.org).
+This is a preview of the problem **${this.problem_nm}** for [Jutge.org](https://jutge.org).
 
-TODO: Add more information here.
-            `.trim()
+## Author
+
+**${this.author}** <${this.author_email}>
+
+## Original language
+${original}
+
+## Translations
+
+${translations}
+
+## Meta
+
+Generated at: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
+Generated on: ${os.hostname()} (${os.type()} ${os.platform()} ${os.release()} ${os.arch()})
+
+
+© Jutge.org, 2006-${dayjs().year()}
+
+`
+
+            await tui.markdown(text)
 
             const path = join(this.exportDir, 'README.md')
             await writeFile(path, text)
