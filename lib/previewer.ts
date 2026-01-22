@@ -272,11 +272,15 @@ export class Previewer {
                 tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.pdf`)}`)
             })
 
+            // games have short statements equal to full statements
+
             await tui.section('Generating TXT with pandoc', async () => {
                 tui.command('pandoc --quiet main.tex --to plain --output main.txt')
                 await execa({ cwd: dir })`pandoc --quiet main.tex --to plain --output main.txt`
                 await cp(join(dir, 'main.txt'), join(this.workDirLang, `problem.${language}.txt`))
                 tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.txt`)}`)
+                await cp(join(dir, 'main.txt'), join(this.workDirLang, `problem.${language}.short.txt`))
+                tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.short.txt`)}`)
             })
 
             await tui.section('Generating Markdown with pandoc', async () => {
@@ -286,6 +290,8 @@ export class Previewer {
                 })`pandoc --quiet main.tex --to markdown --to markdown-header_attributes --output main.md`
                 await cp(join(dir, 'main.md'), join(this.workDirLang, `problem.${language}.md`))
                 tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.md`)}`)
+                await cp(join(dir, 'main.md'), join(this.workDirLang, `problem.${language}.short.md`))
+                tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.short.md`)}`)
             })
 
             await tui.section('Generating HTML with pandoc', async () => {
@@ -297,6 +303,8 @@ export class Previewer {
                 })`pandoc --quiet main.tex --to html --mathml --embed-resources --standalone --output main.html`
                 await cp(join(dir, 'main.html'), join(this.workDirLang, `problem.${language}.html`))
                 tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.html`)}`)
+                await cp(join(dir, 'main.html'), join(this.workDirLang, `problem.${language}.short.html`))
+                tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.short.html`)}`)
             })
         })
     }
@@ -343,7 +351,7 @@ export class Previewer {
             return false
         }
 
-        const dst = join(this.exportDirLang, `problem`)
+        const dst = join(this.exportDirLang, `problem.pbm`)
         await mkdir(dst, { recursive: true })
         const files = await Array.fromAsync(glob('*', { cwd: this.workDirLang }))
         let count = 0
@@ -353,7 +361,7 @@ export class Previewer {
                 count++
             }
         }
-        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, `problem`)}`)
+        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, `problem.pbm`)}`)
     }
 
     private async exportProblemFiles_Game(language: string) {
@@ -371,7 +379,7 @@ export class Previewer {
         }
 
         const src = join(this.workDirLang, 'Runner')
-        const dst = join(this.exportDirLang, `problem`)
+        const dst = join(this.exportDirLang, `problem.pbm`)
         await mkdir(dst, { recursive: true })
         const files = await Array.fromAsync(glob('*', { cwd: src }))
         let count = 0
@@ -381,7 +389,7 @@ export class Previewer {
                 count++
             }
         }
-        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, 'problem')}`)
+        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, 'problem.pbm')}`)
     }
 
     private async exportAwards(language: string) {
@@ -406,9 +414,10 @@ export class Previewer {
         await tui.section('Exporting statements', async () => {
             let count = 0
             for (const extension of ['pdf', 'html', 'md', 'txt', 'yml', 'short.html', 'short.md', 'short.txt']) {
-                const file = `problem.${language}.${extension}`
-                if (await existsInDir(this.workDirLang, file)) {
-                    await cp(join(this.workDirLang, file), join(this.exportDirLang, file))
+                const srcFile = `problem.${language}.${extension}`
+                const dstFile = `problem.${extension}`
+                if (await existsInDir(this.workDirLang, srcFile)) {
+                    await cp(join(this.workDirLang, srcFile), join(this.exportDirLang, dstFile))
                     count++
                 }
             }
@@ -462,8 +471,8 @@ export class Previewer {
             }
         }
 
-        await createZipFromFiles(filesToZip, join(this.exportDirLang, `public.zip`))
-        tui.success(`Created ${tui.hyperlink(this.exportDirLang, `public.zip`)} with ${filesToZip.length} files`)
+        await createZipFromFiles(filesToZip, join(this.exportDirLang, `problem.zip`))
+        tui.success(`Created ${tui.hyperlink(this.exportDirLang, `problem.zip`)} with ${filesToZip.length} files`)
     }
 
     private async exportZip_Game(language: string) {
@@ -531,8 +540,8 @@ export class Previewer {
             }
         }
 
-        await createZipFromFiles(filesToZip, join(this.exportDirLang, `public.zip`))
-        tui.success(`Created ${tui.hyperlink(this.exportDirLang, `public.zip`)} with ${filesToZip.length} files`)
+        await createZipFromFiles(filesToZip, join(this.exportDirLang, `problem.zip`))
+        tui.success(`Created ${tui.hyperlink(this.exportDirLang, `problem.zip`)} with ${filesToZip.length} files`)
     }
 
     private async exportViewer(language: string) {
