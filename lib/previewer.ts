@@ -405,7 +405,7 @@ export class Previewer {
     private async prepareStatementsExport(language: string) {
         await tui.section('Exporting statements', async () => {
             let count = 0
-            for (const extension of ['pdf', 'html', 'md', 'txt', 'yml']) {
+            for (const extension of ['pdf', 'html', 'md', 'txt', 'yml', 'short.html', 'short.md', 'short.txt']) {
                 const file = `problem.${language}.${extension}`
                 if (await existsInDir(this.workDirLang, file)) {
                     await cp(join(this.workDirLang, file), join(this.exportDirLang, file))
@@ -483,7 +483,7 @@ export class Previewer {
         const filesToZip: FileToArchive[] = []
 
         // statements
-        for (const extension of ['pdf', 'html', 'md', 'txt']) {
+        for (const extension of ['pdf', 'html', 'md', 'txt', 'short.html', 'short.md', 'short.txt']) {
             const file = `problem.${language}.${extension}`
             if (await existsInDir(this.workDirLang, file)) {
                 filesToZip.push({

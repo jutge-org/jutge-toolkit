@@ -74,7 +74,8 @@ export class Maker {
             await this.makeCorrectOutputs()
             await this.checkSolutions()
             await this.makePdfStatements()
-            await this.makeTextualStatements()
+            await this.makeFullTextualStatements()
+            await this.makeShortTextualStatements()
         }
     }
 
@@ -431,8 +432,19 @@ export class Maker {
         if (language === 'de') await cpSty('jutge.de.sty')
     }
 
-    public async makeTextualStatements(tasks: Array<'txt' | 'html' | 'md'> = ['txt', 'html', 'md']) {
-        await tui.section('Making textual statements', async () => {
+    public async makeFullTextualStatements(tasks: Array<'txt' | 'html' | 'md'> = ['txt', 'html', 'md']) {
+        await this.makeTextualStatements(tasks, 'full')
+    }
+
+    public async makeShortTextualStatements(tasks: Array<'txt' | 'html' | 'md'> = ['txt', 'html', 'md']) {
+        await this.makeTextualStatements(tasks, 'short')
+    }
+
+    public async makeTextualStatements(
+        tasks: Array<'txt' | 'html' | 'md'> = ['txt', 'html', 'md'],
+        type: 'full' | 'short',
+    ) {
+        await tui.section(`Making textual statements (${type})`, async () => {
             const tmpDirBase = join(this.problem.directory, toolkitPrefix() + '-text', nanoid8())
             await mkdir(tmpDirBase, { recursive: true })
             await tui.section('Creating working directory', async () => {
@@ -445,9 +457,12 @@ export class Maker {
                         this.problem.structure === 'multi' ||
                         (this.problem.structure === 'single' && language === this.problem.language)
                     ) {
-                        await tui.section(`Making textual statements for ${languageNames[language]}`, async () => {
-                            await this.makeTextualStatement(tmpDirBase, language, tasks)
-                        })
+                        await tui.section(
+                            `Making ${type} textual statements for ${languageNames[language]}`,
+                            async () => {
+                                await this.makeTextualStatement(tmpDirBase, language, tasks, type)
+                            },
+                        )
                     }
                 }
             } finally {
@@ -456,7 +471,12 @@ export class Maker {
         })
     }
 
-    async makeTextualStatement(tmpDirBase: string, language: string, tasks: Array<'txt' | 'html' | 'md'>) {
+    async makeTextualStatement(
+        tmpDirBase: string,
+        language: string,
+        tasks: Array<'txt' | 'html' | 'md'>,
+        type: 'full' | 'short',
+    ) {
         const tmpDir = join(tmpDirBase, language)
         await mkdir(tmpDir)
 
@@ -466,7 +486,7 @@ export class Maker {
         const authorEmail = this.problem.problemLangYmls[language].author_email || 'unknown email'
         const translator = this.problem.problemLangYmls[language].translator || ''
 
-        const rootTemplate = await readText(join(latexDir, 'root-text-short.tpl.tex'))
+        const rootTemplate = await readText(join(latexDir, `root-text-${type}.tpl.tex`))
 
         // because Handlebars escapes curly braces, we need to define a helper to help latex macros
         Handlebars.registerHelper('curly', function (value) {
@@ -500,6 +520,8 @@ export class Maker {
             await cp(join(this.problem.directory, entry), join(tmpDir, entry))
         }
 
+        const filename = type === 'full' ? `problem.${language}` : `problem.${language}.short`
+
         // write root.tex
         await writeText(join(tmpDir, 'root.tex'), root)
 
@@ -531,8 +553,8 @@ export class Maker {
             try {
                 tui.command('pandoc --quiet root.tex --to plain --output root.txt')
                 await execa({ cwd: tmpDir })`pandoc --quiet root.tex --to plain --output root.txt`
-                await cp(join(tmpDir, 'root.txt'), join(this.problem.directory, `problem.${language}.txt`))
-                tui.success('Generated ' + tui.hyperlink(this.problem.directory, `problem.${language}.txt`))
+                await cp(join(tmpDir, 'root.txt'), join(this.problem.directory, `${filename}.txt`))
+                tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.txt`))
             } catch (e) {
                 console.error('pandoc error', e)
             }
@@ -547,8 +569,8 @@ export class Maker {
                 await execa({
                     cwd: tmpDir,
                 })`pandoc --quiet root.tex --to markdown --to markdown-header_attributes --lua-filter=fixCodeBlocks.lua --output root.md`
-                await cp(join(tmpDir, 'root.md'), join(this.problem.directory, `problem.${language}.md`))
-                tui.success('Generated ' + tui.hyperlink(this.problem.directory, `problem.${language}.md`))
+                await cp(join(tmpDir, 'root.md'), join(this.problem.directory, `${filename}.md`))
+                tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.md`))
             } catch (e) {
                 console.error('pandoc error', e)
             }
@@ -561,8 +583,8 @@ export class Maker {
                 await execa({
                     cwd: tmpDir,
                 })`pandoc --quiet root.tex --to html --mathml --embed-resources --output root.html`
-                await cp(join(tmpDir, 'root.html'), join(this.problem.directory, `problem.${language}.html`))
-                tui.success('Generated ' + tui.hyperlink(this.problem.directory, `problem.${language}.html`))
+                await cp(join(tmpDir, 'root.html'), join(this.problem.directory, `${filename}.html`))
+                tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.html`))
             } catch (e) {
                 console.error('pandoc error', e)
             }

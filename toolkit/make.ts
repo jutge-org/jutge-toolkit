@@ -56,7 +56,10 @@ export const makeCmd = new Command('make')
                         await maker.makePdfStatements()
                     }
                     if (tasks.includes('txt') || tasks.includes('html') || tasks.includes('md')) {
-                        await maker.makeTextualStatements(
+                        await maker.makeFullTextualStatements(
+                            tasks.filter((t) => ['txt', 'html', 'md'].includes(t)) as Array<'txt' | 'html' | 'md'>,
+                        )
+                        await maker.makeShortTextualStatements(
                             tasks.filter((t) => ['txt', 'html', 'md'].includes(t)) as Array<'txt' | 'html' | 'md'>,
                         )
                     }
