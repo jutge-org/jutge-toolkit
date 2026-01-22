@@ -205,7 +205,7 @@ export class Previewer {
             } else if (compilers === 'RunClojure' || compilers === 'Clojure') {
                 goldenSolution = 'solution.clj'
             } else {
-                const solutionProglang = handler.solution || 'C++'
+                const solutionProglang = this.handlers[language].solution || 'C++'
                 const extension = proglangExtensions[solutionProglang]
                 if (!extension) {
                     throw new Error(`Unknown programming language ${solutionProglang} for solution`)
@@ -460,7 +460,7 @@ export class Previewer {
     }
 
     private async exportZip_Game(language: string) {
-        const hideList = this.handlers[this.original_language].game.hide || ['AIDummy.cc']
+        const hideList = (this.handlers[this.original_language].game.hide || ['AIDummy.cc']) as string[]
         const accept = (filename: string) => {
             if (filename.endsWith('.cc') || filename.endsWith('.hh')) {
                 return !hideList.includes(filename)
