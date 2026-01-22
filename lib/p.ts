@@ -1,9 +1,9 @@
 import { glob } from 'glob'
-import { join, normalize } from 'path'
-import { HandlerInfo, ProblemInfo, ProblemLangInfo, ProblemOriginalLangInfo } from './types'
-import { existsInDir, nothing, readYamlInDir } from './utils'
-import { YAML } from 'bun'
+import { dirname, join, normalize } from 'path'
 import tui from './tui'
+import { HandlerInfo, ProblemInfo, ProblemLangInfo, ProblemOriginalLangInfo } from './types'
+import { existsInDir, nothing, readYaml, readYamlInDir } from './utils'
+import { exists } from 'fs/promises'
 
 const languageCodes = ['ca', 'es', 'en', 'fr', 'de']
 
@@ -16,31 +16,55 @@ export async function loadProblem(dir: string): Promise<Problem> {
         dir = '.'
     }
     dir = normalize(dir)
-    if (!dir.endsWith('.pbm')) {
-        throw new Error(`Not a problem directory: ${dir} (does not end with .pbm)`)
+    if (dir.endsWith('/')) {
+        dir = dir.slice(0, -1)
     }
 
-    // detect shape and load handlerPath
-    let handlerPath
+    // detect shape
+    const endSegment = dir.split('/').pop()!
+    const dotPbm = dir.endsWith('.pbm')
+    const parent = normalize(join(dir, '..'))
+    const dotPbmParent = parent.endsWith('.pbm')
+    const handler = (await glob('handler.yml', { cwd: dir })).length != 0
+
+    // detect shape, subdir and handlerDir
+    let subdir
     let shape: ProblemShape
-    if (await existsInDir(dir, 'handler.yml')) {
+    let handlerDir: string
+    if (dotPbm && handler) {
         shape = 'flat'
-        if (!(await existsInDir(dir, 'handler.yml'))) {
-            throw new Error(`Not a problem directory: ${dir} (missing handler.yml)`)
-        }
-        handlerPath = join(dir, 'handler.yml')
-    } else {
-        const pattern = `{${languageCodes.join(',')}}/handler.yml`
-        const handlers = await glob(pattern, { cwd: dir })
-        if (handlers.length === 0) {
-            throw new Error(`Not a problem directory: ${dir} (missing lang/handler.yml)`)
-        }
+        subdir = dir
+        handlerDir = dir
+    } else if (dotPbm && !handler) {
         shape = 'tree'
-        handlerPath = join(dir, handlers[0]!)
+        subdir = dir
+        const handlers = await glob(`{${languageCodes.join(',')}}/handler.yml`, { cwd: dir })
+        if (handlers.length === 0) {
+            throw new Error(`Directory ${dir} is not a valid problem directory`)
+        }
+        handlerDir = join(dir, dirname(handlers[0]!))
+    } else if (dotPbmParent && handler && languageCodes.includes(endSegment)) {
+        shape = 'tree'
+        subdir = dir
+        dir = parent
+        handlerDir = subdir
+    } else {
+        throw new Error(`Directory ${dir} is not a valid problem directory`)
     }
 
-    // load handlerInfo
-    const handlerInfo = HandlerInfo.parse(readYamlInDir(dir, handlerPath))
+    // read handler.yml
+    const handlerPath = join(handlerDir, 'handler.yml')
+    if (!(await exists(handlerPath))) {
+        throw new Error(`Could not find handler.yml in ${handlerDir}`)
+    }
+    const data = await readYaml(handlerPath)
+    const handlerInfo = HandlerInfo.parse(data)
+
+    // log debug info
+    console.log('dir:', dir)
+    console.log('subdir:', subdir)
+    console.log('shape:', shape)
+    console.log('handlerInfo:', handlerInfo)
 
     // detect problem type
     let type: ProblemType
@@ -57,11 +81,11 @@ export async function loadProblem(dir: string): Promise<Problem> {
     // create problem instance
     let problem: Problem
     if (type === 'std') {
-        problem = new StdProblem(dir, shape, handlerInfo)
+        problem = new StdProblem(dir, subdir, shape, handlerInfo)
     } else if (type === 'game') {
-        problem = new GameProblem(dir, shape, handlerInfo)
+        problem = new GameProblem(dir, subdir, shape, handlerInfo)
     } else if (type === 'quiz') {
-        problem = new QuizProblem(dir, shape, handlerInfo)
+        problem = new QuizProblem(dir, subdir, shape, handlerInfo)
     } else {
         throw new Error(`Unhandled problem type: ${type as string}`)
     }
@@ -73,16 +97,16 @@ export async function loadProblem(dir: string): Promise<Problem> {
 
 export class Problem {
     dir: string
+    subdir: string
     shape: ProblemShape
     handlerInfo: HandlerInfo
     langs: string[] = []
-    handlers: Record<string, HandlerInfo> = {} // language -> Handler
     problemInfo!: ProblemInfo // language -> problem.yml content
-    problemLangInfos: Record<string, ProblemLangInfo> = {} // language -> problem.yml content
-    originalLang: string = 'to-be-set'
+    originalLangInfo!: ProblemOriginalLangInfo
 
-    constructor(dir: string, shape: ProblemShape, handler: HandlerInfo) {
+    constructor(dir: string, subdir: string, shape: ProblemShape, handler: HandlerInfo) {
         this.dir = dir
+        this.subdir = subdir
         this.shape = shape
         this.handlerInfo = handler
     }
@@ -90,12 +114,12 @@ export class Problem {
     show() {
         const data = {
             dir: this.dir,
+            subdir: this.subdir,
             shape: this.shape,
             handlerInfo: this.handlerInfo,
             langs: this.langs,
             problemInfo: this.problemInfo,
-            problemLangInfos: this.problemLangInfos,
-            originalLang: this.originalLang,
+            originalLangInfo: this.originalLangInfo,
         }
         tui.yaml(data)
     }
@@ -103,19 +127,18 @@ export class Problem {
     async load(): Promise<void> {
         await this.loadLanguages()
         await this.loadProblemInfo()
-        await this.loadProblemLangInfos()
-        await this.getOriginalLanguage()
+        await this.getOriginalLangInfo()
     }
 
     async loadLanguages(): Promise<void> {
-        if (this.shape === 'tree') {
-            const pattern = `{${languageCodes.join(',')}}/handler.yml`
-            const files = await glob(pattern, { cwd: this.dir })
-            this.langs = files.map((h) => h.split('/')[0]!).filter((v) => languageCodes.includes(v))
-        } else {
+        if (this.shape === 'flat') {
             const pattern = `problem.{${languageCodes.join(',')}}.yml`
             const files = await glob(pattern, { cwd: this.dir })
             this.langs = files.map((h) => h.split('.')[1]!).filter((v) => languageCodes.includes(v))
+        } else {
+            const pattern = `{${languageCodes.join(',')}}/handler.yml`
+            const files = await glob(pattern, { cwd: this.dir })
+            this.langs = files.map((h) => h.split('/')[0]!).filter((v) => languageCodes.includes(v))
         }
     }
 
@@ -127,42 +150,37 @@ export class Problem {
         }
     }
 
-    async loadProblemLangInfos(): Promise<void> {
-        if (this.shape === 'tree') {
+    async getOriginalLangInfo(): Promise<void> {
+        const langs: ProblemLangInfo[] = []
+        if (this.shape === 'flat') {
             for (const lang of this.langs) {
-                const path = join(lang, `problem.${lang}.yml`)
-                this.problemLangInfos[lang] = ProblemLangInfo.parse(await readYamlInDir(this.dir, path))
+                const path = `problem.${lang}.yml`
+                langs.push(ProblemLangInfo.parse(await readYamlInDir(this.dir, path)))
             }
         } else {
             for (const lang of this.langs) {
-                const path = `problem.${lang}.yml`
-                this.problemLangInfos[lang] = ProblemLangInfo.parse(await readYamlInDir(this.dir, path))
+                const path = join(lang, `problem.${lang}.yml`)
+                langs.push(ProblemLangInfo.parse(await readYamlInDir(this.dir, path)))
             }
         }
-    }
 
-    async getOriginalLanguage(): Promise<void> {
-        await nothing()
-        let originalLang: string | null = null
-        for (const lang of this.langs) {
-            const langInfo = this.problemLangInfos[lang]!
-            if ('author' in langInfo) {
-                if (originalLang) {
+        for (const lang of langs) {
+            if ('author' in lang) {
+                if (this.originalLangInfo) {
                     throw new Error(`Multiple original languages found`)
                 }
-                originalLang = lang
+                this.originalLangInfo = lang
             }
         }
-        if (!originalLang) {
+        if (!this.originalLangInfo) {
             throw new Error(`No original language found`)
         }
-        this.originalLang = originalLang
     }
 }
 
 export class StdProblem extends Problem {
-    constructor(dir: string, shape: ProblemShape, handlerInfo: HandlerInfo) {
-        super(dir, shape, handlerInfo)
+    constructor(dir: string, subdir: string, shape: ProblemShape, handlerInfo: HandlerInfo) {
+        super(dir, subdir, shape, handlerInfo)
     }
 
     override async load(): Promise<void> {
@@ -171,8 +189,8 @@ export class StdProblem extends Problem {
 }
 
 export class GameProblem extends Problem {
-    constructor(dir: string, shape: ProblemShape, handlerInfo: HandlerInfo) {
-        super(dir, shape, handlerInfo)
+    constructor(dir: string, subdir: string, shape: ProblemShape, handlerInfo: HandlerInfo) {
+        super(dir, subdir, shape, handlerInfo)
     }
 
     override async load(): Promise<void> {
@@ -181,8 +199,8 @@ export class GameProblem extends Problem {
 }
 
 export class QuizProblem extends Problem {
-    constructor(dir: string, shape: ProblemShape, handlerInfo: HandlerInfo) {
-        super(dir, shape, handlerInfo)
+    constructor(dir: string, subdir: string, shape: ProblemShape, handlerInfo: HandlerInfo) {
+        super(dir, subdir, shape, handlerInfo)
     }
 
     override async load(): Promise<void> {
@@ -190,5 +208,5 @@ export class QuizProblem extends Problem {
     }
 }
 
-const p = await loadProblem('../../Scratch/new-problem.pbm')
+const p = await loadProblem(process.argv[2] || '.')
 p.show()
