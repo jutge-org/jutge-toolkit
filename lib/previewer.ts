@@ -343,7 +343,7 @@ export class Previewer {
             return false
         }
 
-        const dst = join(this.exportDirLang, `problem.pbm`)
+        const dst = join(this.exportDirLang, `problem`)
         await mkdir(dst, { recursive: true })
         const files = await Array.fromAsync(glob('*', { cwd: this.workDirLang }))
         let count = 0
@@ -353,7 +353,7 @@ export class Previewer {
                 count++
             }
         }
-        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, `problem.pbm`)}`)
+        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, `problem`)}`)
     }
 
     private async exportProblemFiles_Game(language: string) {
@@ -371,7 +371,7 @@ export class Previewer {
         }
 
         const src = join(this.workDirLang, 'Runner')
-        const dst = join(this.exportDir, `${this.problem_id}.pbm`)
+        const dst = join(this.exportDirLang, `problem`)
         await mkdir(dst, { recursive: true })
         const files = await Array.fromAsync(glob('*', { cwd: src }))
         let count = 0
@@ -381,7 +381,7 @@ export class Previewer {
                 count++
             }
         }
-        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDir, `${this.problem_id}.pbm`)}`)
+        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, 'problem')}`)
     }
 
     private async exportAwards(language: string) {
@@ -531,18 +531,16 @@ export class Previewer {
             }
         }
 
-        await createZipFromFiles(filesToZip, join(this.exportDirLang, `${this.problem_id}.zip`))
-        tui.success(
-            `Created ${tui.hyperlink(this.exportDirLang, `${this.problem_id}.zip`)} with ${filesToZip.length} files`,
-        )
+        await createZipFromFiles(filesToZip, join(this.exportDirLang, `public.zip`))
+        tui.success(`Created ${tui.hyperlink(this.exportDirLang, `public.zip`)} with ${filesToZip.length} files`)
     }
 
     private async exportViewer(language: string) {
         await tui.section('Exporting viewer', async () => {
-            await cp(join(this.workDirLang, 'Viewer'), join(this.exportDirLang, `${this.problem_id}.viewer`), {
+            await cp(join(this.workDirLang, 'Viewer'), join(this.exportDirLang, `viewer`), {
                 recursive: true,
             })
-            tui.success(`Exported ${tui.hyperlink(this.exportDirLang, `${this.problem_id}.viewer`)}`)
+            tui.success(`Exported ${tui.hyperlink(this.exportDirLang, `viewer`)}`)
         })
     }
 
@@ -612,6 +610,8 @@ ${translations}
 
 ## Meta
 
+Type: ${this.problem_type}
+Handler: ${this.handlers[this.original_language].handler}
 Generated at: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
 Generated on: ${os.hostname()} (${os.type()} ${os.platform()} ${os.release()} ${os.arch()})
 
