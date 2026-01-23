@@ -11,6 +11,7 @@ import { RunPython_Compiler } from '../compilers/run-python'
 import { RunHaskell_Compiler } from '../compilers/run-haskell'
 import { RunClojure_Compiler } from '../compilers/run-clojure'
 import { Verilog_Compiler } from '../compilers/verilog'
+import * as doctor from '../lib/doctor'
 
 const compilersRegistryById: Record<string, new () => Compiler> = {
     C: GCC_Compiler,
@@ -36,6 +37,17 @@ const compilersRegistryByExtension: Record<string, new () => Compiler> = {
     java: Java_Compiler,
     rs: Rust_Compiler,
     v: Verilog_Compiler,
+}
+
+export const compilersProbesByExtension: Record<string, () => Promise<boolean>> = {
+    c: doctor.probeGCC,
+    cc: doctor.probeGCC,
+    py: doctor.probePython3,
+    hs: doctor.probeHaskell,
+    clj: doctor.probeClojure,
+    java: doctor.probeJava,
+    rs: doctor.probeRust,
+    v: doctor.probeVerilog,
 }
 
 export function getCompilerById(id: string): Compiler {

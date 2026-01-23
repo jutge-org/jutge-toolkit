@@ -18,7 +18,7 @@ import {
     toolkitPrefix,
     writeText,
 } from '../lib/utils'
-import { getCompilerByExtension, getCompilerById } from '../compilers'
+import { compilersProbesByExtension, getCompilerByExtension, getCompilerById } from '../compilers'
 import type { Compiler } from '../compilers/base'
 import { languageNames } from './data'
 import { newProblem, Problem } from './problem'
@@ -145,6 +145,15 @@ export class Maker {
     }
 
     public async makeExecutable(program: string) {
+        const extension = program.split('.').pop()!
+        const probe = compilersProbesByExtension[extension]
+        if (!probe) {
+            throw new Error(`No compiler found for .${extension} files`)
+        }
+        if (!(await probe())) {
+            throw new Error(`Compiler for .${extension} files is not available`)
+        }
+
         const compiler = this.selectCompiler()
         const newProgram = `${toolkitPrefix()}-${program}`
         await tui.section(
@@ -600,6 +609,16 @@ export class Maker {
     public async verifyCandidate(program: string) {
         await tui.section(`Verifying ${program}`, async () => {
             const extension = program.split('.').pop()!
+
+            const probe = compilersProbesByExtension[extension]
+            if (!probe) {
+                throw new Error(`No compiler found for .${extension} files`)
+            }
+            if (!(await probe())) {
+                tui.warning(`Compiler for .${extension} files is not available, skipping verification of ${program}`)
+                return
+            }
+
             const compiler = getCompilerByExtension(extension)
             const newProgram = `${toolkitPrefix()}-${program}`
 

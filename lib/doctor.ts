@@ -153,6 +153,21 @@ export async function probeRust(): Promise<boolean> {
     return result
 }
 
+async function _checkVerilog(): Promise<ProbeResult> {
+    await nothing()
+    return {
+        result: false,
+        version: 'not implemented',
+        stdout: '',
+    }
+}
+const checkVerilogMemoized = memoize(_checkVerilog)
+
+export async function probeVerilog(): Promise<boolean> {
+    const { result } = await checkVerilogMemoized()
+    return result
+}
+
 async function _checkPdfLaTeX(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`pdflatex --version`
     const version = stdout.split(lineSep)[0]!.trim()
@@ -288,6 +303,17 @@ export async function checkRust(): Promise<void> {
         tui.warning('Rust does not appear to be installed')
         tui.print('You will not be able to compile/execute Rust solutions')
         tui.print('See https://www.rust-lang.org/tools/install')
+    }
+}
+
+export async function checkVerilog(): Promise<void> {
+    tui.command('not implemented')
+    const { result, version } = await checkVerilogMemoized()
+    console.log(version)
+    if (result) {
+        tui.success('Verilog seems installed')
+    } else {
+        tui.warning('Verilog does not appear to be installed, but this is not important for circuit problems')
     }
 }
 
