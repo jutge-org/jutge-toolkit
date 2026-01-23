@@ -361,6 +361,10 @@ export class Stager {
                 if (filename === `main.${extension}`) return true
             }
 
+            // checkers
+            if (filename === 'checker.py') return true
+            if (filename === 'checker.cc') return true
+
             return false
         }
 
