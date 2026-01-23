@@ -9,6 +9,7 @@ A powerful command-line toolkit for creating and managing programming problems o
 - 🔧 Compile and test solutions in multiple programming languages
 - 📄 Generate PDF statements and other formats automatically
 - ✅ Verify solutions against test cases
+- ☁️ Stage problems matching Jutge.org specifications
 - ☁️ Upload and update problems directly to Jutge.org
 - ✨ Beautiful terminal interface with color output and help
 
@@ -16,9 +17,9 @@ A powerful command-line toolkit for creating and managing programming problems o
 
 The toolkit requires [Bun](https://bun.sh) as a JavaScript runtime. Follow the installation guides for your platform:
 
-- **[Linux Installation Guide](docs/linux-installation.md)** 
-- **[macOS Installation Guide](docs/macos-installation.md)** 
-- **[Windows Installation Guide](docs/windows-installation.md)** 
+- **[Linux Installation Guide](docs/linux-installation.md)**
+- **[macOS Installation Guide](docs/macos-installation.md)**
+- **[Windows Installation Guide](docs/windows-installation.md)**
 
 ### Quick Install
 
@@ -40,7 +41,7 @@ jtk --version
 
 ```bash
 # Get help
-jtk 
+jtk
 jtk --help
 
 # Check system dependencies
@@ -67,6 +68,33 @@ jtk upload
 ```
 
 For a complete walkthrough, see the [Getting Started Guide](docs/getting-started-guide.md).
+
+## Flow Overview
+
+1. Create a problem
+    - Use `jtk clone` to start from a template
+    - Use `jtk generate problem` to create with JutgeAI
+    - Create problem structure manually if preferred
+
+2. Edit the problem
+    - Modify statements, test cases, and solutions as needed
+    - Use `jtk generate translations` to add multilingual support
+    - Use `jtk generate solutions` to add alternative solutions
+    - Use `jtk generate generate tests` to create test cases generator
+
+3. Build the problem
+    - Run `jtk make` to build all problem elements (statements, solutions, correct test cases)
+
+4. Optional: Verify alternative solutions
+    - Use `jtk verify <solution>` to test alternative solutions for correctness (efficiency testing not yet supported)
+
+5. Optional: Stage the problem
+    - Run `jtk stage` to stage the files as will be used by Jutge.org
+
+6. Upload the problem
+    - Use `jtk upload` to publish the problem on Jutge.org
+
+        Remember that Jutge.org does not generate the correct test cases; you must provide them.
 
 ## Documentation
 
@@ -102,6 +130,9 @@ jtk make pdf                        # Generate PDF statements only
 jtk verify <program>                # Test a solution
 jtk clean                           # Clean temporary files
 
+# Staging
+jtk stage                           # Stage problem for Jutge.org
+
 # Publishing
 jtk upload                          # Upload problem to Jutge.org
 
@@ -114,9 +145,11 @@ jtk about                           # Show toolkit information
 ## Requirements
 
 ### Core Requirements
+
 - [Bun](https://bun.sh) - JavaScript runtime (required)
 
 ### Optional Dependencies
+
 - **LaTeX** (for PDF generation) - texlive-xetex, texlive-fonts-recommended
 - **Pandoc** (for format conversion)
 - **Programming language compilers/interpreters** - Python, GCC/G++, Java, etc. (depending on your needs)
