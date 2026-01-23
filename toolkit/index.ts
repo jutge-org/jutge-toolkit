@@ -50,6 +50,7 @@ program.addCommand(askCmd)
 
 try {
     await program.parseAsync()
+    process.exit(0)
 } catch (error) {
     console.log()
     console.error('An error occurred:')
@@ -65,4 +66,5 @@ try {
     } else {
         console.error(error)
     }
+    process.exit(1)
 }
