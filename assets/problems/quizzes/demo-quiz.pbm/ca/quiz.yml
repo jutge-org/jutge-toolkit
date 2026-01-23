@@ -1,0 +1,35 @@
+title: Qüestionari de demostració
+
+statement: Aquest qüestionari mostra les possibilitats dels problemes de qüestionari a Jutge.org.
+
+shuffle: true
+
+questions:
+    - title: Pregunta d'elecció única
+      file: single-choice
+      score: 10
+      weight: 2
+
+    - title: Pregunta d'elecció múltiple
+      file: multiple-choice
+      score: 10
+
+    - title: Pregunta oberta
+      file: open-ended
+      score: 10
+
+    - title: Pregunta d'omplir amb selecció
+      file: fill-in-1
+      score: 20
+
+    - title: Pregunta d'omplir amb codi
+      file: fill-in-2
+      score: 20
+
+    - title: Pregunta d'ordenació
+      file: ordering
+      score: 10
+
+    - title: Pregunta d'emparellament
+      file: matchings
+      score: 20

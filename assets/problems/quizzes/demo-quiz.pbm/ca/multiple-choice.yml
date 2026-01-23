@@ -1,0 +1,12 @@
+
+type: MultipleChoice
+
+text: "Quines de les següents expressions són `true`?"
+
+choices:
+    -   text: "`$s == $a + $b`"
+        correct: true
+    -   text: "`$s != $a + $b`"
+        hint: "Ho sento..."
+    -   text: "`$a + $b >= $s`"
+        correct: true

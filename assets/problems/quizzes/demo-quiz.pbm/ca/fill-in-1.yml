@@ -1,0 +1,48 @@
+type: FillIn
+
+text: "Omple els espais en blanc."
+
+context: |
+
+    Un S1 és un conjunt autocontingut d'operacions pas a pas que s'han de realitzar per resoldre un problema.
+
+    Un S2 és una col·lecció d'instruccions que realitza una tasca específica quan l'executa un ordinador.
+
+    Les sis etapes del desenvolupament de programes en ordre lògic són: S3
+
+    Els algoritmes mai han de ser S4.
+
+items:
+    S1:
+        correct: algorisme
+        options:
+            - programa
+            - algorisme
+            - pseudocodi
+            - recepta
+            - jutge
+
+    S2:
+        correct: programa
+        options:
+            - programa
+            - algorisme
+            - pseudocodi
+            - recepta
+            - jutge
+
+    S3:
+        correct: "Definir, Analitzar, Desenvolupar, Escriure, Provar i Depurar, Documentar"
+        options:
+            - "Definir, Analitzar, Escriure, Provar, Documentar, Depurar"
+            - "Definir, Analitzar, Desenvolupar, Escriure, Provar i Depurar, Documentar"
+            - "Definir, Escriure, Desenvolupar, Analitzar, Provar, Documentar"
+            - "Definir, Desenvolupar, Escriure, Provar, Documentar, Depurar"
+
+    S4:
+        correct: ambigus
+        options:
+            - lògics
+            - ambigus
+            - concisos
+            - precisos

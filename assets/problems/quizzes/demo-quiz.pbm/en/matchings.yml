@@ -1,0 +1,24 @@
+
+type: Matching
+
+text: Match the countries with their capitals.
+
+partial_answer: true
+
+labels:
+    - Countries
+    - Capitals
+
+left:
+    - France
+    - Germany
+    - Spain
+    - Italy
+    - Andorra
+
+right:
+    - Paris
+    - Berlin
+    - Madrid
+    - Rome
+    - Andorra la Vella

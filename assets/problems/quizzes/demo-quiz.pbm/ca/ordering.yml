@@ -1,0 +1,14 @@
+
+type: Ordering
+
+text: Arrossega i deixa anar l'element per ordenar els llenguatges de programació per data d'aparició (més antics a dalt).
+
+label: Llenguatge de programació
+
+items:
+    - Fortran
+    - C
+    - C++
+    - Python
+    - Java
+    - Julia

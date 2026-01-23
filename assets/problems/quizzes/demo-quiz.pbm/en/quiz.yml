@@ -1,0 +1,34 @@
+title: Demo quiz
+
+statement: This quiz showcases the possibilities of the quiz problems at Jutge.org.
+
+shuffle: true
+
+questions:
+    - title: Single choice question
+      file: single-choice
+      score: 10
+
+    - title: Multiple choice question
+      file: multiple-choice
+      score: 10
+
+    - title: Open ended question
+      file: open-ended
+      score: 10
+
+    - title: Fill in question with selection
+      file: fill-in-1
+      score: 20
+
+    - title: Fill in question with code
+      file: fill-in-2
+      score: 20
+
+    - title: Ordering question
+      file: ordering
+      score: 10
+
+    - title: Matchings question
+      file: matchings
+      score: 20

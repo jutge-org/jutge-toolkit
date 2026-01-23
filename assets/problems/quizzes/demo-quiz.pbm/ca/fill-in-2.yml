@@ -1,0 +1,29 @@
+
+type: FillIn
+
+text: |
+
+    Omple els espais en blanc del programa donat perquè calculi la suma d'una llista de nombres.
+
+context: |
+
+    ```python
+    def sum (L):
+        s = XXXX
+        for x in L:
+            s = s YYYY x
+        return s
+    ```
+
+items:
+    XXXX:
+        maxlength: 5
+        correct: 0
+    YYYY:
+        correct: "+"
+        options:
+             - "+"
+             - "-"
+             - "*"
+             - "/"
+             - "."

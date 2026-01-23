@@ -1,0 +1,6 @@
+
+type: OpenQuestion
+
+text: Parla de tu mateix.
+
+placeholder: 'El meu nom és **$name** i vull aprovar aquest curs.'
