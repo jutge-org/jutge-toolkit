@@ -6,15 +6,15 @@ import { execa } from 'execa'
 import { cp, exists, glob, mkdir, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { invert } from 'radash'
-import tui from '../lib/tui'
-import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from '../lib/utils'
+import tui from './tui'
+import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
 import tree from 'tree-node-cli'
 import { QuizRoot, type ProblemInfo } from './types'
 import { packageJson } from './versions'
 
-export class Previewer {
-    // directory containing the problem to preview
+export class Stager {
+    // directory containing the problem to stage
     directory: string
     // problem name
     problem_nm: string
@@ -22,8 +22,8 @@ export class Previewer {
     workspace: string
 
     workDir: string
-    exportDir: string
-    exportDirLang: string = 'to-be-set'
+    stagingDir: string
+    stagingDirLang: string = 'to-be-set'
 
     // this will be set in the languages loop
     workDirLang: string = 'to-be-set'
@@ -47,72 +47,72 @@ export class Previewer {
     constructor(directory: string, problem_nm: string) {
         this.directory = directory
         this.problem_nm = problem_nm
-        this.workspace = join(directory, toolkitPrefix() + '-preview', nanoid8())
+        this.workspace = join(directory, toolkitPrefix() + '-stage', nanoid8())
         this.workDir = join(this.workspace, 'work')
-        this.exportDir = join(this.workspace, 'export', this.problem_nm)
+        this.stagingDir = join(this.workspace, 'stage', this.problem_nm)
     }
 
-    async prepare() {
-        await this.createWorkspace()
-        await this.separateByLanguages()
-        await this.readMetadata()
+    async stage() {
+        await tui.section(`Staging problem at ${this.directory}`, async () => {
+            await this.createWorkspace()
+            await this.separateByLanguages()
+            await this.readMetadata()
 
-        for (const language of this.languages) {
-            await tui.section(`Processing language ${language}`, async () => {
-                await this.setLanguage(language)
-                if (this.problem_type === 'std') {
-                    await this.prepareLanguage_Std(language)
-                } else if (this.problem_type === 'game') {
-                    await this.prepareLanguage_Game(language)
-                } else if (this.problem_type === 'quiz') {
-                    await this.prepareLanguage_Quizz(language)
-                } else {
-                    throw new Error(`Unknown problem type: ${this.problem_type as string}`)
-                }
-            })
-        }
-        await this.exportFirstToSolve()
-        await this.exportInformationYml()
-        await this.exportReadMd()
+            for (const language of this.languages) {
+                await tui.section(`Staging language ${language}`, async () => {
+                    await this.setLanguage(language)
+                    if (this.problem_type === 'std') {
+                        await this.stageLanguage_Std(language)
+                    } else if (this.problem_type === 'game') {
+                        await this.stageLanguage_Game(language)
+                    } else if (this.problem_type === 'quiz') {
+                        await this.stageLanguage_Quizz(language)
+                    }
+                })
+            }
+            await this.stageFirstToSolve()
+            await this.stageInformationYml()
+            await this.stageReadMd()
+        })
 
         await tui.section(`Summary`, async () => {
-            const readme = join(this.exportDir, 'README.md')
+            const readme = join(this.stagingDir, 'README.md')
             tui.success('README.md content:')
             await tui.markdown(await readText(readme))
-            tui.success('Preview directory:')
-            tui.print(tree(this.exportDir))
+            tui.success('Staging tree:')
+            tui.print(tree(this.stagingDir))
         })
-        tui.success(`Preview directory in ${tui.hyperlink(this.exportDir)}`)
+        tui.success(`Staging directory: ${tui.hyperlink(this.stagingDir)}`)
     }
 
-    async prepareLanguage_Std(language: string) {
+    async stageLanguage_Std(language: string) {
         await this.prepareStatements_Std(language)
         await this.computeCodeMetrics(language)
-        await this.exportProblemFiles_Std(language)
-        await this.exportAwards(language)
-        await this.prepareStatementsExport(language)
-        await this.exportZip_Std(language)
+        await this.stageProblemFiles_Std(language)
+        await this.stageAwards(language)
+        await this.stageStatements(language)
+        await this.stageZip_Std(language)
     }
 
-    async prepareLanguage_Game(language: string) {
+    async stageLanguage_Game(language: string) {
         await this.prepareStatements_Game(language)
         await this.computeCodeMetrics(language)
-        await this.exportProblemFiles_Game(language)
-        await this.exportAwards(language)
-        await this.prepareStatementsExport(language)
-        await this.exportZip_Game(language)
-        await this.exportViewer(language)
+        await this.stageProblemFiles_Game(language)
+        await this.stageAwards(language)
+        await this.stageStatements(language)
+        await this.stageZip_Game(language)
+        await this.stageViewer(language)
     }
 
-    async prepareLanguage_Quizz(language: string) {
-        await this.exportQuiz(language)
+    async stageLanguage_Quizz(language: string) {
+        await this.stageQuiz(language)
     }
 
     async setLanguage(language: string) {
         this.workDirLang = join(this.workDir, language)
         this.problem_id = `${this.problem_nm}_${language}`
-        this.exportDirLang = join(this.exportDir, language)
-        await mkdir(this.exportDirLang, { recursive: true })
+        this.stagingDirLang = join(this.stagingDir, language)
+        await mkdir(this.stagingDirLang, { recursive: true })
     }
 
     private async createWorkspace() {
@@ -122,7 +122,7 @@ export class Previewer {
             }
             await mkdir(this.workspace, { recursive: true })
             await mkdir(this.workDir, { recursive: true })
-            await mkdir(this.exportDir, { recursive: true })
+            await mkdir(this.stagingDir, { recursive: true })
             tui.directory(this.workspace)
         })
     }
@@ -344,12 +344,12 @@ export class Previewer {
             const golden_solution = await this.findGoldenSolution(language)
             tui.command(`jutge-code-metrics ${golden_solution}`)
             const { stdout } = await execa({ cwd: this.workDirLang })`jutge-code-metrics ${golden_solution}`
-            await writeText(join(this.exportDirLang, `code-metrics.json`), stdout)
-            tui.success(`Generated ${tui.hyperlink(this.exportDirLang, `code-metrics.json`)}`)
+            await writeText(join(this.stagingDirLang, `code-metrics.json`), stdout)
+            tui.success(`Generated ${tui.hyperlink(this.stagingDirLang, `code-metrics.json`)}`)
         })
     }
 
-    private async exportProblemFiles_Std(language: string) {
+    private async stageProblemFiles_Std(language: string) {
         const accept = (filename: string) => {
             // general
             if (filename === 'handler.yml') return true
@@ -364,7 +364,7 @@ export class Previewer {
             return false
         }
 
-        const dst = join(this.exportDirLang, `problem.pbm`)
+        const dst = join(this.stagingDirLang, `problem.pbm`)
         await mkdir(dst, { recursive: true })
         const files = await Array.fromAsync(glob('*', { cwd: this.workDirLang }))
         let count = 0
@@ -374,10 +374,10 @@ export class Previewer {
                 count++
             }
         }
-        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, `problem.pbm`)}`)
+        tui.success(`Staged ${count} files to ${tui.hyperlink(this.stagingDirLang, `problem.pbm`)}`)
     }
 
-    private async exportProblemFiles_Game(language: string) {
+    private async stageProblemFiles_Game(language: string) {
         const accept = (filename: string) => {
             // general
             if (filename === 'handler.yml') return true
@@ -392,7 +392,7 @@ export class Previewer {
         }
 
         const src = join(this.workDirLang, 'Runner')
-        const dst = join(this.exportDirLang, `problem.pbm`)
+        const dst = join(this.stagingDirLang, `problem.pbm`)
         await mkdir(dst, { recursive: true })
         const files = await Array.fromAsync(glob('*', { cwd: src }))
         let count = 0
@@ -402,53 +402,53 @@ export class Previewer {
                 count++
             }
         }
-        tui.success(`Exported ${count} files to ${tui.hyperlink(this.exportDirLang, 'problem.pbm')}`)
+        tui.success(`Staged ${count} files to ${tui.hyperlink(this.stagingDirLang, 'problem.pbm')}`)
     }
 
-    private async exportAwards(language: string) {
-        await tui.section('Exporting awards', async () => {
+    private async stageAwards(language: string) {
+        await tui.section('Staging awards', async () => {
             // we overwrite all awards without language suffix
             let count = 0
             for (const file of ['award.png', 'award.txt']) {
                 if (await existsInDir(this.workDirLang, file)) {
-                    await cp(join(this.workDirLang, file), join(this.exportDir, file))
+                    await cp(join(this.workDirLang, file), join(this.stagingDir, file))
                     count++
                 }
             }
             if (count > 0) {
-                tui.success(`Exported ${count} award file(s)`)
+                tui.success(`Staged ${count} award file(s)`)
             } else {
                 tui.warning('No award files found')
             }
         })
     }
 
-    private async prepareStatementsExport(language: string) {
-        await tui.section('Exporting statements', async () => {
+    private async stageStatements(language: string) {
+        await tui.section('Staging statements', async () => {
             let count = 0
             for (const extension of ['pdf', 'html', 'md', 'txt', 'yml', 'short.html', 'short.md', 'short.txt']) {
                 const srcFile = `problem.${language}.${extension}`
                 const dstFile = `problem.${extension}`
                 if (await existsInDir(this.workDirLang, srcFile)) {
-                    await cp(join(this.workDirLang, srcFile), join(this.exportDirLang, dstFile))
+                    await cp(join(this.workDirLang, srcFile), join(this.stagingDirLang, dstFile))
                     count++
                 }
             }
-            tui.success(`Exported ${count} statement file(s)`)
+            tui.success(`Staged ${count} statement file(s)`)
         })
     }
 
-    private async exportFirstToSolve() {
-        await tui.section('Exporting first-to-solve avatar', async () => {
-            const path = join(this.exportDir, 'first-to-solve.svg')
+    private async stageFirstToSolve() {
+        await tui.section('Staging first-to-solve avatar', async () => {
+            const path = join(this.stagingDir, 'first-to-solve.svg')
             const avatar = createAvatar(rings, { seed: this.problem_nm })
             const svg = avatar.toString()
             await writeText(path, svg)
-            tui.success(`Generated ${tui.hyperlink(this.exportDir, 'first-to-solve.svg')}`)
+            tui.success(`Generated ${tui.hyperlink(this.stagingDir, 'first-to-solve.svg')}`)
         })
     }
 
-    private async exportZip_Std(language: string) {
+    private async stageZip_Std(language: string) {
         const accept = (filename: string) => {
             // general
             for (const extension of ['pdf', 'html', 'md', 'txt']) {
@@ -474,11 +474,11 @@ export class Previewer {
             }
         }
 
-        await createZipFromFiles(filesToZip, join(this.exportDirLang, `problem.zip`))
-        tui.success(`Created ${tui.hyperlink(this.exportDirLang, `problem.zip`)} with ${filesToZip.length} files`)
+        await createZipFromFiles(filesToZip, join(this.stagingDirLang, `problem.zip`))
+        tui.success(`Created ${tui.hyperlink(this.stagingDirLang, `problem.zip`)} with ${filesToZip.length} files`)
     }
 
-    private async exportZip_Game(language: string) {
+    private async stageZip_Game(language: string) {
         const hideList = (this.handlers[this.original_language].game.hide || ['AIDummy.cc']) as string[]
         const accept = (filename: string) => {
             if (filename.endsWith('.cc') || filename.endsWith('.hh')) {
@@ -543,23 +543,23 @@ export class Previewer {
             }
         }
 
-        await createZipFromFiles(filesToZip, join(this.exportDirLang, `problem.zip`))
-        tui.success(`Created ${tui.hyperlink(this.exportDirLang, `problem.zip`)} with ${filesToZip.length} files`)
+        await createZipFromFiles(filesToZip, join(this.stagingDirLang, `problem.zip`))
+        tui.success(`Created ${tui.hyperlink(this.stagingDirLang, `problem.zip`)} with ${filesToZip.length} files`)
     }
 
-    private async exportViewer(language: string) {
-        await tui.section('Exporting viewer', async () => {
-            await cp(join(this.workDirLang, 'Viewer'), join(this.exportDirLang, `viewer`), {
+    private async stageViewer(language: string) {
+        await tui.section('Staging viewer', async () => {
+            await cp(join(this.workDirLang, 'Viewer'), join(this.stagingDirLang, `viewer`), {
                 recursive: true,
             })
-            tui.success(`Exported ${tui.hyperlink(this.exportDirLang, `viewer`)}`)
+            tui.success(`Staged ${tui.hyperlink(this.stagingDirLang, `viewer`)}`)
         })
     }
 
-    private async exportQuiz(language: string) {
-        await tui.section('Exporting quiz', async () => {
+    private async stageQuiz(language: string) {
+        await tui.section('Staging quiz', async () => {
             const quiz = QuizRoot.parse(await readYaml(join(this.workDirLang, 'quiz.yml')))
-            const dstDir = join(this.exportDirLang, `quiz.pbm`)
+            const dstDir = join(this.stagingDirLang, `quiz.pbm`)
             await mkdir(dstDir, { recursive: true })
 
             await writeYaml(join(dstDir, 'quiz.yml'), quiz)
@@ -583,12 +583,12 @@ export class Previewer {
                 }
             }
 
-            tui.success(`Exported ${tui.hyperlink(this.exportDirLang, `quiz`)}`)
+            tui.success(`Staged ${tui.hyperlink(this.stagingDirLang, `quiz`)}`)
         })
     }
 
-    private async exportInformationYml() {
-        await tui.section('Exporting information.yml', async () => {
+    private async stageInformationYml() {
+        await tui.section('Staging information.yml', async () => {
             const info = {
                 problem_nm: this.problem_nm,
                 languages: this.languages,
@@ -599,14 +599,14 @@ export class Previewer {
                 handlers: this.handlers,
             }
 
-            const infoFile = join(this.exportDir, 'information.yml')
+            const infoFile = join(this.stagingDir, 'information.yml')
             await writeYaml(infoFile, info)
-            tui.success(`Generated ${tui.hyperlink(this.exportDir, 'information.yml')}`)
+            tui.success(`Generated ${tui.hyperlink(this.stagingDir, 'information.yml')}`)
         })
     }
 
-    private async exportReadMd() {
-        await tui.section('Exporting README.md', async () => {
+    private async stageReadMd() {
+        await tui.section('Staging README.md', async () => {
             const version = packageJson.version
 
             let translations = this.languages
@@ -642,9 +642,9 @@ export class Previewer {
                 .join('\n')
 
             const text = `
-# Preview of problem ${this.problem_nm}
+# stage of problem ${this.problem_nm}
 
-This is the README file for the preview of the problem **${this.problem_nm}** for [Jutge.org](https://jutge.org).
+This is the README file for the stage of the problem **${this.problem_nm}** for [Jutge.org](https://jutge.org).
 
 ## Author
 
@@ -670,9 +670,9 @@ https://jutge.org
 
 `
 
-            const path = join(this.exportDir, 'README.md')
+            const path = join(this.stagingDir, 'README.md')
             await writeFile(path, text)
-            tui.success(`Generated ${tui.hyperlink(this.exportDir, 'README.md')}`)
+            tui.success(`Generated ${tui.hyperlink(this.stagingDir, 'README.md')}`)
         })
     }
 }

@@ -1,13 +1,13 @@
 import { Command } from '@commander-js/extra-typings'
-import { Previewer } from '../lib/previewer'
+import { Stager } from '../lib/stager'
 
-export const previewCmd = new Command('preview')
-    .summary('Preview problem staged in Jutge.org')
+export const stageCmd = new Command('stage')
+    .summary('Stage problem')
 
     .option('-d, --directory <directory>', 'problem directory', '.')
     .option('-p, --problem_nm <problem_nm>', 'problem_nm', 'DRAFT')
 
     .action(async ({ directory, problem_nm }) => {
-        const previewer = new Previewer(directory, problem_nm)
-        await previewer.prepare()
+        const stager = new Stager(directory, problem_nm)
+        await stager.stage()
     })

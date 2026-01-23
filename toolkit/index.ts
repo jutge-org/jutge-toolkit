@@ -20,7 +20,7 @@ import { upgradeCmd } from './upgrade'
 import { uploadCmd } from './upload'
 import { askCmd } from './ask'
 import { convertCmd } from './convert'
-import { previewCmd } from './preview'
+import { stageCmd } from './stage'
 
 program.name(Object.keys(packageJson.bin as Record<string, string>)[0] as string)
 program.alias(Object.keys(packageJson.bin as Record<string, string>)[1] as string)
@@ -36,8 +36,8 @@ program.addCommand(cloneCmd)
 program.addCommand(generateCmd)
 program.addCommand(verifyCmd)
 program.addCommand(convertCmd)
+program.addCommand(stageCmd)
 program.addCommand(doctorCmd)
-program.addCommand(previewCmd)
 if (settings.developer) {
     program.addCommand(quizCmd)
     program.addCommand(compilersCmd)
