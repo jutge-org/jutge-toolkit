@@ -356,7 +356,7 @@ export class Stager {
             for (const ext of ['inp', 'cor', 'ops']) {
                 if (filename.endsWith(`.${ext}`)) return true
             }
-            for (const extension of extensions) {
+            for (const extension of proglangExtensionKeys) {
                 if (filename === `solution.${extension}`) return true
                 if (filename === `main.${extension}`) return true
             }
@@ -454,7 +454,7 @@ export class Stager {
             for (const extension of ['pdf', 'html', 'md', 'txt']) {
                 if (filename === `problem.${language}.${extension}`) return true
             }
-            for (const extension of extensions) {
+            for (const extension of proglangExtensionKeys) {
                 if (filename === `main.${extension}`) return true
                 if (filename === `code.${extension}`) return true
             }
@@ -677,19 +677,45 @@ https://jutge.org
     }
 }
 
-// TODO!
+// this should come from the api, but i don't want to depend on it here
 export const proglangNames: Record<string, string> = {
+    ada: 'Ada',
+    bas: 'BASIC',
+    bf: 'Brainfuck',
     c: 'C',
     cc: 'C++',
-    py: 'Python3',
-    hs: 'Haskell',
     clj: 'Clojure',
+    codon: 'Python',
+    cr: 'Crystal',
+    cs: 'C#',
+    d: 'D',
+    erl: 'Erlang',
+    f: 'Fortran',
+    go: 'Go',
+    hs: 'Haskell',
     java: 'Java',
+    jl: 'Julia',
+    js: 'JavaScript',
+    kt: 'Kotlin',
+    lisp: 'Lisp',
+    lua: 'Lua',
+    m: 'Objective-C',
+    nim: 'Nim',
+    pas: 'Pascal',
+    php: 'PHP',
+    pl: 'Perl',
+    py: 'Python3',
+    quiz: 'Quiz',
+    R: 'R',
+    rb: 'Ruby',
     rs: 'Rust',
+    scm: 'Scheme',
+    tar: 'Make',
     v: 'Verilog',
+    ws: 'Whitespace',
+    zig: 'Zig',
 }
 
-// TODO!
 export const proglangExtensions: Record<string, string> = invert(proglangNames)
 
-const extensions = Object.keys(proglangNames)
+const proglangExtensionKeys = Object.keys(proglangNames)
