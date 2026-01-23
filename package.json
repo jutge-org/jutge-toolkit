@@ -67,7 +67,6 @@
         "env-paths": "^3.0.0",
         "eslint": "^9.39.2",
         "execa": "^9.6.1",
-        "extract-zip": "^2.0.1",
         "gpt-tokenizer": "^3.4.0",
         "handlebars": "^4.7.8",
         "image-size": "^2.0.2",
