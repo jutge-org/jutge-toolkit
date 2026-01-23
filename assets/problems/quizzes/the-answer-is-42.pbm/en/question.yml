@@ -1,0 +1,28 @@
+
+type: FillIn
+
+text: |
+
+    En aquest problema, suposeu que 1 és un nombre primer. Així, els nombres
+    primers amb un dígit són 1, 2, 3, 5 i 7.
+
+    Diem que un nombre és un superprimer
+    si totes les cadenes de dígits adjacents contingudes dins del nombre són nombres primers.
+    Per exemple, 137 és un superprimer, perquè 1, 3, 7, 13, 37 i 137 són tots nombres primers.
+
+
+
+
+context: |
+
+    Quin és el nombre superprimer més gran?
+
+    XXXX
+
+items:
+    XXXX:
+        maxlength: 20
+        placeholder: "?"
+        correct: 3137
+        ignorecase: true
+        trim: true

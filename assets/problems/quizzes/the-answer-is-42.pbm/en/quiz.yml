@@ -1,0 +1,11 @@
+title: The answer is 42
+
+statement: "What is the answer to life, the universe, and everything?"
+
+shuffle: false
+
+questions:
+
+    -   title:  Write the answer
+        file:   question
+        score:  100
