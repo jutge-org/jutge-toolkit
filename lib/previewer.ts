@@ -78,6 +78,7 @@ export class Previewer {
         await this.exportInformationYml()
         await this.exportReadMd()
 
+        tui.success(`Preview prepared in ${tui.hyperlink(this.exportDir)}`)
         console.log(tree(this.exportDir))
     }
 
@@ -341,8 +342,9 @@ export class Previewer {
         const accept = (filename: string) => {
             // general
             if (filename === 'handler.yml') return true
-            if (filename.endsWith('.inp')) return true
-            if (filename.endsWith('.cor')) return true
+            for (const ext of ['inp', 'cor', 'ops']) {
+                if (filename.endsWith(`.${ext}`)) return true
+            }
             for (const extension of extensions) {
                 if (filename === `solution.${extension}`) return true
                 if (filename === `main.${extension}`) return true
@@ -629,11 +631,10 @@ Generated on: ${os.hostname()} (${os.type()} ${os.platform()} ${os.release()} ${
 
 `
 
-            await tui.markdown(text)
-
             const path = join(this.exportDir, 'README.md')
             await writeFile(path, text)
             tui.success(`Generated ${tui.hyperlink(this.exportDir, 'README.md')}`)
+            await tui.markdown(text)
         })
     }
 }
