@@ -59,9 +59,13 @@ export class Problem {
             tui.error('No original language found')
             errors = true
         }
-        if (!this.goldenSolution && this.handler.handler !== 'game') {
-            tui.error('No golden solution found')
-            errors = true
+        if (!this.goldenSolution) {
+            if (this.handler.handler === 'game' || this.handler.handler === 'quiz') {
+                // OK
+            } else {
+                tui.error('No golden solution found')
+                errors = true
+            }
         }
         if (errors) {
             throw new Error('Inspection failed due to errors')
@@ -147,10 +151,6 @@ export class Problem {
             }
 
             tui.yaml(this.handler)
-
-            if (this.handler.handler === 'quiz') {
-                throw new Error('Handler "quiz" is not supported yet')
-            }
         })
     }
 
@@ -195,6 +195,7 @@ export class Problem {
     }
 
     private async loadSolutions() {
+        if (this.handler.handler === 'quiz') return
         await tui.section('Loading solutions', async () => {
             const { proglangNames } = await import('./data')
             const comaSeparatedExtensions = Object.keys(proglangNames).join(',')
@@ -206,6 +207,7 @@ export class Problem {
     }
 
     private async loadGoldenSolution() {
+        if (this.handler.handler === 'quiz') return
         await tui.section('Determining golden solution', async () => {
             const { proglangExtensions } = await import('./data')
 
@@ -235,6 +237,7 @@ export class Problem {
     }
 
     private async loadTestcases() {
+        if (this.handler.handler === 'quiz') return
         await tui.section('Loading testcases', async () => {
             const files = await Array.fromAsync(glob('*.inp', { cwd: this.directory }))
             this.testcases = files.map((file) => file.replace('.inp', '')).sort()

@@ -69,6 +69,8 @@ export class Maker {
     public async makeProblem() {
         if (this.problem.handler.handler === 'game') {
             return await this.makeGameProblem()
+        } else if (this.problem.handler.handler === 'quiz') {
+            return await this.makeQuizProblem()
         } else {
             await this.makeGoldenExecutable()
             await this.makeCorrectOutputs()
@@ -77,6 +79,10 @@ export class Maker {
             await this.makeFullTextualStatements()
             await this.makeShortTextualStatements()
         }
+    }
+
+    async makeQuizProblem() {
+        // nothing, but could check that everything is OK
     }
 
     async makeGameProblem() {

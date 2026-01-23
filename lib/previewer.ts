@@ -7,10 +7,11 @@ import { cp, exists, glob, mkdir, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { invert } from 'radash'
 import tui from '../lib/tui'
-import { existsInDir, nanoid8, nothing, readYaml, toolkitPrefix, writeText, writeYaml } from '../lib/utils'
+import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from '../lib/utils'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
 import tree from 'tree-node-cli'
-import type { ProblemInfo } from './types'
+import { QuizRoot, type ProblemInfo } from './types'
+import { packageJson } from './versions'
 
 export class Previewer {
     // directory containing the problem to preview
@@ -55,22 +56,18 @@ export class Previewer {
         await this.createWorkspace()
         await this.separateByLanguages()
         await this.readMetadata()
+
         for (const language of this.languages) {
             await tui.section(`Processing language ${language}`, async () => {
-                this.workDirLang = join(this.workDir, language)
-                this.problem_id = `${this.problem_nm}_${language}`
-                this.exportDirLang = join(this.exportDir, language)
-                await mkdir(this.exportDirLang, { recursive: true })
-
-                await this.prepareStatements(language)
-                await this.computeCodeMetrics(language)
-                await this.exportProblemFiles(language)
-                await this.exportAwards(language)
-                await this.prepareStatementsExport(language)
-                await this.exportZip(language)
-
-                if (this.problem_type === 'game') {
-                    await this.exportViewer(language)
+                await this.setLanguage(language)
+                if (this.problem_type === 'std') {
+                    await this.prepareLanguage_Std(language)
+                } else if (this.problem_type === 'game') {
+                    await this.prepareLanguage_Game(language)
+                } else if (this.problem_type === 'quiz') {
+                    await this.prepareLanguage_Quizz(language)
+                } else {
+                    throw new Error(`Unknown problem type: ${this.problem_type as string}`)
                 }
             })
         }
@@ -78,8 +75,44 @@ export class Previewer {
         await this.exportInformationYml()
         await this.exportReadMd()
 
-        tui.success(`Preview prepared in ${tui.hyperlink(this.exportDir)}`)
-        console.log(tree(this.exportDir))
+        await tui.section(`Summary`, async () => {
+            const readme = join(this.exportDir, 'README.md')
+            tui.success('README.md content:')
+            await tui.markdown(await readText(readme))
+            tui.success('Preview directory:')
+            tui.print(tree(this.exportDir))
+        })
+        tui.success(`Preview directory in ${tui.hyperlink(this.exportDir)}`)
+    }
+
+    async prepareLanguage_Std(language: string) {
+        await this.prepareStatements_Std(language)
+        await this.computeCodeMetrics(language)
+        await this.exportProblemFiles_Std(language)
+        await this.exportAwards(language)
+        await this.prepareStatementsExport(language)
+        await this.exportZip_Std(language)
+    }
+
+    async prepareLanguage_Game(language: string) {
+        await this.prepareStatements_Game(language)
+        await this.computeCodeMetrics(language)
+        await this.exportProblemFiles_Game(language)
+        await this.exportAwards(language)
+        await this.prepareStatementsExport(language)
+        await this.exportZip_Game(language)
+        await this.exportViewer(language)
+    }
+
+    async prepareLanguage_Quizz(language: string) {
+        await this.exportQuiz(language)
+    }
+
+    async setLanguage(language: string) {
+        this.workDirLang = join(this.workDir, language)
+        this.problem_id = `${this.problem_nm}_${language}`
+        this.exportDirLang = join(this.exportDir, language)
+        await mkdir(this.exportDirLang, { recursive: true })
     }
 
     private async createWorkspace() {
@@ -233,16 +266,6 @@ export class Previewer {
         })
     }
 
-    private async prepareStatements(language: string) {
-        await tui.section('Preparing statements', async () => {
-            if (this.problem_type === 'game') {
-                await this.prepareStatements_Game(language)
-            } else {
-                await this.prepareStatements_Std(language)
-            }
-        })
-    }
-
     private async prepareStatements_Std(language: string) {
         await tui.section('Preparing standard statements', async () => {
             const dir = join(this.workDir, language)
@@ -325,16 +348,6 @@ export class Previewer {
             const { stdout } = await execa({ cwd: this.workDirLang })`jutge-code-metrics ${golden_solution}`
             await writeText(join(this.exportDirLang, `code-metrics.json`), stdout)
             tui.success(`Generated ${tui.hyperlink(this.exportDirLang, `code-metrics.json`)}`)
-        })
-    }
-
-    private async exportProblemFiles(language: string) {
-        await tui.section('Exporting problem files', async () => {
-            if (this.problem_type === 'std') {
-                await this.exportProblemFiles_Std(language)
-            } else if (this.problem_type === 'game') {
-                await this.exportProblemFiles_Game(language)
-            }
         })
     }
 
@@ -434,16 +447,6 @@ export class Previewer {
             const svg = avatar.toString()
             await writeText(path, svg)
             tui.success(`Generated ${tui.hyperlink(this.exportDir, 'first-to-solve.svg')}`)
-        })
-    }
-
-    private async exportZip(language: string) {
-        await tui.section('Exporting zip archive', async () => {
-            if (this.problem_type === 'std') {
-                await this.exportZip_Std(language)
-            } else if (this.problem_type === 'game') {
-                await this.exportZip_Game(language)
-            }
         })
     }
 
@@ -555,6 +558,37 @@ export class Previewer {
         })
     }
 
+    private async exportQuiz(language: string) {
+        await tui.section('Exporting quiz', async () => {
+            const quiz = QuizRoot.parse(await readYaml(join(this.workDirLang, 'quiz.yml')))
+            const dstDir = join(this.exportDirLang, `quiz.pbm`)
+            await mkdir(dstDir, { recursive: true })
+
+            await writeYaml(join(dstDir, 'quiz.yml'), quiz)
+
+            for (const question of quiz.questions) {
+                {
+                    const src = join(this.workDirLang, `${question.file}.yml`)
+                    const dstFile = join(dstDir, `${question.file}.yml`)
+                    if (await exists(src)) {
+                        await cp(src, dstFile)
+                    } else {
+                        throw new Error(`Quiz question file ${question.file}.yml not found`)
+                    }
+                }
+                {
+                    const src = join(this.workDirLang, `${question.file}.py`)
+                    const dstFile = join(dstDir, `${question.file}.py`)
+                    if (await exists(src)) {
+                        await cp(src, dstFile)
+                    }
+                }
+            }
+
+            tui.success(`Exported ${tui.hyperlink(this.exportDirLang, `quiz`)}`)
+        })
+    }
+
     private async exportInformationYml() {
         await tui.section('Exporting information.yml', async () => {
             const info = {
@@ -575,11 +609,13 @@ export class Previewer {
 
     private async exportReadMd() {
         await tui.section('Exporting README.md', async () => {
-            const translations = this.languages
+            const version = packageJson.version
+
+            let translations = this.languages
                 .map((language) => {
                     const data = this.problem_ymls[language]
                     const title = data.title
-                    let item = `- ${language}: ${title}\n`
+                    let item = `- *${language}*: ${title}\n`
                     if (language !== this.original_language) {
                         item += `  ${this.problem_ymls[language].translator} <${this.problem_ymls[language].translator_email}>`
                     } else {
@@ -589,11 +625,15 @@ export class Previewer {
                 })
                 .join('\n')
 
+            if (translations.trim()) {
+                translations = `## Translations\n\n${translations}`
+            }
+
             const original = this.languages
                 .map((language) => {
                     const data = this.problem_ymls[language]
                     const title = data.title
-                    let item = `- ${language}: ${title}\n`
+                    let item = `- *${language}*: ${title}\n`
                     if (language !== this.original_language) {
                         item = ''
                     } else {
@@ -606,16 +646,15 @@ export class Previewer {
             const text = `
 # Preview of problem ${this.problem_nm}
 
-This is a preview of the problem **${this.problem_nm}** for [Jutge.org](https://jutge.org).
+This is the README file for the preview of the problem **${this.problem_nm}** for [Jutge.org](https://jutge.org).
 
 ## Author
 
 **${this.author}** <${this.author_email}>
 
 ## Original language
-${original}
 
-## Translations
+${original}
 
 ${translations}
 
@@ -624,17 +663,18 @@ ${translations}
 Type: ${this.problem_type}
 Handler: ${this.handlers[this.original_language].handler}
 Generated at: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
+Generated by: ${os.userInfo().username} using Jutge Toolkit ${version}
 Generated on: ${os.hostname()} (${os.type()} ${os.platform()} ${os.release()} ${os.arch()})
 
 
 © Jutge.org, 2006-${dayjs().year()}
+https://jutge.org
 
 `
 
             const path = join(this.exportDir, 'README.md')
             await writeFile(path, text)
             tui.success(`Generated ${tui.hyperlink(this.exportDir, 'README.md')}`)
-            await tui.markdown(text)
         })
     }
 }
