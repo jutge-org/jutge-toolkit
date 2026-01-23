@@ -1,4 +1,4 @@
-import { getAvailableCompilers, getCompilersInfo, getDefinedCompilerIds } from '../lib/compilers'
+import { getAvailableCompilers, getCompilersInfo, getDefinedCompilerIds } from '../compilers'
 import { Command } from '@commander-js/extra-typings'
 
 export const compilersCmd = new Command('compilers')

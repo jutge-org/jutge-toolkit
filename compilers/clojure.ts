@@ -1,10 +1,9 @@
-import tui from '../tui'
-import { type Handler } from '../types'
+import tui from '../lib/tui'
+import { type Handler } from '../lib/types'
 import { Compiler } from './base'
 import { execa } from 'execa'
 import { join } from 'path'
-import { nothing, readText, toolkitPrefix } from '../utils'
-import { rm } from 'fs/promises'
+import { nothing, readText, toolkitPrefix } from '../lib/utils'
 
 export class Clojure_Compiler extends Compiler {
     id(): string {

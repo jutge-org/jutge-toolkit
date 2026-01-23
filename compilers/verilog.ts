@@ -1,8 +1,8 @@
 import { execa } from 'execa'
 import { join } from 'path'
-import tui from '../tui'
-import type { Handler } from '../types'
-import { nothing, readText, toolkitPrefix, writeText, writeTextInDir } from '../utils'
+import tui from '../lib/tui'
+import type { Handler } from '../lib/types'
+import { nothing, readText, toolkitPrefix, writeText, writeTextInDir } from '../lib/utils'
 import { Compiler } from './base'
 import { no } from 'zod/v4/locales'
 

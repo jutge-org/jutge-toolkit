@@ -1,9 +1,9 @@
 import { execa } from 'execa'
 import { exists, rm } from 'fs/promises'
 import { join, resolve, sep } from 'path'
-import tui from '../tui'
-import type { Handler } from '../types'
-import { readText, toolkitPrefix, writeText } from '../utils'
+import tui from '../lib/tui'
+import type { Handler } from '../lib/types'
+import { readText, toolkitPrefix, writeText } from '../lib/utils'
 
 export type CompilerInfo = {
     compiler_id: string

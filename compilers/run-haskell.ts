@@ -1,17 +1,17 @@
 import { execa } from 'execa'
 import { join, parse } from 'path'
-import tui from '../tui'
-import type { Handler } from '../types'
-import { nothing, readText, toolkitPrefix, writeText } from '../utils'
+import tui from '../lib/tui'
+import type { Handler } from '../lib/types'
+import { nothing, readText, toolkitPrefix, writeText } from '../lib/utils'
 import { Compiler } from './base'
 
-export class RunClojure_Compiler extends Compiler {
+export class RunHaskell_Compiler extends Compiler {
     id(): string {
-        return 'RunClojure'
+        return 'RunHaskell'
     }
 
     name(): string {
-        return 'RunClojure'
+        return 'RunHaskell'
     }
 
     type(): string {
@@ -19,11 +19,11 @@ export class RunClojure_Compiler extends Compiler {
     }
 
     language(): string {
-        return 'Clojure'
+        return 'Haskell'
     }
 
     async version(): Promise<string> {
-        return await this.getVersion('clj --version', 0)
+        return await this.getVersion('runhaskell --version', 0)
     }
 
     flags1(): string {
@@ -35,17 +35,31 @@ export class RunClojure_Compiler extends Compiler {
     }
 
     tool(): string {
-        return 'clj'
+        return 'ghc'
     }
 
     extension(): string {
-        return 'clj'
+        return 'hs'
     }
 
     override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
-        await nothing()
+        // ghci -e ':q' solution.hs
+        // This will load and typecheck the file, then immediately quit.
+        // If there are compilation errors, they'll be shown. If it loads successfully and just exits, the code compiles.
+        // With execa, it seems we have to remove the quotes around :q
 
-        tui.warning(`No compilation available for Clojure`)
+        tui.command(`ghci -e ':q' ${sourcePath}`)
+
+        const { exitCode } = await execa({
+            reject: false,
+            stderr: 'inherit',
+            stdout: 'inherit',
+            cwd: directory,
+        })`ghci -e :q ${sourcePath}`
+
+        if (exitCode !== 0) {
+            throw new Error(`Compilation failed for ${sourcePath}`)
+        }
 
         return sourcePath
     }
@@ -62,19 +76,19 @@ export class RunClojure_Compiler extends Compiler {
         inputPath: string,
         outputPath: string,
     ): Promise<void> {
-        const newSourcePath = `${toolkitPrefix()}-${parse(sourcePath).name}-${parse(inputPath).name}.clj`
+        const newSourcePath = `${toolkitPrefix()}-${parse(sourcePath).name}-${parse(inputPath).name}.hs`
 
         tui.command(`merge ${sourcePath} ${inputPath} > ${newSourcePath}`)
         await this.mergeScripts(directory, sourcePath, inputPath, newSourcePath)
 
-        tui.command(`clj -M ${newSourcePath} > ${outputPath}`)
+        tui.command(`runhaskell ${newSourcePath} > ${outputPath}`)
 
         const { exitCode } = await execa({
             reject: false,
             stdout: { file: join(directory, outputPath) },
             stderr: 'inherit',
             cwd: directory,
-        })`clj -M ${newSourcePath}`
+        })`runhaskell ${newSourcePath}`
 
         if (exitCode !== 0) throw new Error(`Execution failed for ${newSourcePath}`)
     }
@@ -88,12 +102,14 @@ export class RunClojure_Compiler extends Compiler {
         const script1 = await readText(join(directory, scriptPath1))
         const script2 = await readText(join(directory, scriptPath2))
         let mergedScript = script1
-        mergedScript += '\n\n\n'
+        mergedScript += '\n\n\nmain = do\n'
         for (const line of script2.split('\n')) {
             if (line.trim() === '') {
                 mergedScript += '\n'
+            } else if (line.startsWith('let')) {
+                mergedScript += `    ${line}\n`
             } else {
-                mergedScript += `(println ${line})\n`
+                mergedScript += `    print $ ${line}\n`
             }
         }
         await writeText(join(directory, outputScriptPath), mergedScript)

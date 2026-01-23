@@ -1,18 +1,17 @@
 import { execa } from 'execa'
-import { cp } from 'fs/promises'
 import { join, parse } from 'path'
-import tui from '../tui'
-import type { Handler } from '../types'
-import { nothing, readText, toolkitPrefix, writeText } from '../utils'
+import tui from '../lib/tui'
+import type { Handler } from '../lib/types'
+import { nothing, readText, toolkitPrefix, writeText } from '../lib/utils'
 import { Compiler } from './base'
 
-export class RunPython_Compiler extends Compiler {
+export class RunClojure_Compiler extends Compiler {
     id(): string {
-        return 'RunPython'
+        return 'RunClojure'
     }
 
     name(): string {
-        return 'RunPython'
+        return 'RunClojure'
     }
 
     type(): string {
@@ -20,11 +19,11 @@ export class RunPython_Compiler extends Compiler {
     }
 
     language(): string {
-        return 'Python'
+        return 'Clojure'
     }
 
     async version(): Promise<string> {
-        return await this.getVersion('python3 --version', 0)
+        return await this.getVersion('clj --version', 0)
     }
 
     flags1(): string {
@@ -36,26 +35,17 @@ export class RunPython_Compiler extends Compiler {
     }
 
     tool(): string {
-        return 'python3'
+        return 'clj'
     }
 
     extension(): string {
-        return 'py'
+        return 'clj'
     }
 
     override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
-        tui.command(`python3 -m py_compile ${sourcePath}`)
+        await nothing()
 
-        const { exitCode } = await execa({
-            reject: false,
-            stderr: 'inherit',
-            stdout: 'inherit',
-            cwd: directory,
-        })`python3 -m py_compile ${sourcePath}`
-
-        if (exitCode !== 0) {
-            throw new Error(`Compilation failed for ${sourcePath}`)
-        }
+        tui.warning(`No compilation available for Clojure`)
 
         return sourcePath
     }
@@ -72,19 +62,19 @@ export class RunPython_Compiler extends Compiler {
         inputPath: string,
         outputPath: string,
     ): Promise<void> {
-        const newSourcePath = `${toolkitPrefix()}-${parse(sourcePath).name}-${parse(inputPath).name}.py`
+        const newSourcePath = `${toolkitPrefix()}-${parse(sourcePath).name}-${parse(inputPath).name}.clj`
 
         tui.command(`merge ${sourcePath} ${inputPath} > ${newSourcePath}`)
         await this.mergeScripts(directory, sourcePath, inputPath, newSourcePath)
 
-        tui.command(`python3 ${newSourcePath} > ${outputPath}`)
+        tui.command(`clj -M ${newSourcePath} > ${outputPath}`)
 
         const { exitCode } = await execa({
             reject: false,
             stdout: { file: join(directory, outputPath) },
             stderr: 'inherit',
             cwd: directory,
-        })`python3 ${newSourcePath}`
+        })`clj -M ${newSourcePath}`
 
         if (exitCode !== 0) throw new Error(`Execution failed for ${newSourcePath}`)
     }
@@ -97,7 +87,15 @@ export class RunPython_Compiler extends Compiler {
     ): Promise<void> {
         const script1 = await readText(join(directory, scriptPath1))
         const script2 = await readText(join(directory, scriptPath2))
-        const mergedScript = script1 + '\n\n\n' + script2
+        let mergedScript = script1
+        mergedScript += '\n\n\n'
+        for (const line of script2.split('\n')) {
+            if (line.trim() === '') {
+                mergedScript += '\n'
+            } else {
+                mergedScript += `(println ${line})\n`
+            }
+        }
         await writeText(join(directory, outputScriptPath), mergedScript)
     }
 }

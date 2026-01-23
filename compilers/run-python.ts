@@ -1,17 +1,18 @@
 import { execa } from 'execa'
+import { cp } from '../lib/promises'
 import { join, parse } from 'path'
-import tui from '../tui'
-import type { Handler } from '../types'
-import { nothing, readText, toolkitPrefix, writeText } from '../utils'
+import tui from '../lib/tui'
+import type { Handler } from '../lib/types'
+import { nothing, readText, toolkitPrefix, writeText } from '../lib/utils'
 import { Compiler } from './base'
 
-export class RunHaskell_Compiler extends Compiler {
+export class RunPython_Compiler extends Compiler {
     id(): string {
-        return 'RunHaskell'
+        return 'RunPython'
     }
 
     name(): string {
-        return 'RunHaskell'
+        return 'RunPython'
     }
 
     type(): string {
@@ -19,11 +20,11 @@ export class RunHaskell_Compiler extends Compiler {
     }
 
     language(): string {
-        return 'Haskell'
+        return 'Python'
     }
 
     async version(): Promise<string> {
-        return await this.getVersion('runhaskell --version', 0)
+        return await this.getVersion('python3 --version', 0)
     }
 
     flags1(): string {
@@ -35,27 +36,22 @@ export class RunHaskell_Compiler extends Compiler {
     }
 
     tool(): string {
-        return 'ghc'
+        return 'python3'
     }
 
     extension(): string {
-        return 'hs'
+        return 'py'
     }
 
     override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
-        // ghci -e ':q' solution.hs
-        // This will load and typecheck the file, then immediately quit.
-        // If there are compilation errors, they'll be shown. If it loads successfully and just exits, the code compiles.
-        // With execa, it seems we have to remove the quotes around :q
-
-        tui.command(`ghci -e ':q' ${sourcePath}`)
+        tui.command(`python3 -m py_compile ${sourcePath}`)
 
         const { exitCode } = await execa({
             reject: false,
             stderr: 'inherit',
             stdout: 'inherit',
             cwd: directory,
-        })`ghci -e :q ${sourcePath}`
+        })`python3 -m py_compile ${sourcePath}`
 
         if (exitCode !== 0) {
             throw new Error(`Compilation failed for ${sourcePath}`)
@@ -76,19 +72,19 @@ export class RunHaskell_Compiler extends Compiler {
         inputPath: string,
         outputPath: string,
     ): Promise<void> {
-        const newSourcePath = `${toolkitPrefix()}-${parse(sourcePath).name}-${parse(inputPath).name}.hs`
+        const newSourcePath = `${toolkitPrefix()}-${parse(sourcePath).name}-${parse(inputPath).name}.py`
 
         tui.command(`merge ${sourcePath} ${inputPath} > ${newSourcePath}`)
         await this.mergeScripts(directory, sourcePath, inputPath, newSourcePath)
 
-        tui.command(`runhaskell ${newSourcePath} > ${outputPath}`)
+        tui.command(`python3 ${newSourcePath} > ${outputPath}`)
 
         const { exitCode } = await execa({
             reject: false,
             stdout: { file: join(directory, outputPath) },
             stderr: 'inherit',
             cwd: directory,
-        })`runhaskell ${newSourcePath}`
+        })`python3 ${newSourcePath}`
 
         if (exitCode !== 0) throw new Error(`Execution failed for ${newSourcePath}`)
     }
@@ -101,17 +97,7 @@ export class RunHaskell_Compiler extends Compiler {
     ): Promise<void> {
         const script1 = await readText(join(directory, scriptPath1))
         const script2 = await readText(join(directory, scriptPath2))
-        let mergedScript = script1
-        mergedScript += '\n\n\nmain = do\n'
-        for (const line of script2.split('\n')) {
-            if (line.trim() === '') {
-                mergedScript += '\n'
-            } else if (line.startsWith('let')) {
-                mergedScript += `    ${line}\n`
-            } else {
-                mergedScript += `    print $ ${line}\n`
-            }
-        }
+        const mergedScript = script1 + '\n\n\n' + script2
         await writeText(join(directory, outputScriptPath), mergedScript)
     }
 }

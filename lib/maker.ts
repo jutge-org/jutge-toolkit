@@ -18,8 +18,8 @@ import {
     toolkitPrefix,
     writeText,
 } from '../lib/utils'
-import { getCompilerByExtension, getCompilerById } from './compilers'
-import type { Compiler } from './compilers/base'
+import { getCompilerByExtension, getCompilerById } from '../compilers'
+import type { Compiler } from '../compilers/base'
 import { languageNames } from './data'
 import { newProblem, Problem } from './problem'
 import * as doctor from './doctor'

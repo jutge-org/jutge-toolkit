@@ -1,8 +1,8 @@
 import { execa } from 'execa'
 import { join, parse } from 'path'
-import tui from '../tui'
-import type { Handler } from '../types'
-import { nothing, toolkitPrefix } from '../utils'
+import tui from '../lib/tui'
+import type { Handler } from '../lib/types'
+import { nothing, toolkitPrefix } from '../lib/utils'
 import { Compiler } from './base'
 
 export class Java_Compiler extends Compiler {
