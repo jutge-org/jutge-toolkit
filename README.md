@@ -9,7 +9,7 @@ A powerful command-line toolkit for creating and managing programming problems o
 - 🔧 Compile and test solutions in multiple programming languages
 - 📄 Generate PDF statements and other formats automatically
 - ✅ Verify solutions against test cases
-- ☁️ Stage problems matching Jutge.org specifications
+- 🎬 Stage problems matching Jutge.org specifications
 - ☁️ Upload and update problems directly to Jutge.org
 - ✨ Beautiful terminal interface with color output and help
 
