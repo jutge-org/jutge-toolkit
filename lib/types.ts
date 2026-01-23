@@ -4,7 +4,7 @@ export const Handler = z.object({
     handler: z.enum(['std', 'graphic', 'quiz', 'circuits', 'game']).default('std'),
     solution: z.string().default('C++'),
     source_modifier: z.enum(['none', 'no_main', 'structs']).default('none'),
-    compilers: z.enum(getDefinedCompilerIds()).nullable().default(null),
+    compilers: z.string().optional(),
     game: z
         .object({
             hide: z.array(z.string()).default([]),
@@ -27,8 +27,8 @@ export type Scores = z.infer<typeof Scores>
 export const Specification = z.object({
     title: z.string(),
     description: z.string(),
-    author: z.string(),
-    email: z.string().email(),
+    author: z.string().default('Unknown'),
+    email: z.string().default('unknown'),
     golden_proglang: z.string(),
     more_proglangs: z.array(z.string()),
     original_language: z.string(),

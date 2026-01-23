@@ -217,8 +217,6 @@ export class Previewer {
                 if (data.email) this.author_email = data.email
             }
             if (!this.original_language) throw new Error(`Original language not found in problem.<lang>.yml files`)
-            if (!this.author) throw new Error(`Author not found in problem.<lang>.yml files`)
-            if (!this.author_email) throw new Error(`Author email not found in problem.<lang>.yml files`)
 
             // find problem type
             const originalHandler = this.handlers[this.original_language]
@@ -235,7 +233,7 @@ export class Previewer {
     private async findGoldenSolution(language: string) {
         return await tui.section('Finding golden solution', async () => {
             const handler = this.handlers[language].handler
-            const compilers = handler?.compilers || '' // this is only one string!
+            const compilers = this.handlers[language].compilers || '' // this is only one string!
 
             let goldenSolution: string
 
