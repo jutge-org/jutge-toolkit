@@ -20,10 +20,13 @@ export async function cleanDirectory(force: boolean, all: boolean, directory: st
     const allPatterns = [
         '\\.cor$',
         '^problem\\.[a-z][a-z]\\.ps$',
-        '^problem\\.[a-z][a-z]\\.md$',
         '^problem\\.[a-z][a-z]\\.pdf$',
+        '^problem\\.[a-z][a-z]\\.md$',
         '^problem\\.[a-z][a-z]\\.txt$',
         '^problem\\.[a-z][a-z]\\.html$',
+        '^problem\\.[a-z][a-z]\\.short\\.md$',
+        '^problem\\.[a-z][a-z]\\.short\\.txt$',
+        '^problem\\.[a-z][a-z]\\.short\\.html$',
     ]
     if (all) {
         patterns.push(...allPatterns)
