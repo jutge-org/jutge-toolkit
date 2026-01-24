@@ -145,13 +145,15 @@ export class Maker {
     }
 
     public async makeExecutable(program: string) {
-        const extension = program.split('.').pop()!
-        const probe = compilersProbesByExtension[extension]
-        if (!probe) {
-            throw new Error(`No compiler found for .${extension} files`)
-        }
-        if (!(await probe())) {
-            throw new Error(`Compiler for .${extension} files is not available`)
+        if (this.problem.handler.handler !== 'circuits') {
+            const extension = program.split('.').pop()!
+            const probe = compilersProbesByExtension[extension]
+            if (!probe) {
+                throw new Error(`No compiler found for .${extension} files`)
+            }
+            if (!(await probe())) {
+                throw new Error(`Compiler for .${extension} files is not available`)
+            }
         }
 
         const compiler = this.selectCompiler()
