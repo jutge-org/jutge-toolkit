@@ -1,17 +1,18 @@
-import os from 'os'
-import dayjs from 'dayjs'
 import { rings } from '@dicebear/collection'
 import { createAvatar } from '@dicebear/core'
+import dayjs from 'dayjs'
 import { execa } from 'execa'
 import { cp, exists, glob, mkdir, rm, writeFile } from 'fs/promises'
+import os from 'os'
 import { join } from 'path'
 import { invert } from 'radash'
-import tui from './tui'
-import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
-import { createZipFromFiles, type FileToArchive } from './zip-creation'
 import tree from 'tree-node-cli'
-import { QuizRoot, type ProblemInfo } from './types'
+import { probeCodeMetrics } from './doctor'
+import tui from './tui'
+import { QuizRoot } from './types'
+import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
 import { packageJson } from './versions'
+import { createZipFromFiles, type FileToArchive } from './zip-creation'
 
 export class Stager {
     // directory containing the problem to stage
@@ -332,6 +333,11 @@ export class Stager {
     }
 
     private async computeCodeMetrics(language: string) {
+        if (!(await probeCodeMetrics())) {
+            tui.warning('jutge-code-metrics not installed, skipping code metrics')
+            return
+        }
+
         if (this.problem_type !== 'std') {
             await tui.section('Skipping code metrics', async () => {
                 await nothing()

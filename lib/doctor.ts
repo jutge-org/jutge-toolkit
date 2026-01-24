@@ -2,6 +2,7 @@ import { execa } from 'execa'
 import terminalLink from 'terminal-link'
 import tui from './tui'
 import { nothing } from './utils'
+import { exit } from 'process'
 
 // Regular expression to split lines in a cross-platform way
 const lineSep = /\r?\n/
@@ -168,6 +169,23 @@ export async function probeVerilog(): Promise<boolean> {
     return result
 }
 
+async function _checkCodeMetrics(): Promise<ProbeResult> {
+    const { stdout, exitCode } = await execa({ reject: false })`jutge-code-metrics`
+    const version = 'not reported'
+    return {
+        result: exitCode === 0,
+        version,
+        stdout,
+    }
+}
+
+const checkCodeMetricsMemoized = memoize(_checkCodeMetrics)
+
+export async function probeCodeMetrics(): Promise<boolean> {
+    const { result } = await checkCodeMetricsMemoized()
+    return result
+}
+
 async function _checkPdfLaTeX(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`pdflatex --version`
     const version = stdout.split(lineSep)[0]!.trim()
@@ -327,6 +345,19 @@ export async function checkPdfLaTeX(): Promise<void> {
         tui.warning('LaTeX does not appear to be installed')
         tui.print('You will not be able to generate PDF statements')
         tui.print('TODO: Provide instructions for installing LaTeX')
+    }
+}
+
+export async function checkCodeMetrics(): Promise<void> {
+    tui.command('jutge-code-metrics')
+    const { result, version } = await checkCodeMetricsMemoized()
+    console.log(version)
+    if (result) {
+        tui.success('jutge-code-metrics seems installed')
+    } else {
+        tui.warning('jutge-code-metrics does not appear to be installed')
+        tui.print('You will not be able to compute code metrics when staging solutions')
+        tui.print('Use python3 -m pip install jutge-toolkit to install it')
     }
 }
 
