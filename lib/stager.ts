@@ -83,7 +83,7 @@ export class Stager {
             tui.success('Staging tree:')
             tui.print(tree(this.stagingDir))
         })
-        tui.success(`Staging directory: ${tui.hyperlink(this.stagingDir)}`)
+        tui.success(`Problem successfully staged at directory ${tui.hyperlink(this.stagingDir)}`)
     }
 
     async stageLanguage_Std(language: string) {
