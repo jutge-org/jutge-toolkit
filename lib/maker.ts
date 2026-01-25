@@ -397,6 +397,13 @@ export class Maker {
             await cp(join(this.problem.directory, entry), join(tmpDir, entry))
         }
 
+        // hack for problems that already have original pdf (CodeWars)
+        if (await exists(join(tmpDir, `original.${language}.pdf`))) {
+            tui.warning(`Found original.${language}.pdf`)
+            await cp(join(tmpDir, `original.${language}.pdf`), join(this.problem.directory, `problem.${language}.pdf`))
+            return
+        }
+
         // write root.tex
         await writeText(join(tmpDir, 'root.tex'), root)
 
@@ -525,7 +532,6 @@ export class Maker {
         for await (const entry of glob('*', { cwd: this.problem.directory })) {
             if (
                 entry.startsWith(toolkitPrefix()) ||
-                entry.endsWith('.pdf') ||
                 entry.endsWith('.exe') ||
                 entry.endsWith('.html') ||
                 entry.endsWith('.md') ||
@@ -535,6 +541,12 @@ export class Maker {
                 continue
             }
             await cp(join(this.problem.directory, entry), join(tmpDir, entry))
+        }
+
+        // hack for problems that already have original pdf (CodeWars)
+        if (await exists(join(tmpDir, `original.${language}.pdf`))) {
+            tui.warning(`Found original.${language}.pdf`)
+            return
         }
 
         const filename = type === 'full' ? `problem.${language}` : `problem.${language}.short`
