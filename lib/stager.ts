@@ -247,7 +247,18 @@ export class Stager {
             } else if (compilers === 'RunClojure' || compilers === 'Clojure') {
                 goldenSolution = 'solution.clj'
             } else {
-                const solutionProglang = this.handlers[language].solution || 'C++'
+                let solutionProglang = this.handlers[language].solution || 'C++'
+
+                // if there is a single solution file with an extension, use that to set the solution language
+                if (solutionProglang === 'C++') {
+                    const files = await Array.fromAsync(glob('solution.*', { cwd: this.directory }))
+                    console.log(files)
+                    if (files.length === 1) {
+                        const ext = files[0]!.split('.').pop()
+                        solutionProglang = proglangNames[ext!]
+                    }
+                }
+
                 const extension = proglangExtensions[solutionProglang]
                 if (!extension) {
                     throw new Error(`Unknown programming language ${solutionProglang} for solution`)

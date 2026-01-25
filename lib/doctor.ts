@@ -49,6 +49,23 @@ export async function probePython3(): Promise<boolean> {
     return result
 }
 
+async function _checkR(): Promise<ProbeResult> {
+    const { stdout } = await execa({ reject: false })`R --version`
+    const version = stdout.split(lineSep)[0]!.trim()
+    return {
+        result: version.startsWith('R version'),
+        version,
+        stdout,
+    }
+}
+
+const checkRMemoized = memoize(_checkR)
+
+export async function probeR(): Promise<boolean> {
+    const { result } = await checkRMemoized()
+    return result
+}
+
 async function _checkPythonModule(module: string): Promise<ProbeResult> {
     const { exitCode, stdout, stderr } = await execa({ reject: false })`python3 -m pip show ${module}`
     return {
@@ -332,6 +349,19 @@ export async function checkVerilog(): Promise<void> {
         tui.success('Verilog seems installed')
     } else {
         tui.warning('Verilog does not appear to be installed, but this is not important for circuit problems')
+    }
+}
+
+export async function checkR(): Promise<void> {
+    tui.command('not implemented')
+    const { result, version } = await checkRMemoized()
+    console.log(version)
+    if (result) {
+        tui.success('R seems installed')
+    } else {
+        tui.warning('R does not appear to be installed')
+        tui.print('You will not be able to compile/execute R solutions')
+        tui.print('See Google')
     }
 }
 

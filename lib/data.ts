@@ -19,6 +19,7 @@ export const proglangNames: Record<string, string> = {
     java: 'Java',
     rs: 'Rust',
     v: 'Verilog',
+    R: 'R',
 }
 
 export const proglangExtensions: Record<string, string> = invert(proglangNames)
