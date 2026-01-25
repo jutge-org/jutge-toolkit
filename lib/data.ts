@@ -14,7 +14,7 @@ export const proglangNames: Record<string, string> = {
     c: 'C',
     cc: 'C++',
     py: 'Python3',
-    hs: 'Haskell',
+    hs: 'GHC',
     clj: 'Clojure',
     java: 'Java',
     rs: 'Rust',
