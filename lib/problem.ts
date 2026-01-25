@@ -150,6 +150,14 @@ export class Problem {
                 this.handler.solution = 'Verilog'
             }
 
+            // TODO: improve PRO2
+            if (this.handler.compilers === 'MakePRO2') {
+                this.handler.solution = 'MakePRO2'
+            }
+            if (this.handler.compilers === 'PRO2') {
+                this.handler.solution = 'MakePRO2'
+            }
+
             // if there is a single solution file with an extension, use that to set the solution language
             if (this.handler.handler === 'std' && this.handler.solution === 'C++') {
                 const files = await Array.fromAsync(glob('solution.*', { cwd: this.directory }))
@@ -234,6 +242,8 @@ export class Problem {
                 this.goldenSolution = 'solution.hs'
             } else if (this.handler.compilers === 'RunClojure' || this.handler.compilers === 'Clojure') {
                 this.goldenSolution = 'solution.clj'
+            } else if (this.handler.compilers === 'PRO2') {
+                this.goldenSolution = 'solution.cc'
             } else {
                 const solutionProglang = this.handler.solution
                 const extension = proglangExtensions[solutionProglang]

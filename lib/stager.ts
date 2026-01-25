@@ -381,10 +381,15 @@ export class Stager {
                 if (filename === `solution.${extension}`) return true
                 if (filename === `main.${extension}`) return true
             }
+            if (filename === 'scores.yml') return true
 
             // checkers
             if (filename === 'checker.py') return true
             if (filename === 'checker.cc') return true
+
+            // MakePRO2 (TODO: check with pauek)
+            if (filename === 'private.tar') return true
+            if (filename === 'public.tar') return true
 
             return false
         }

@@ -20,6 +20,7 @@ export const proglangNames: Record<string, string> = {
     rs: 'Rust',
     v: 'Verilog',
     R: 'R',
+    tar: 'MakePRO2',
 }
 
 export const proglangExtensions: Record<string, string> = invert(proglangNames)
