@@ -349,9 +349,13 @@ export class Stager {
         await tui.section('Computing code metrics', async () => {
             const golden_solution = await this.findGoldenSolution(language)
             tui.command(`jutge-code-metrics ${golden_solution}`)
-            const { stdout } = await execa({ cwd: this.workDirLang })`jutge-code-metrics ${golden_solution}`
-            await writeText(join(this.stagingDirLang, `code-metrics.json`), stdout)
-            tui.success(`Generated ${tui.hyperlink(this.stagingDirLang, `code-metrics.json`)}`)
+            try {
+                const { stdout } = await execa({ cwd: this.workDirLang })`jutge-code-metrics ${golden_solution}`
+                await writeText(join(this.stagingDirLang, `code-metrics.json`), stdout)
+                tui.success(`Generated ${tui.hyperlink(this.stagingDirLang, `code-metrics.json`)}`)
+            } catch (error) {
+                tui.warning('Failed to compute code metrics')
+            }
         })
     }
 
