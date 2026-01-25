@@ -5,7 +5,7 @@ import { imageSizeFromFile } from 'image-size/fromFile'
 import { basename, join, normalize, sep } from 'path'
 import tui from './tui'
 import { nothing, readYamlInDir } from './utils'
-import { languageNames } from './data'
+import { languageNames, proglangNames } from './data'
 import { Handler, ProblemInfo, Scores } from './types'
 
 export async function newProblem(directory: string): Promise<Problem> {
@@ -150,14 +150,19 @@ export class Problem {
                 this.handler.solution = 'Verilog'
             }
 
-            // hack to be more resilient for old problems
-            if (
-                this.handler.handler === 'std' &&
-                this.handler.solution === 'C++' &&
-                !(await exists(join(this.directory, 'solution.cc'))) &&
-                (await exists(join(this.directory, 'solution.py')))
-            ) {
-                this.handler.solution = 'Python3'
+            // if there is a single solution file with an extension, use that to set the solution language
+            if (this.handler.handler === 'std' && this.handler.solution === 'C++') {
+                const files = await Array.fromAsync(glob('solution.*', { cwd: this.directory }))
+                if (files.length === 1) {
+                    const ext = files[0]!.split('.').pop()
+                    const progLangName = proglangNames[ext!]
+                    if (progLangName) {
+                        tui.warning(
+                            `Assuming solution is in ${progLangName} based on file extension .${ext} (please update handler.yml)`,
+                        )
+                        this.handler.solution = progLangName
+                    }
+                }
             }
 
             tui.yaml(this.handler)
