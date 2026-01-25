@@ -69,7 +69,7 @@ export const QuizRootQuestion = z.object({
 export type QuizRootQuestion = z.infer<typeof QuizRootQuestion>
 
 export const QuizRoot = z.object({
-    title: z.string().nonempty(),
+    title: z.string().default('Untitled Quiz'),
     statement: z.string(),
     shuffle: z.boolean().default(false),
     questions: z.array(QuizRootQuestion),
