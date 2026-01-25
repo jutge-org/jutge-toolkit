@@ -150,6 +150,16 @@ export class Problem {
                 this.handler.solution = 'Verilog'
             }
 
+            // hack to be more resilient for old problems
+            if (
+                this.handler.handler === 'std' &&
+                this.handler.solution === 'C++' &&
+                !(await exists(join(this.directory, 'solution.cc'))) &&
+                (await exists(join(this.directory, 'solution.py')))
+            ) {
+                this.handler.solution = 'Python3'
+            }
+
             tui.yaml(this.handler)
         })
     }
