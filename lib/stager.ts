@@ -246,10 +246,10 @@ export class Stager {
                 goldenSolution = 'solution.hs'
             } else if (compilers === 'RunClojure' || compilers === 'Clojure') {
                 goldenSolution = 'solution.clj'
-            } else if (compilers === 'PRO2') {
+            } else if (compilers === 'PRO2' || compilers === 'MakePRO2') {
                 const files = await Array.fromAsync(glob('solution.{cc,hh,tar}', { cwd: this.directory }))
                 if (files.length !== 1) {
-                    throw new Error(`Expected exactly one PRO2 solution file, but got ${files.join(', ')}`)
+                    throw new Error(`Expected exactly one PRO2/MakePRO2 solution file, but got ${files.join(', ')}`)
                 }
                 goldenSolution = files[0]!
             } else {
