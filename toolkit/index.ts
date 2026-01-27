@@ -33,11 +33,11 @@ program.addHelpText('after', '\nMore documentation:\n  https://github.com/jutge-
 program.addCommand(inspectCmd)
 program.addCommand(cleanCmd)
 program.addCommand(makeCmd)
+program.addCommand(stageCmd)
 /*
 program.addCommand(uploadCmd)
 program.addCommand(verifyCmd)
 program.addCommand(convertCmd)
-program.addCommand(stageCmd)
 */
 program.addCommand(cloneCmd)
 program.addCommand(generateCmd)
