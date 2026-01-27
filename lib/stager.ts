@@ -235,6 +235,7 @@ export class Stager {
         return await tui.section('Finding golden solution', async () => {
             const handler = this.handlers[language].handler
             const compilers = this.handlers[language].compilers || '' // this is only one string!
+            const solution = this.handlers[language].solution
 
             let goldenSolution: string
 
@@ -242,7 +243,7 @@ export class Stager {
                 goldenSolution = 'solution.v'
             } else if (compilers === 'RunPython') {
                 goldenSolution = 'solution.py'
-            } else if (compilers === 'RunHaskell' || compilers === 'GHC') {
+            } else if (compilers === 'RunHaskell' || compilers === 'GHC' || solution === 'Haskell') {
                 goldenSolution = 'solution.hs'
             } else if (compilers === 'RunClojure' || compilers === 'Clojure') {
                 goldenSolution = 'solution.clj'
