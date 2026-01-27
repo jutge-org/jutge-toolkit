@@ -21,6 +21,7 @@ import { uploadCmd } from './upload'
 import { askCmd } from './ask'
 import { convertCmd } from './convert'
 import { stageCmd } from './stage'
+import { inspectCmd } from './inspect'
 
 program.name(Object.keys(packageJson.bin as Record<string, string>)[0] as string)
 program.alias(Object.keys(packageJson.bin as Record<string, string>)[1] as string)
@@ -29,14 +30,17 @@ program.description(packageJson.description!)
 program.helpCommand('help [command]', 'Display help for command') // To get the message with uppercase :-)
 program.addHelpText('after', '\nMore documentation:\n  https://github.com/jutge-org/new-jutge-toolkit/tree/main/docs')
 
-program.addCommand(makeCmd)
-program.addCommand(uploadCmd)
+program.addCommand(inspectCmd)
 program.addCommand(cleanCmd)
-program.addCommand(cloneCmd)
-program.addCommand(generateCmd)
+program.addCommand(makeCmd)
+/*
+program.addCommand(uploadCmd)
 program.addCommand(verifyCmd)
 program.addCommand(convertCmd)
 program.addCommand(stageCmd)
+*/
+program.addCommand(cloneCmd)
+program.addCommand(generateCmd)
 program.addCommand(doctorCmd)
 if (settings.developer) {
     program.addCommand(quizCmd)

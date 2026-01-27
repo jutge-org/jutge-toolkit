@@ -1,5 +1,5 @@
 import { Command } from '@commander-js/extra-typings'
-import { newMaker } from '../lib/maker'
+import { newMaker } from '../lib/make-std'
 
 export const verifyCmd = new Command('verify')
     .description('Verify programs against golden solution')

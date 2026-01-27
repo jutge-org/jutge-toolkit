@@ -2,7 +2,7 @@ import { execa } from 'execa'
 import { cp } from '../lib/promises'
 import { join, parse } from 'path'
 import tui from '../lib/tui'
-import type { Handler } from '../lib/types'
+import type { HandlerInfo } from '../lib/types'
 import { nothing, readText, toolkitPrefix, writeText } from '../lib/utils'
 import { Compiler } from './base'
 
@@ -43,7 +43,7 @@ export class RunPython_Compiler extends Compiler {
         return 'py'
     }
 
-    override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileNormal(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         tui.command(`python3 -m py_compile ${sourcePath}`)
 
         const { exitCode } = await execa({
@@ -60,13 +60,13 @@ export class RunPython_Compiler extends Compiler {
         return sourcePath
     }
 
-    override async compileWithMain(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileWithMain(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         await nothing()
         throw new Error('Method not implemented.')
     }
 
     override async execute(
-        handler: Handler,
+        handler: HandlerInfo,
         directory: string,
         sourcePath: string,
         inputPath: string,

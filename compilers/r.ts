@@ -1,7 +1,7 @@
 import { execa } from 'execa'
 import { join } from 'path'
 import tui from '../lib/tui'
-import type { Handler } from '../lib/types'
+import type { HandlerInfo } from '../lib/types'
 import { nothing, readText, toolkitPrefix, writeText } from '../lib/utils'
 import { Compiler } from './base'
 
@@ -42,7 +42,7 @@ export class R_Compiler extends Compiler {
         return 'R'
     }
 
-    override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileNormal(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         await nothing()
 
         tui.warning(`No compilation available for R`)
@@ -50,7 +50,7 @@ export class R_Compiler extends Compiler {
         return sourcePath
     }
 
-    override async compileWithMain(handler: Handler, directory: string, sourcePath: string): Promise<string> {
+    override async compileWithMain(handler: HandlerInfo, directory: string, sourcePath: string): Promise<string> {
         await nothing()
 
         tui.warning(`No compilation available for R`)
@@ -59,7 +59,7 @@ export class R_Compiler extends Compiler {
     }
 
     override async execute(
-        handler: Handler,
+        handler: HandlerInfo,
         directory: string,
         sourcePath: string,
         inputPath: string,

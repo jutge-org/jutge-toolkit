@@ -1,9 +1,27 @@
 import { z } from 'zod'
 
-export const Handler = z.object({
+export const StatementInfoOriginal = z.object({
+    title: z.string(),
+    author: z.string(),
+    email: z.string(),
+})
+
+export const StatementInfoTranslation = z.object({
+    title: z.string(),
+    translator: z.string(),
+    translator_email: z.string(),
+})
+
+export const StatementInfo = z.union([StatementInfoOriginal, StatementInfoTranslation])
+
+export type StatementInfoOriginal = z.infer<typeof StatementInfoOriginal>
+export type StatementInfoTranslation = z.infer<typeof StatementInfoTranslation>
+export type StatementInfo = z.infer<typeof StatementInfo>
+
+export const HandlerInfo = z.object({
     handler: z.enum(['std', 'graphic', 'quiz', 'circuits', 'game']).default('std'),
-    solution: z.string().default('C++'),
-    source_modifier: z.enum(['none', 'no_main', 'structs']).default('none'),
+    solution: z.string().optional(),
+    source_modifier: z.enum(['none', 'no_main', 'structs']).optional(),
     compilers: z.string().optional(),
     game: z
         .object({
@@ -12,7 +30,7 @@ export const Handler = z.object({
         .optional(),
 })
 
-export type Handler = z.infer<typeof Handler>
+export type HandlerInfo = z.infer<typeof HandlerInfo>
 
 export const Scores = z.array(
     z.object({
