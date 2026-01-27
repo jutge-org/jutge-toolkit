@@ -246,6 +246,12 @@ export class Stager {
                 goldenSolution = 'solution.hs'
             } else if (compilers === 'RunClojure' || compilers === 'Clojure') {
                 goldenSolution = 'solution.clj'
+            } else if (compilers === 'PRO2') {
+                const files = await Array.fromAsync(glob('solution.{cc,hh,tar}', { cwd: this.directory }))
+                if (files.length !== 1) {
+                    throw new Error(`Expected exactly one PRO2 solution file, but got ${files.join(', ')}`)
+                }
+                goldenSolution = files[0]!
             } else {
                 let solutionProglang = this.handlers[language].solution || 'C++'
 
@@ -387,9 +393,12 @@ export class Stager {
             if (filename === 'checker.py') return true
             if (filename === 'checker.cc') return true
 
-            // MakePRO2 (TODO: check with pauek)
+            // MakePRO2 and PRO2
             if (filename === 'private.tar') return true
             if (filename === 'public.tar') return true
+            if (filename === 'solution.cc') return true
+            if (filename === 'solution.hh') return true
+            if (filename === 'solution.tar') return true
 
             return false
         }

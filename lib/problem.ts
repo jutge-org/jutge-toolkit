@@ -220,10 +220,17 @@ export class Problem {
     private async loadSolutions() {
         if (this.handler.handler === 'quiz') return
         await tui.section('Loading solutions', async () => {
-            const { proglangNames } = await import('./data')
-            const comaSeparatedExtensions = Object.keys(proglangNames).join(',')
-            const files = await Array.fromAsync(glob(`solution.{${comaSeparatedExtensions}}`, { cwd: this.directory }))
-            this.solutions = files.sort()
+            if (this.handler.compilers === 'PRO2' || this.handler.compilers === 'MakePRO2') {
+                const files = await Array.fromAsync(glob('solution.{tar,cc,hh}', { cwd: this.directory }))
+                this.solutions = files.sort()
+            } else {
+                const { proglangNames } = await import('./data')
+                const comaSeparatedExtensions = Object.keys(proglangNames).join(',')
+                const files = await Array.fromAsync(
+                    glob(`solution.{${comaSeparatedExtensions}}`, { cwd: this.directory }),
+                )
+                this.solutions = files.sort()
+            }
             tui.yaml(this.solutions)
             if (this.solutions.length === 0) throw new Error('No solutions found')
         })
