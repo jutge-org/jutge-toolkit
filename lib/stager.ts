@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import { execa } from 'execa'
 import { cp, exists, glob, mkdir, rm, writeFile } from 'fs/promises'
 import os from 'os'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { invert } from 'radash'
 import tree from 'tree-node-cli'
 import { probeCodeMetrics } from './doctor'
@@ -46,7 +46,7 @@ export class Stager {
     problem_type: 'std' | 'game' | 'quiz' = 'std' // 'circuits' and 'graphics' are 'std' type
 
     constructor(directory: string, problem_nm: string) {
-        this.directory = directory
+        this.directory = resolve(directory)
         this.problem_nm = problem_nm
         this.workspace = join(directory, toolkitPrefix() + '-stage', nanoid8())
         this.workDir = join(this.workspace, 'work')
@@ -54,7 +54,7 @@ export class Stager {
     }
 
     async stage() {
-        await tui.section(`Staging problem at ${this.directory}`, async () => {
+        await tui.section(`Staging problem at ${tui.hyperlink(this.directory)}`, async () => {
             await this.createWorkspace()
             await this.separateByLanguages()
             await this.readMetadata()
@@ -259,7 +259,7 @@ export class Stager {
                 // if there is a single solution file with an extension, use that to set the solution language
                 if (solutionProglang === 'C++') {
                     const files = await Array.fromAsync(glob('solution.*', { cwd: this.directory }))
-                    console.log(files)
+                    tui.print(files.join(', '))
                     if (files.length === 1) {
                         const ext = files[0]!.split('.').pop()
                         solutionProglang = proglangNames[ext!]
@@ -284,7 +284,7 @@ export class Stager {
     }
 
     private async prepareStatements_Std(language: string) {
-        await tui.section('Preparing standard statements', async () => {
+        await tui.section('Preparing statements', async () => {
             const dir = join(this.workDir, language)
 
             tui.command(`jtk make pdf html md txt --problem_nm ${this.problem_nm}`)
@@ -292,6 +292,9 @@ export class Stager {
                 cwd: dir,
                 stdout: 'inherit',
                 stderr: 'inherit',
+                env: {
+                    JUTGE_INDENTATION_LEVEL: tui.getIndentationLevelAsString(),
+                },
             })`jtk make pdf html md txt --problem_nm ${this.problem_nm}`
 
             await rm(join(dir, 'jtk-pdf'), { recursive: true, force: true })

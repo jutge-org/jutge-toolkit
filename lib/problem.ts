@@ -80,7 +80,7 @@ export class Problem {
             } else {
                 this.structure = 'single'
             }
-            console.log(this.structure)
+            tui.print(this.structure)
         })
     }
 

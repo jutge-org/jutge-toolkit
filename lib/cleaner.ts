@@ -55,7 +55,7 @@ export async function cleanDirectory(force: boolean, all: boolean, directory: st
     }
 
     if (!force) {
-        console.log()
+        tui.print()
         const conformation = await confirm({
             message: `Remove ${removalList.length} entries?`,
             default: false,

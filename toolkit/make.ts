@@ -25,7 +25,7 @@ export const makeCmd = new Command('make')
             throw new Error('Tasks must be one of: all, info, exe, cor, pdf, txt, md, html')
         }
 
-        console.log()
+        tui.print()
         await tui.image(join(projectDir(), 'assets', 'images', 'jutge-toolkit.png'), 8, 4)
 
         const errors: Record<string, string> = {} // directory -> error message
@@ -74,7 +74,7 @@ export const makeCmd = new Command('make')
                     throw error
                 }
             }
-            console.log()
+            tui.print()
         }
 
         tui.title('Summary')

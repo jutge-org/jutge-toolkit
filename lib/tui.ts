@@ -1,41 +1,51 @@
-import { highlight } from 'cli-highlight'
 import boxen from 'boxen'
 import chalk from 'chalk'
+import { highlight } from 'cli-highlight'
 import { resolve } from 'path'
-import terminalImage from 'terminal-image'
 import terminalLink from 'terminal-link'
 import YAML from 'yaml'
 import { nothing } from './utils'
 
-let indentation = 0
+const spacesPerLevel = process.env.JUTGE_INDENTATION_WIDTH ? parseInt(process.env.JUTGE_INDENTATION_WIDTH) : 4
 
-const symbols = ['', '▶', '◆', '●', '■']
+const verticalLine = chalk.gray.dim(
+    process.env.JUTGE_INDENTATION_CARET ? parseInt(process.env.JUTGE_INDENTATION_CARET) : '│',
+)
+
+let level = process.env.JUTGE_INDENTATION_LEVEL ? parseInt(process.env.JUTGE_INDENTATION_LEVEL) : 0
+
+function getIndentationLevel(): number {
+    return level
+}
+
+function getIndentationLevelAsString(): string {
+    return getIndentationLevel().toString()
+}
+
+//const symbols = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+const symbols = ['', '▶', '◆', '●', '○', '◉', '⬡', '⬢']
 
 function sectionStart(text: string) {
-    if (indentation === 0) {
-        console.log()
-        if (text) {
-            console.log(chalk.blue(boxen(text, { padding: { left: 1, right: 1 }, width: process.stdout.columns })))
-        }
-    } else {
-        if (text) {
-            console.log(chalk.blue(`${symbols[indentation]} ${text}`))
+    if (text) {
+        if (level == 0) {
+            print(
+                chalk.blue(
+                    boxen(text, {
+                        padding: { left: 1, right: 1 },
+                        width: process.stdout.columns - level * spacesPerLevel,
+                        borderStyle: 'single',
+                    }),
+                ),
+            )
+        } else {
+            print(chalk.gray(symbols[level]) + ' ' + chalk.blue(text))
         }
     }
-    ++indentation
-    console.group()
+    ++level
 }
 
 function sectionEnd() {
-    --indentation
-    console.groupEnd()
-}
-
-function sectionReset() {
-    while (indentation > 0) {
-        --indentation
-        sectionEnd()
-    }
+    --level
 }
 
 async function section<T>(text: string, fn: () => Promise<T>): Promise<T> {
@@ -49,23 +59,27 @@ async function section<T>(text: string, fn: () => Promise<T>): Promise<T> {
 }
 
 function title(text: string) {
-    console.log(
-        chalk.blue.bold(
-            boxen(text, { padding: { left: 1, right: 1 }, width: process.stdout.columns, borderStyle: 'double' }),
+    print(
+        chalk.blue(
+            boxen(text, {
+                padding: { left: 1, right: 1 },
+                width: process.stdout.columns - level * spacesPerLevel,
+                borderStyle: 'single',
+            }),
         ),
     )
 }
 
 function command(text: string) {
-    console.log(chalk.magenta(`❯ ${text}`))
+    print(chalk.magenta(`❯ ${text}`))
 }
 
 function directory(text: string) {
-    console.log(chalk.magenta('◳ ' + fileLink(process.cwd(), text)))
+    print(chalk.magenta('◳ ' + fileLink(process.cwd(), text)))
 }
 
 function url(dst: string) {
-    console.log(chalk.magenta('🌐 ' + terminalLink(dst, dst)))
+    print(chalk.magenta('🌐 ' + terminalLink(dst, dst)))
 }
 
 function link(dst: string, text?: string) {
@@ -73,19 +87,19 @@ function link(dst: string, text?: string) {
 }
 
 function warning(text: string) {
-    console.log(chalk.hex('#FFA500')(text))
+    print(chalk.hex('#FFA500')(text))
 }
 
 function error(text: string) {
-    console.log(chalk.red(text))
+    print(chalk.red(text))
 }
 
 function success(text: string) {
-    console.log(chalk.green(text))
+    print(chalk.green(text))
 }
 
 function action(text: string) {
-    console.log(chalk.blue(`${text}...`))
+    print(chalk.blue(`${text}...`))
 }
 
 function gray(text: string) {
@@ -95,7 +109,8 @@ function gray(text: string) {
 function print(text: string = ''): void {
     const lines = text.split('\n')
     for (const line of lines) {
-        console.log(line)
+        const whitespace = (verticalLine + ' '.repeat(spacesPerLevel - 1)).repeat(level)
+        process.stdout.write(whitespace + line + '\n')
     }
 }
 
@@ -105,18 +120,18 @@ async function markdown(content: string): Promise<void> {
 }
 
 function yaml(content: any): void {
-    const output = YAML.stringify(content, null, 2).trim()
+    const output = YAML.stringify(content, null, 4).trim()
     print(highlight(output, { language: 'yaml' }))
 }
 
 function json(content: any): void {
-    const output = JSON.stringify(content, null, 2)
+    const output = JSON.stringify(content, null, 4)
     print(highlight(output, { language: 'json' }))
 }
 
 async function image(path: string, width: number, height: number): Promise<void> {
     // for some strange reason does not work anymore
-    // console.log(await terminalImage.file(path, { width, height }))
+    // print(await terminalImage.file(path, { width, height }))
 }
 
 function fileLink(dir: string, path?: string): string {
@@ -128,9 +143,10 @@ function fileLink(dir: string, path?: string): string {
 }
 
 export default {
+    getIndentationLevel,
+    getIndentationLevelAsString,
     sectionStart,
     sectionEnd,
-    sectionReset,
     section,
     title,
     command,

@@ -284,13 +284,13 @@ export class Maker {
                     results.push(await this.makeCorrectOutput(testcase, compiler, this.problem.goldenSolution!))
                 }
 
-                console.log()
-                console.log(`testcase           time      input     output`)
+                tui.print()
+                tui.print(`testcase           time      input     output`)
                 for (const result of results) {
                     const time = prettyMs(result.time)
                     const inputSize = prettyBytes(result.inputSize).replace(' ', '')
                     const outputSize = prettyBytes(result.outputSize).replace(' ', '')
-                    console.log(
+                    tui.print(
                         (result.error ? chalk.red : chalk.green)(
                             `${result.testcase.padEnd(12)} ${time.padStart(10)} ${inputSize.padStart(10)} ${outputSize.padStart(
                                 10,
@@ -301,7 +301,7 @@ export class Maker {
 
                 const errors = results.filter((result) => result.error).length
                 if (errors > 0) {
-                    console.log()
+                    tui.print()
                     throw new Error(`${errors} errors occurred while making correct answers`)
                 }
             })
@@ -585,7 +585,7 @@ export class Maker {
                 await cp(join(tmpDir, 'root.txt'), join(this.problem.directory, `${filename}.txt`))
                 tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.txt`))
             } catch (e) {
-                console.error('pandoc error', e)
+                tui.error(`pandoc error: ${e instanceof Error ? e.message : 'unknown error'}`)
             }
         }
 
@@ -601,7 +601,7 @@ export class Maker {
                 await cp(join(tmpDir, 'root.md'), join(this.problem.directory, `${filename}.md`))
                 tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.md`))
             } catch (e) {
-                console.error('pandoc error', e)
+                tui.error(`pandoc error: ${e instanceof Error ? e.message : 'unknown error'}`)
             }
         }
 
@@ -615,7 +615,7 @@ export class Maker {
                 await cp(join(tmpDir, 'root.html'), join(this.problem.directory, `${filename}.html`))
                 tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.html`))
             } catch (e) {
-                console.error('pandoc error', e)
+                tui.error(`pandoc error: ${e instanceof Error ? e.message : 'unknown error'}`)
             }
         }
     }
@@ -689,8 +689,8 @@ export class Maker {
                     )
                 }
 
-                console.log()
-                console.log(`testcase           time     status`)
+                tui.print()
+                tui.print(`testcase           time     status`)
                 let errors = 0
                 for (const result of results) {
                     const status = result.error
@@ -702,14 +702,14 @@ export class Maker {
                           ? 'OK'
                           : 'WA'
                     const time = prettyMs(result.time)
-                    console.log(
+                    tui.print(
                         (status !== 'OK' ? chalk.red : chalk.green)(
                             `${result.testcase.padEnd(12)} ${time.padStart(10)} ${status.padStart(10)}`,
                         ),
                     )
                     if (status !== 'OK') errors++
                 }
-                console.log()
+                tui.print()
 
                 if (errors) {
                     tui.error(`${errors} errors found for ${program}`)
