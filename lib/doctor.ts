@@ -257,7 +257,7 @@ export async function probePandoc(): Promise<boolean> {
 export async function checkPython3(): Promise<void> {
     tui.command('python3 --version')
     const { result, version } = await checkPython3Memoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('Python3 seems installed')
         const modules = 'turtle-pil yogi easyinput'.split(' ')
@@ -279,7 +279,7 @@ export async function checkPython3(): Promise<void> {
 export async function checkGCC(): Promise<void> {
     tui.command('g++ --version')
     const { result, version } = await checkGCCMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('C/C++ seems installed')
     } else {
@@ -292,7 +292,7 @@ export async function checkGCC(): Promise<void> {
 export async function checkHaskell(): Promise<void> {
     tui.command('ghc --version')
     const { result, version } = await checkHaskellMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('Haskell seems installed')
     } else {
@@ -305,7 +305,7 @@ export async function checkHaskell(): Promise<void> {
 export async function checkClojure(): Promise<void> {
     tui.command('clj --version')
     const { result, version } = await checkClojureMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('Clojure seems installed')
     } else {
@@ -318,7 +318,7 @@ export async function checkClojure(): Promise<void> {
 export async function checkJava(): Promise<void> {
     tui.command('javac -version')
     const { result, version } = await checkJavaMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('Java seems installed')
     } else {
@@ -331,7 +331,7 @@ export async function checkJava(): Promise<void> {
 export async function checkRust(): Promise<void> {
     tui.command('rustc --version')
     const { result, version } = await checkRustMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('Rust seems installed')
     } else {
@@ -344,7 +344,7 @@ export async function checkRust(): Promise<void> {
 export async function checkVerilog(): Promise<void> {
     tui.command('not implemented')
     const { result, version } = await checkVerilogMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('Verilog seems installed')
     } else {
@@ -353,9 +353,9 @@ export async function checkVerilog(): Promise<void> {
 }
 
 export async function checkR(): Promise<void> {
-    tui.command('not implemented')
+    tui.command('R --version')
     const { result, version } = await checkRMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('R seems installed')
     } else {
@@ -368,7 +368,7 @@ export async function checkR(): Promise<void> {
 export async function checkPdfLaTeX(): Promise<void> {
     tui.command('pdflatex --version')
     const { result, version } = await checkPdfLaTeXMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('LaTeX seems installed')
     } else {
@@ -381,7 +381,7 @@ export async function checkPdfLaTeX(): Promise<void> {
 export async function checkCodeMetrics(): Promise<void> {
     tui.command('jutge-code-metrics')
     const { result, version } = await checkCodeMetricsMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('jutge-code-metrics seems installed')
     } else {
@@ -394,7 +394,7 @@ export async function checkCodeMetrics(): Promise<void> {
 export async function checkXeLaTeX(): Promise<void> {
     tui.command('xelatex --version')
     const { result, version } = await checkXeLaTeXMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('XeLaTeX seems installed')
     } else {
@@ -407,7 +407,7 @@ export async function checkXeLaTeX(): Promise<void> {
 export async function checkPandoc(): Promise<void> {
     tui.command('pandoc --version')
     const { result, version } = await checkPandocMemoized()
-    console.log(version)
+    tui.print(version)
     if (result) {
         tui.success('Pandoc with Lua support seems installed')
     } else {

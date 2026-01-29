@@ -6,7 +6,7 @@ export const doctorCmd = new Command('doctor')
     .description('Diagnose status of the environment')
 
     .action(async () => {
-        await tui.section('Perform checks', async () => {
+        await tui.section('Diagnosing environment', async () => {
             await tui.section('Checking Python3 installation', doc.checkPython3)
             await tui.section('Checking C/C++ installation', doc.checkGCC)
             await tui.section('Checking Haskell installation', doc.checkHaskell)
