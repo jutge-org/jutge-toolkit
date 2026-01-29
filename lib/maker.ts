@@ -189,7 +189,7 @@ export class Maker {
                     }
                     tui.success(`Compiled ${newProgram} to ${outputPath}`)
                 } catch (error) {
-                    throw new Error(`Compilation failed`)
+                    throw new Error(`Compilation failed ${error as any}`)
                 }
             },
         )
@@ -262,7 +262,9 @@ export class Maker {
     }
 
     selectCompiler(): Compiler {
-        if (this.problem.handler.compilers === 'RunPython') {
+        if (this.problem.handler.compilers === 'PRO2') {
+            return getCompilerById('PRO2')
+        } else if (this.problem.handler.compilers === 'RunPython') {
             return getCompilerById('RunPython')
         } else if (this.problem.handler.compilers === 'RunHaskell') {
             return getCompilerById('RunHaskell')
@@ -670,7 +672,7 @@ export class Maker {
                         }
                         tui.success(`Compiled ${newProgram} to ${outputPath}`)
                     } catch (error) {
-                        throw new Error(`Compilation failed`)
+                        throw new Error(`Compilation failed: ${error as any}`)
                     }
                 },
             )

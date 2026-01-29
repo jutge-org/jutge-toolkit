@@ -11,6 +11,7 @@ import { RunPython_Compiler } from '../compilers/run-python'
 import { RunHaskell_Compiler } from '../compilers/run-haskell'
 import { RunClojure_Compiler } from '../compilers/run-clojure'
 import { Verilog_Compiler } from '../compilers/verilog'
+import { PRO2_Compiler } from '../compilers/pro2'
 import { R_Compiler } from './r'
 import * as doctor from '../lib/doctor'
 
@@ -24,6 +25,7 @@ const compilersRegistryById: Record<string, new () => Compiler> = {
     Rust: Rust_Compiler,
     Verilog: Verilog_Compiler,
     R: R_Compiler,
+    PRO2: PRO2_Compiler,
 
     RunPython: RunPython_Compiler,
     RunHaskell: RunHaskell_Compiler,
@@ -33,6 +35,7 @@ const compilersRegistryById: Record<string, new () => Compiler> = {
 const compilersRegistryByExtension: Record<string, new () => Compiler> = {
     c: GCC_Compiler,
     cc: GXX_Compiler,
+    hh: PRO2_Compiler,
     py: Python3_Compiler,
     hs: GHC_Compiler,
     clj: Clojure_Compiler,
@@ -45,6 +48,7 @@ const compilersRegistryByExtension: Record<string, new () => Compiler> = {
 export const compilersProbesByExtension: Record<string, () => Promise<boolean>> = {
     c: doctor.probeGCC,
     cc: doctor.probeGCC,
+    hh: doctor.probeGCC,
     py: doctor.probePython3,
     hs: doctor.probeHaskell,
     clj: doctor.probeClojure,

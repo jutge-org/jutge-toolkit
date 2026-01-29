@@ -4,7 +4,7 @@ import { exists, glob } from 'fs/promises'
 import { imageSizeFromFile } from 'image-size/fromFile'
 import { basename, join, normalize, sep } from 'path'
 import tui from './tui'
-import { nothing, readYamlInDir } from './utils'
+import { existsInDir, nothing, readYamlInDir } from './utils'
 import { languageNames, proglangNames } from './data'
 import { Handler, ProblemInfo, Scores } from './types'
 
@@ -96,6 +96,7 @@ export class Problem {
 
     private async loadLanguagesMulti() {
         const files = await Array.fromAsync(glob('problem.*.yml', { cwd: this.directory }))
+        console.log(files)
         const languages = files
             .map((file) => {
                 const match = file.match(/problem\.(.+)\.yml/)
@@ -250,7 +251,14 @@ export class Problem {
             } else if (this.handler.compilers === 'RunClojure' || this.handler.compilers === 'Clojure') {
                 this.goldenSolution = 'solution.clj'
             } else if (this.handler.compilers === 'PRO2') {
-                this.goldenSolution = 'solution.cc'
+                if (await existsInDir(this.directory, `solution.hh`)) {
+                    this.goldenSolution = 'solution.hh'
+                } else if (await existsInDir(this.directory, `solution.cc`)) {
+                    this.goldenSolution = 'solution.cc'
+                } else {
+                    throw new Error(`Didn't find "solution.hh" or "solution.cc" for PRO2!`)
+                }
+
             } else {
                 const solutionProglang = this.handler.solution
                 const extension = proglangExtensions[solutionProglang]
