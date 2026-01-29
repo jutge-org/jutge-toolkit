@@ -1,13 +1,10 @@
 import { execa } from 'execa'
+import { cp, glob, mkdir, rm } from 'node:fs/promises'
+import { basename, join } from 'node:path'
 import tui from '../lib/tui'
 import type { Handler } from '../lib/types'
-import { Compiler } from './base'
-import { mkdir } from 'node:fs/promises'
-import { glob } from 'node:fs/promises'
-import { cp } from 'node:fs/promises'
-import { basename, extname, join } from 'node:path'
 import { existsInDir, nanoid8, toolkitPrefix } from '../lib/utils'
-import { rename, rm } from 'node:fs/promises'
+import { Compiler } from './base'
 
 export class MakePRO2_Compiler extends Compiler {
     id(): string {
