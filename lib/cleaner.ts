@@ -10,6 +10,7 @@ export async function cleanDirectory(force: boolean, all: boolean, directory: st
         '\\.exe$',
         '\\.out$',
         '\\.pyc$',
+        '\\.tar$',
         '\\.class$',
         '\\.o$',
         '\\.hi$',
