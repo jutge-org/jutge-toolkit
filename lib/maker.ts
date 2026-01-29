@@ -27,7 +27,7 @@ import { newProblem, Problem } from './problem'
 
 const latexDir = join(projectDir(), 'assets', 'latex')
 
-export async function newMaker(directory: string, problem_nm: string): Promise<Maker> {
+export async function newMaker(directory: string, problem_nm: string = "DRAFT"): Promise<Maker> {
     const problem = await newProblem(directory)
     return new Maker(problem, problem_nm)
 }
