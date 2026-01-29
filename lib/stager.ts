@@ -10,7 +10,7 @@ import tree from 'tree-node-cli'
 import { probeCodeMetrics } from './doctor'
 import tui from './tui'
 import { QuizRoot } from './types'
-import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
+import { existsInDir, nanoid8, nothing, readableToString, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
 import { packageJson } from './versions'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
 
@@ -217,12 +217,14 @@ export class Stager {
                 if (data.author) this.original_language = language
                 if (data.email) this.author_email = data.email
             }
-            if (!this.original_language) throw new Error(`Original language not found in problem.<lang>.yml files`)
+            if (!this.original_language) {
+                throw new Error(`Original language not found in problem.<lang>.yml files`)
+            }
 
             // find problem type
-            const originalHandler = this.handlers[this.original_language]
-            if (originalHandler.handler === 'game') this.problem_type = 'game'
-            else if (originalHandler.handler === 'quiz') this.problem_type = 'quiz'
+            const { handler } = this.handlers[this.original_language]
+            if (handler === 'game') this.problem_type = 'game'
+            else if (handler === 'quiz') this.problem_type = 'quiz'
             else this.problem_type = 'std'
 
             tui.success(`Problem type: ${this.problem_type}`)
@@ -381,6 +383,8 @@ export class Stager {
     }
 
     private async stageProblemFiles_Std(language: string) {
+
+
         const accept = (filename: string) => {
             // general
             if (filename === 'handler.yml') return true
@@ -397,12 +401,12 @@ export class Stager {
             if (filename === 'checker.py') return true
             if (filename === 'checker.cc') return true
 
-            // MakePRO2 and PRO2
+            // MakePRO2 && PRO2
             if (filename === 'private.tar') return true
             if (filename === 'public.tar') return true
+            if (filename === 'solution.tar') return true
             if (filename === 'solution.cc') return true
             if (filename === 'solution.hh') return true
-            if (filename === 'solution.tar') return true
 
             return false
         }
