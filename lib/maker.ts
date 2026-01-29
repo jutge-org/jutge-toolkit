@@ -1,11 +1,13 @@
-import Handlebars from 'handlebars'
 import chalk from 'chalk'
 import { execa } from 'execa'
 import { cp, exists, glob, mkdir, rename, rm } from 'fs/promises'
+import Handlebars from 'handlebars'
 import { imageSizeFromFile } from 'image-size/fromFile'
 import { basename, dirname, join, normalize, resolve } from 'path'
 import prettyBytes from 'pretty-bytes'
 import prettyMs from 'pretty-ms'
+import { compilersProbesByExtension, getCompilerByExtension, getCompilerById } from '../compilers'
+import type { Compiler } from '../compilers/base'
 import tui from '../lib/tui'
 import {
     existsInDir,
@@ -15,16 +17,13 @@ import {
     nanoid8,
     nothing,
     projectDir,
-    readableToString,
     readText,
     toolkitPrefix,
-    writeText,
+    writeText
 } from '../lib/utils'
-import { compilersProbesByExtension, getCompilerByExtension, getCompilerById } from '../compilers'
-import type { Compiler } from '../compilers/base'
 import { languageNames } from './data'
-import { newProblem, Problem } from './problem'
 import * as doctor from './doctor'
+import { newProblem, Problem } from './problem'
 
 const latexDir = join(projectDir(), 'assets', 'latex')
 
