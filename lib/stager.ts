@@ -410,14 +410,14 @@ export class Stager {
         const dst = join(this.stagingDirLang, `problem.pbm`)
         await mkdir(dst, { recursive: true })
         const files = await Array.fromAsync(glob('*', { cwd: this.workDirLang }))
-        let count = 0
         for (const file of files) {
             if (accept(file)) {
                 await cp(join(this.workDirLang, file), join(dst, file))
-                count++
             }
         }
-        tui.success(`Staged ${count} files to ${tui.hyperlink(this.stagingDirLang, `problem.pbm`)}`)
+        await cp(join(this.workDirLang, `problem.${language}.yml`), join(dst, `problem.yml`))
+
+        tui.success(`Problem staged to ${tui.hyperlink(this.stagingDirLang, `problem.pbm`)}`)
     }
 
     private async stageProblemFiles_Game(language: string) {
@@ -438,14 +438,13 @@ export class Stager {
         const dst = join(this.stagingDirLang, `problem.pbm`)
         await mkdir(dst, { recursive: true })
         const files = await Array.fromAsync(glob('*', { cwd: src }))
-        let count = 0
         for (const file of files) {
             if (accept(file)) {
                 await cp(join(src, file), join(dst, file))
-                count++
             }
         }
-        tui.success(`Staged ${count} files to ${tui.hyperlink(this.stagingDirLang, 'problem.pbm')}`)
+        await cp(join(this.workDirLang, `problem.${language}.yml`), join(dst, `problem.yml`))
+        tui.success(`Problem staged to ${tui.hyperlink(this.stagingDirLang, 'problem.pbm')}`)
     }
 
     private async stageAwards(language: string) {
@@ -606,6 +605,8 @@ export class Stager {
             await mkdir(dstDir, { recursive: true })
 
             await writeYaml(join(dstDir, 'quiz.yml'), quiz)
+            await cp(join(this.workDirLang, `problem.${language}.yml`), join(dstDir, `problem.yml`))
+            await cp(join(this.workDirLang, `problem.${language}.yml`), join(dstDir, '..', `problem.yml`))
 
             for (const question of quiz.questions) {
                 {
