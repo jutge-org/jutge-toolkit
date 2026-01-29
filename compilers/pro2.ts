@@ -63,7 +63,7 @@ export class PRO2_Compiler extends Compiler {
 
         //
         const extension = extname(sourcePath)
-        await cp(join(directory, sourcePath), join(directory, dirPath, `solution${extension}`))
+        await cp(join(directory, sourcePath), join(directory, dirPath, `program${extension}`))
 
         const ccFiles = await Array.fromAsync(glob(`*.cc`, { cwd: dirPath }))
         await execa({
