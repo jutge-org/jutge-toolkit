@@ -1,13 +1,11 @@
+import { execa } from 'execa'
+import path from 'node:path'
+import { shuffle } from 'radash'
 import { ZodError } from 'zod'
+import { fromError } from 'zod-validation-error'
 import tui from './tui'
 import { QuizRoot, QuizRootQuestion, QuizzQuestion } from './types'
 import { projectDir, readTextInDir, readYamlInDir } from './utils'
-import { fromError } from 'zod-validation-error'
-import { shuffle } from 'radash'
-import { execa } from 'execa'
-import { stdin } from 'node:process'
-import path from 'node:path'
-import { text } from 'node:stream/consumers'
 
 // TODO: check points add to 100?
 
@@ -94,7 +92,7 @@ async function makeQuestion(directory: string, item: QuizRootQuestion, seed: num
     }
 }
 
-function makeQuestionData(question: QuizzQuestion, variables: Record<string, any>, seed: number): QuizQuestion {
+function makeQuestionData(question: QuizzQuestion, variables: Record<string, any>, seed: number): QuizzQuestion {
     // TODO: acabar
     return {
         ...question,
