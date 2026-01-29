@@ -8,12 +8,14 @@ import prettyBytes from 'pretty-bytes'
 import prettyMs from 'pretty-ms'
 import tui from '../lib/tui'
 import {
+    existsInDir,
     filesAreEqual,
     fileSize,
     isDirectoryInDir,
     nanoid8,
     nothing,
     projectDir,
+    readableToString,
     readText,
     toolkitPrefix,
     writeText,
@@ -72,6 +74,7 @@ export class Maker {
         } else if (this.problem.handler.handler === 'quiz') {
             return await this.makeQuizProblem()
         } else {
+            await this.makeTarFiles()
             await this.makeGoldenExecutable()
             await this.makeCorrectOutputs()
             await this.checkSolutions()
@@ -720,5 +723,40 @@ export class Maker {
                 }
             })
         })
+    }
+
+
+    public async makeTarFiles() {
+        const { handler, directory } = this.problem
+        const { compilers } = handler
+
+        //
+        // NOTE(pauek): In 'MakePRO2' and 'PRO2' compilers we have to
+        // create '.tar' files as well as copy them later
+        //
+        if (compilers === 'PRO2' || compilers === 'MakePRO2') {
+            await tui.section('Making `.tar` files', async () => {
+                // Create 'public.tar', 'private.tar' and 'solution.tar'
+                for (const dir of ['public', 'private', 'solution']) {
+                    if (await existsInDir(directory, dir)) {
+                        const { exitCode } = await execa({
+                            reject: false,
+                            stderr: 'inherit',
+                            stdout: 'inherit',
+                            cwd: join(directory, dir),
+                        })`tar cf ../${dir}.tar .`
+    
+                        if (exitCode !== 0) {
+                            console.log(exitCode)
+                            throw new Error(`Error making ${dir}.tar`)
+                        }
+    
+                        tui.success(`Created ${tui.hyperlink(directory, `${dir}.tar`)}`)
+                    }
+                }
+            })
+        }
+
+        // Other compilers do not need .tar files presumably
     }
 }
