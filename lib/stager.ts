@@ -10,7 +10,7 @@ import tree from 'tree-node-cli'
 import { probeCodeMetrics } from './doctor'
 import tui from './tui'
 import { QuizRoot } from './types'
-import { existsInDir, nanoid8, nothing, readableToString, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
+import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
 import { packageJson } from './versions'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
 
