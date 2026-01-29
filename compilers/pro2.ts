@@ -54,14 +54,17 @@ export class PRO2_Compiler extends Compiler {
         await mkdir(dirPath, { recursive: true })
         tui.print(`Using working directory ${tui.hyperlink(directory, dirPath)}`)
 
-        // Copy `public` and `private` C++ files over to 
-        const files = await Array.fromAsync(glob('{public,private}/*.{cc,hh}', { cwd: directory }))
-        for (const file of files) {
-            const dest = join(dirPath, basename(file))
-            await cp(join(directory, file), dest)
+        // Copy `public` and `private` C++ files over to
+        // NOTE(pauek): We _have_ to copy files in "public", then "private"
+        for (const sourceDir of ['public', 'private']) {
+            const files = await Array.fromAsync(glob(`${sourceDir}/*.{cc,hh}`, { cwd: directory }))
+            for (const file of files) {
+                const dest = join(dirPath, basename(file))
+                await cp(join(directory, file), dest)
+            }
         }
 
-        // 
+        //
         const extension = extname(sourcePath)
         await cp(join(directory, sourcePath), join(directory, dirPath, `solution${extension}`))
 
