@@ -14,8 +14,6 @@ export const askCmd = new Command('ask')
     .option('-m, --model <model>', 'AI model to use', settings.defaultModel)
 
     .action(async (question, { model }) => {
-        console.log()
-
         const systemPrompt = await readTextInDir(join(projectDir(), 'assets', 'prompts', 'ask'), 'ask.md')
 
         const docs = await loadDocumentation() // Load your markdown files
