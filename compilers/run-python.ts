@@ -1,5 +1,4 @@
 import { execa } from 'execa'
-import { cp } from '../lib/promises'
 import { join, parse } from 'path'
 import tui from '../lib/tui'
 import type { Handler } from '../lib/types'
