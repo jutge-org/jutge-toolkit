@@ -151,14 +151,6 @@ export class Problem {
                 this.handler.solution = 'Verilog'
             }
 
-            // TODO: improve PRO2
-            if (this.handler.compilers === 'MakePRO2') {
-                this.handler.solution = 'MakePRO2'
-            }
-            if (this.handler.compilers === 'PRO2') {
-                this.handler.solution = 'MakePRO2'
-            }
-
             // if there is a single solution file with an extension, use that to set the solution language
             if (this.handler.handler === 'std' && this.handler.solution === 'C++') {
                 const files = await Array.fromAsync(glob('solution.*', { cwd: this.directory }))
@@ -219,11 +211,15 @@ export class Problem {
     }
 
     private async loadSolutions() {
-        if (this.handler.handler === 'quiz') return
+        if (this.handler.handler === 'quiz') {
+            return
+        }
         await tui.section('Loading solutions', async () => {
-            if (this.handler.compilers === 'PRO2' || this.handler.compilers === 'MakePRO2') {
-                const files = await Array.fromAsync(glob('solution.{tar,cc,hh}', { cwd: this.directory }))
+            if (this.handler.compilers === 'PRO2') {
+                const files = await Array.fromAsync(glob('solution{.tar,.cc,.hh}', { cwd: this.directory }))
                 this.solutions = files.sort()
+            } else if (this.handler.compilers === 'MakePRO2') {
+                this.solutions = ["solution.tar"]
             } else {
                 const { proglangNames } = await import('./data')
                 const comaSeparatedExtensions = Object.keys(proglangNames).join(',')
@@ -258,7 +254,12 @@ export class Problem {
                 } else {
                     throw new Error(`Didn't find "solution.hh" or "solution.cc" for PRO2!`)
                 }
-
+            } else if (this.handler.compilers === 'MakePRO2') {
+                if (await existsInDir(this.directory, `solution`)) {
+                    this.goldenSolution = 'solution.tar'
+                } else {
+                    throw new Error(`Didn't find "solution" for MakePRO2!`)
+                }
             } else {
                 const solutionProglang = this.handler.solution
                 const extension = proglangExtensions[solutionProglang]
