@@ -1,0 +1,176 @@
+
+\section{Programming the game}
+
+The first thing you should do is downloading the source code. It
+includes a C++ program that runs the games and an HTML viewer to watch
+them in a reasonable animated format. Also, a ``Null'' player and a
+``Demo'' player are provided to make it easier to start coding your own
+player.
+
+\subsection{Running your first game}
+
+Here, we will explain how to run the game under Linux, but it should
+work \mbox{under} Windows, Mac, FreeBSD, OpenSolaris, \dots You only need a
+recent \texttt{g++} version, \texttt{make} installed in your system, plus a
+modern browser like Firefox or Chrome.
+
+
+\begin{enumerate}
+
+\item Open a console and \texttt{cd} to the directory where you
+extracted the source code.
+
+\item If, for example, you are using a 64-bit Linux version, run:
+
+  \texttt{cp AIDummy.o.Linux64 AIDummy.o}
+  
+  \texttt{cp Board.o.Linux64 Board.o}
+
+  If you use any other architecture, choose the right objects you will
+  find in the directory.
+
+\item Run
+
+\texttt{make all}
+
+to build the game and all the players. Note that \texttt{Makefile}
+identifies as a player any file matching \texttt{AI*.cc}.
+
+\item This creates an executable file called
+\texttt{Game}. This executable allows you to run a game using a command
+like:
+
+\texttt{./Game Demo Demo Demo Demo -s 30 -i default.cnf -o default.res}
+
+This starts a match, with random seed 30, of four instances of the
+player Demo, in the board defined in \texttt{default.cnf}. The output of
+this match is redirected to \texttt{default.res}.
+
+\item To watch a game, open the viewer file \texttt{viewer.html} with
+  your browser, for example by running \texttt{firefox viewer.html},
+  and load the file \texttt{default.res}.
+
+\end{enumerate}
+
+
+Use
+
+\texttt{./Game --help}
+
+to see the list of parameters that you can use. Particularly useful is
+
+\texttt{./Game --list}
+
+to show all the recognized player names.
+
+\medskip
+
+If needed, remember that you can run
+
+\texttt{make clean}
+
+to delete the executable and object files and start over the build.
+
+
+\begin{center}
+\includegraphics[width=12cm]{screenshot.png}
+\end{center}
+
+
+\subsection{Adding your player}
+
+To create a new player with, say, name \texttt{Rick},
+copy \texttt{AINull.cc} (an empty player that is provided as a template)
+to a new file \texttt{AIRick.cc}.
+Then, edit the new file and change the
+
+\begin{center}
+@#define PLAYER_NAME Null@
+\end{center}
+
+line to
+
+\begin{center}
+@#define PLAYER_NAME Rick@
+\end{center}
+
+The name that you choose for your player must be unique, non-offensive
+and at most 12 characters long. This name will be shown in the website
+and during the matches.
+
+\medskip
+
+Afterwards, you can start implementing the virtual method @play()@,
+inherited from the base class @Player@. This method, which will be
+called every round, must decide the orders to give to your units.
+
+\medskip
+
+You can define auxiliary type definitions, variables and methods inside
+your player class, but the entry point of your code will always be the
+@play()@ method.
+
+\medskip
+
+From your player class you can also call functions that you will find in the following files:
+
+\begin{itemize}
+\item \texttt{State.hh}: consulting the state of the game.
+\item \texttt{Action.hh}: giving orders to your units.
+\item \texttt{Structs.hh}: useful data structures.
+\item \texttt{Settings.hh}: consulting the initial parameters of the game.
+\item \texttt{Player.hh}: method @me()@.
+  \item \texttt{Random.hh}: random number generation.
+\end{itemize}
+
+You will find a summary of this information in the file \texttt{api.pdf}.
+You can also examine the code of the ``Demo'' player in \texttt{AIDemo.cc}
+as an example of how to use these functions.
+
+\medskip
+
+Note that you must not edit the @factory()@ method of your player
+class, nor the last line that adds your player to the list of available
+players.
+
+
+
+\subsection{Restrictions when submitting your player}
+
+When you think that your player is strong enough to enter the
+competition, you can submit it to the Jutge. Since it will run in a
+secure environment to prevent cheating, some restrictions apply to your
+code:
+
+\begin{itemize}
+
+\item All your source code must be in a single file (like AIRick.cc).
+
+\item You cannot use global variables (instead, use attributes in your
+class).
+
+\item You are only allowed to use standard libraries like
+\texttt{iostream}, \texttt {vector}, \texttt {map}, \texttt {set},
+\texttt {queue}, \texttt {algorithm}, \texttt {cmath}, \dots In many
+cases, you don't even need to include the corresponding library.
+
+\item You cannot open files nor do any other system calls (threads,
+forks, \dots).
+
+\item Your CPU time and memory usage will be limited, while they are
+not in your local environment when executing with \texttt{./Game}.
+
+\item Your program should not write to @cout@ nor read from @cin@. You
+can write debug information to @cerr@, but remember that doing so in
+the code that you upload can waste part of your limited CPU time.
+
+\item Any submission to the Jutge must be an honest attempt to play the
+game. Any try to cheat in any way will be severely penalized.
+
+\item Once you have submitted a player to Jutge that has defeated the Dummy
+  player, you can send more submissions but you will have to change the
+  player name. That is, once a player has defeated Dummy, his name is
+  blocked and cannot be reused.
+
+\end{itemize}
+

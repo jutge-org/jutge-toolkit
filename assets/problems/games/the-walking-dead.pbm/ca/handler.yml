@@ -1,0 +1,6 @@
+handler: game
+game:
+  hide:
+    - Board.cc
+    - AIDummy.cc
+

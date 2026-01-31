@@ -1,0 +1,452 @@
+\section{Com programar un jugador}
+El primer que heu de fer és descarregar-vos el codi font. Aquest
+inclou un programa C ++ que executa les partides i un visualitzador HTML
+per veure-les en un format raonable i animat. A més, us proporcionem un
+jugador ``Null'' i un jugador ``Demo'' per facilitar el començament de
+la codificació del jugador.
+
+\subsection{Executar la primera partida}
+Aquí us explicarem com executar el joc sota Linux, però hauria de funcionar
+també sota Windows, Mac, FreeBSD, OpenSolaris, ... Només necessiteu una
+versió recent \texttt{g ++}, el \texttt{make} instal·lat al sistema, a més d'un
+navegador modern com Firefox o Chrome.
+
+\begin{enumerate}
+
+\item Obriu una consola i feu \texttt{cd} al directori on us heu
+  descarregat el codi font.
+
+\item Si, per exemple, teniu una versió de Linux en 64 bits, executeu:
+
+  \texttt{cp AIDummy.o.Linux64 AIDummy.o}
+  
+  \texttt{cp Board.o.Linux64 Board.o}
+
+  Amb altres arquitectures, cal escollir els objectes adequats que
+  trobareu al directori.
+  
+\item Executeu
+
+  \texttt{make all}
+
+  per compilar el joc i tots els jugadors. Tingueu en compte que el \texttt{Makefile}
+identifica com a jugador qualsevol fitxer que coincideixi amb \texttt{AI*.cc}
+
+
+\item Es crea un fitxer executable anomenat \texttt{Game}. Aquest
+  executable us permet executar una partida mitjançant una comanda
+  com la següent:
+  
+
+\texttt{./Game Demo Demo Demo Demo -s 30 < default.cnf > default.res}
+
+Aquesta comanda comença una partida, amb la llavor aleatòria 30, amb
+quatre instàncies del jugador Demo, al tauler definit a
+\texttt{default.cnf}. La sortida d'aquesta partida es redirigeix a
+\texttt{default.res}.
+
+
+\item Per veure una partida, obriu el fitxer visualitzador \texttt{viewer.html} amb
+  el navegador, per exemple executant des d'un terminal la comanda \texttt{firefox
+  viewer.html}, i carregueu el fitxer \texttt{default.res}.
+
+\end{enumerate}
+
+
+Utilitzeu
+
+\texttt{./Game --help}
+
+per veure la llista de paràmetres que es poden usar. Particularment útil és
+
+\texttt{./Game --list}
+
+per veure tots els noms de jugadors reconeguts.
+
+\medskip
+
+En cas que sigui necessari, recordeu que podeu executar
+
+\texttt{make clean}
+
+per esborrar l'executable i els objectes i començar la compilació de nou.
+
+\begin{center}
+\includegraphics[width=12cm]{screenshot.png}
+\end{center}
+
+
+\subsection{Afegir el vostre jugador}
+
+Per crear un jugador nou amb, per exemple, nom \texttt{Rick},
+copieu \texttt{AINull.cc} (un jugador buit que proporcionem com a plantilla)
+a un fitxer nou \texttt{AIRick.cc}.
+A continuació, editeu el fitxer nou i canvieu la línia
+
+\begin{center}
+@#define PLAYER_NAME Null@
+\end{center}
+
+a
+
+\begin{center}
+@#define PLAYER_NAME Rick@
+\end{center}
+
+El nom que trieu pel vostre jugador ha de ser únic, no ofensiu
+i tenir com a màxim 12 caràcters. Aquest nom es mostrarà al lloc web
+i durant les partides.
+
+\medskip
+A continuació, podeu començar a implementar el mètode virtual @play()@,
+heretat de la classe base @Player@. Aquest mètode, que serà
+cridat a cada ronda, ha de determinar les ordres que s'enviaran a les vostres unitats.
+
+Podeu utilitzar definicions de tipus, variables i mètodes a
+la vostra classe de jugador, però el punt d’entrada del vostre codi serà sempre el
+mètode @play()@.
+
+Des de la vostra classe jugador també podeu cridar funcions que
+trobareu especificades als arxius següents:
+
+\begin{itemize}
+\item \texttt{State.hh}: accedir a
+  l'estat del joc.
+\item \texttt{Action.hh}: donar ordres a les vostres unitats.
+\item \texttt{Structs.hh}: estructures de dades útils.
+\item \texttt{Settings.hh}: accedir als paràmetres del joc.
+\item \texttt{Player.hh}: mètode @me()@.
+  \item \texttt{Random.hh}: generar nombre aleatoris.
+\end{itemize}
+
+Trobareu un resum de tota aquesta informació a l'arxiu \texttt{api.pdf}.
+També podeu examinar el codi del
+jugador ``Demo'' a \texttt{AIDemo.cc} com a exemple de com usar
+aquestes funcions.
+
+Tingueu en compte que no heu d'editar el mètode @factory()@ de la
+classe del vostre jugador, ni l'última línia que afegeix el vostre
+jugador a la llista de jugadors disponibles.
+
+
+\subsection{Restriccions en enviar el vostre jugador}
+
+Quan creieu que el vostre jugador és prou fort per entrar a la
+competició, podeu enviar-lo al Jutge. Degut a que s'executarà en un entorn segur
+per prevenir trampes, algunes restriccions s'apliquen al vostre
+codi:
+
+\begin{itemize}
+
+  
+\item Tot el vostre codi font ha d’estar en un sol fitxer (com AIRick.cc).
+
+\item No podeu utilitzar variables globals (en el seu lloc, utilitzeu atributs a la vostra
+classe).
+
+\item Només teniu permès utilitzar biblioteques estàndard com
+\texttt{iostream}, \texttt{vector}, \texttt{map}, \texttt{set},
+\texttt{queue}, \texttt{algoritme}, \texttt{cmath}, \dots En molts
+casos, ni tan sols cal incloure la biblioteca corresponent.
+
+\item No podeu obrir fitxers ni fer cap altra crida a sistema (threads, forks, ...)
+  
+\item El vostre temps de CPU i la memòria que utilitzeu seran limitats, mentre que no ho són
+al vostre entorn local quan executeu \texttt{./Game}.
+
+\item El vostre programa no ha d'escriure a @cout@ ni llegir de @cin@. Podeu
+  escriure informació de depuració a @cerr@, però recordeu que fer això en el
+  codi que envieu al Jutge pot fer malgastar innecessàriament temps de CPU.
+
+\item Qualsevol enviament al Jutge ha de ser un intent honest de jugar.
+  Qualsevol intent de fer trampes de qualsevol manera serà durament penalitzat.
+
+\item Un cop hagueu enviat un jugador al Jutge que hagi derrotat al
+  Dummy, podeu fer més enviaments però haureu de canviar el nom
+  del jugador. És a dir, un cop un jugador ha vençut al Dummy, el
+  seu nom queda bloquejat i no es pot reutilitzar.
+
+\end{itemize}
+
+
+%% \section{Com programar un jugador}
+%% El primer que heu de fer és descarregar-vos el codi font. Aquest
+%% inclou un programa C ++ que executa les partides i un visualitzador HTML
+%% per veure-les en un format raonable i animat. A més, us proporcionem un
+%% jugador ``Null'' i un jugador ``Demo'' per facilitar el començament de
+%% la codificació del jugador.
+
+%% \subsection{Executar la primera partida}
+%% Aquí us explicarem com executar el joc sota Linux, però hauria de funcionar
+%% també sota Windows, Mac, FreeBSD, OpenSolaris, ... Només necessiteu una
+%% versió recent de \texttt{g ++}, el \texttt{make} instal·lat al sistema, a més d'un
+%% navegador modern com Firefox o Chrome.
+
+%% \begin{enumerate}
+
+%% \item Obriu una consola i feu \texttt{cd} al directori on us heu
+%%   descarregat el codi font.
+
+%% \item Si, per exemple, teniu una versió de Linux en 64 bits, executeu:
+
+%%   \texttt{cp AIDummy.o.Linux64 AIDummy.o}
+  
+%%   Amb altres arquitectures, cal escollir els objectes adequats que
+%%   trobareu al directori.
+  
+%% \item Executeu
+
+%%   \texttt{make all}
+
+%%   per compilar el joc i tots els jugadors. Tingueu en compte que el \texttt{Makefile}
+%% identifica com a jugador qualsevol fitxer que coincideixi amb \texttt{AI*.cc}
+
+
+%% \item Es crea un fitxer executable anomenat \texttt{Game}. Aquest
+%%   executable us permet executar una partida mitjançant una comanda
+%%   com la següent:
+  
+
+%% \texttt{./Game Demo Demo Demo Demo -s 30 < default.cnf > default.res}
+
+%% Aquesta comanda comença una partida, amb la llavor aleatòria 30, amb
+%% quatre instàncies del jugador Demo, al tauler definit a
+%% \texttt{default.cnf}. La sortida d'aquesta partida es redirigeix a
+%% \texttt{default.res}.
+
+
+%% \item Per veure una partida, obriu el fitxer visualitzador \texttt{Viewer/viewer.html} amb
+%%   un navegador i carregueu el fitxer \texttt{default.res}.
+
+%% \end{enumerate}
+
+
+%% Utilitzeu
+
+%% \texttt{./Game --help}
+
+%% per veure la llista de paràmetres que es poden usar. Particularment útil és
+
+%% \texttt{./Game --list}
+
+%% per veure tots els noms de jugadors reconeguts.
+
+%% \medskip
+
+%% En cas que sigui necessari, recordeu que podeu executar
+
+%% \texttt{make clean}
+
+%% per esborrar l'executable i els objectes i començar la compilació de nou.
+
+%% %% \begin{center}
+%% %% \includegraphics[width=12cm]{screenshot.eps}
+%% %% \end{center}
+
+%% \subsection{Arxiu de configuració}
+
+%% Us proporcionem dos exemples d'arxius de configuració. En totes les
+%% partides que es juguin al Jutge, incloent les eliminatòries i la
+%% final, utilitzarem sempre \texttt{default.cnf}. Aquest arxiu
+%% fixa els paràmetres de la Figura~\ref{fig:parameters} al valor per
+%% defecte. La posició dels edificis, dels ciutadans, de les armes i dels
+%% bonus es decideixen de forma aleatòria.
+
+%% L'arxiu de configuració \texttt{default-fixed.cnf} mostra com es poden
+%% canviar els paràmetres i definir el tauler d'entrada. Els caràcters
+%% de la graella són '.'(carrer), 'B' (edifici), 'G' (pistola), 'Z'
+%% (bazuca), 'M' (diners), 'F' (menjar). Pel que fa als ciutadans, el seu
+%% tipus és 'w' (guerrer) o bé 'b' (constructor), i les armes possibles
+%% són 'n' (cap arma), 'h' (martell), 'g' (pistola) i 'b' (bazuca).
+
+%% Podeu crear arxius de configuració vosaltres mateixos per diversió o
+%% si voleu provar els vostres jugadors en taulers més petits o amb
+%% alguna peculiaritat. Els valors dels paràmetres han d'estar dins el
+%% rang establert a la Figura~\ref{fig:parameters}. Heu d'assegurar-vos
+%% que les forces d'atac i de demolició del bazuca han de ser majors o
+%% iguals que les de la pistola, i les de la pistola majors o iguals que
+%% les del martell. Una altra restricció és que BARRICADE\_RESISTANCE\_STEP
+%% ha de ser menor o igual que BARRICADE\_MAX\_RESISTANCE.  Finalment, si
+%% voleu modificar els paràmetres i generar el tauler aleatòriament, heu
+%% d'assegurar-vos que el tauler és prou gran per encabir tots els
+%% objectes.
+
+%% \begin{figure}
+%%   \centering
+%%   \begin{tabular}{|l|c|c|} \hline
+
+%%   \textbf{Paràmetre}    & \textbf{Valor per defecte} & \textbf{Rang} \\ \hline\hline
+
+%%   @ NUM_PLAYERS               @  &    4     &   $[4,4]$             \\
+%%   @ NUM_DAYS                  @  &    5     &   $[1,\infty)$           \\
+%%   @ NUM_ROUNDS_PER_DAY        @  &   50    &     $[2,\infty)$ (parell)  \\         
+%%   @ BOARD_ROWS                @  &   15     &   $[12,25]$           \\
+%%   @ BOARD_COLS                @  &   30     &   $[12,50]$                    \\
+
+%%   @ NUM_INI_BUILDERS           @  &    4     &   $[1,6]$             \\
+%%   @ NUM_INI_WARRIORS           @  &    2     &   $[1,4]$             \\
+%%   @ NUM_INI_MONEY              @  &   10     &   $[0,10]$            \\
+%%   @ NUM_INI_FOOD               @  &    5     &   $[0,10]$                    \\
+%%   @ NUM_INI_GUNS               @  &    4     &   $[0,5]$                    \\
+%%   @ NUM_INI_BAZOOKAS           @  &    2     &   $[0,4]$                    \\
+
+%%   @ BUILDER_INI_LIFE           @  &    60   &    $[1,\infty)$                   \\ 
+%%   @ WARRIOR_INI_LIFE           @  &    100   &   $[1,\infty)$                    \\
+%%   @ MONEY_POINTS               @  &    5    &   $[1,\infty)$                    \\
+%%   @ KILL_BUILDER_POINTS        @  &    100    &   $[1,\infty)$                    \\
+%%   @ KILL_WARRIOR_POINTS        @  &    250   &   $[1,\infty)$                       \\
+%%   @ FOOD_INCR_LIFE             @  &    20    &   $[1,\infty)$                   \\
+
+%%   @ LIFE_LOST_IN_ATTACK        @  &    20    &   $[1,\infty)$                  \\
+
+%%   @ BUILDER_STRENGTH_ATTACK    @  &    1     &  $[1,\infty)$                     \\
+%%   @ HAMMER_STRENGTH_ATTACK     @  &    10     &  $[1,\infty)$                     \\
+%%   @ GUN_STRENGTH_ATTACK        @  &    100     &  $[1,\infty)$                     \\
+%%   @ BAZOOKA_STRENGTH_ATTACK    @  &    1000    &  $[1,\infty)$                     \\
+
+%%   @ BUILDER_STRENGTH_DEMOLISH  @  &    3     &  $[1,\infty)$                     \\
+%%   @ HAMMER_STRENGTH_DEMOLISH   @  &    10    &  $[1,\infty)$                \\
+%%   @ GUN_STRENGTH_DEMOLISH      @  &    10    &  $[1,\infty)$                     \\
+%%   @ BAZOOKA_STRENGTH_DEMOLISH  @  &    30    &  $[1,\infty)$                    \\
+
+%%   @ NUM_ROUNDS_REGEN_BUILDER   @  &    50    &  $[1,\infty)$                     \\
+%%   @ NUM_ROUNDS_REGEN_WARRIOR   @  &    50    &  $[1,\infty)$                     \\
+%%   @ NUM_ROUNDS_REGEN_FOOD      @  &    10     &  $[1,\infty)$                     \\
+%%   @ NUM_ROUNDS_REGEN_MONEY     @  &    5     &  $[1,\infty)$                     \\
+%%   @ NUM_ROUNDS_REGEN_WEAPON    @  &    40   &   $[1,\infty)$                    \\ 
+  
+  
+%%   @ BARRICADE_RESISTANCE_STEP  @  &    40    &  $[1,\infty)$                     \\
+%%   @ BARRICADE_MAX_RESISTANCE   @  &    320   &  $[1,\infty)$                     \\
+%%   @ MAX_NUM_BARRICADES         @  &    3     &  $[1,\infty)$                     \\
+
+
+%%   \hline
+%%   \end{tabular}
+%%   \caption{Paràmetres del joc. La seva explicació la trobareu a l'arxiu \texttt{Settings.hh}.}
+%%   \label{fig:parameters}
+%% \end{figure}
+
+
+
+
+
+%% \subsection{Afegir el vostre jugador}
+
+%% Per crear un jugador nou 
+%% copieu \texttt{AINull.cc} (un jugador buit que proporcionem com a plantilla)
+%% a un fitxer nou \texttt{AIElquesigui.cc}.
+%% A continuació, editeu el fitxer nou i canvieu la línia
+
+%% \begin{center}
+%% @#define PLAYER_NAME Null@
+%% \end{center}
+
+%% a
+
+%% \begin{center}
+%% @#define PLAYER_NAME Elquesigui@
+%% \end{center}
+
+%% El nom que trieu pel vostre jugador ha de ser únic, no ofensiu
+%% i tenir com a màxim 12 caràcters. Aquest nom es mostrarà al lloc web
+%% i durant les partides.
+
+%% \medskip
+%% A continuació, podeu començar a implementar el mètode virtual @play()@,
+%% heretat de la classe base @Player@. Aquest mètode, que serà
+%% cridat a cada ronda, ha de determinar les ordres que s'enviaran a les vostres unitats.
+
+%% Podeu utilitzar definicions de tipus, variables i mètodes a
+%% la vostra classe de jugador, però el punt d’entrada del vostre codi serà sempre el
+%% mètode @play()@.
+
+
+
+%% Des de la vostra classe jugador també podeu cridar funcions que
+%% trobareu especificades als arxius següents:
+
+%% \begin{itemize}
+%% \item \texttt{State.hh}: accedir a
+%%   l'estat del joc.
+%% \item \texttt{Action.hh}: donar ordres als vostres ciutadans.
+%% \item \texttt{Structs.hh}: estructures de dades útils.
+%% \item \texttt{Settings.hh}: accedir als paràmetres del joc.
+%% \item \texttt{Player.hh}: mètode @me()@.
+%%   \item \texttt{Random.hh}: generar nombre aleatoris.
+%% \end{itemize}
+
+%% També podeu examinar el codi del
+%% jugador ``Demo'' a \texttt{AIDemo.cc} com a exemple de com usar
+%% aquestes funcions.
+
+%% Tingueu en compte que no heu d'editar el mètode @factory()@ de la
+%% classe del vostre jugador, ni l'última línia que afegeix el vostre
+%% jugador a la llista de jugadors disponibles.
+
+
+%% \subsection{Jugar contra el jugador Dummy}
+
+%% Per a provar la vostra estratègia contra el jugador Dummy, proporcionem
+%% el seu arxiu objecte. D'aquesta manera, no teniu accés al seu codi font
+%% però podreu afegir-lo com a jugador i competir contra ell en local.
+
+%% \medskip
+
+%% Com ja hem comentat, per afegir el jugador Dummy a la llista de
+%% jugadors registrats, heu de copiar l'arxiu corresponent a la vostra
+%% arquitectura cap a \texttt{AIDummy.o}. Per exemple:
+
+%% \texttt{cp AIDummy.o.Linux64 AIDummy.o}
+
+%%   Recordeu que els arxius objecte contenen
+%% instruccions binàries per a una arquitectura concreta, pel que no podem proporcionar
+%% un únic arxiu.
+
+%% \medskip
+
+%% Consell de pro: demaneu als vostres amics els seus arxius {\bf
+%%   objecte} (mai codi font!!!) i afegiu-los al vostre
+%% \texttt{Makefile}!
+
+%% \subsection{Restriccions en enviar el vostre jugador}
+
+%% Quan creieu que el vostre jugador és prou fort per entrar a la
+%% competició, podeu enviar-lo al Jutge. Degut a que s'executarà en un entorn segur
+%% per prevenir trampes, algunes restriccions s'apliquen al vostre
+%% codi:
+
+%% \begin{itemize}
+
+  
+%% \item Tot el vostre codi font ha d’estar en un sol fitxer (com AIElquesigui.cc).
+
+%% \item No podeu utilitzar variables globals (en el seu lloc, utilitzeu atributs a la vostra
+%% classe).
+
+%% \item Només teniu permès utilitzar biblioteques estàndard com
+%% \texttt{iostream}, \texttt{vector}, \texttt{map}, \texttt{set},
+%% \texttt{queue}, \texttt{algoritme}, \texttt{cmath}, \dots En molts
+%% casos, ni tan sols cal incloure la biblioteca corresponent.
+
+%% \item No podeu obrir fitxers ni fer cap altra crida a sistema (threads, forks, ...)
+  
+%% \item El vostre temps de CPU i la memòria que utilitzeu seran limitats, mentre que no ho són
+%%   al vostre entorn local quan executeu \texttt{./Game}. El temps límit és d'un segon
+%%   per l'execució de tota la partida. Si exhauriu el temps límit (o si l'execució del vostre codi
+%%   avorta), el vostre jugador es congelarà i no admetrà més instruccions.
+
+%% \item El vostre programa no ha d'escriure a @cout@ ni llegir de @cin@. Podeu
+%%   escriure informació de depuració a @cerr@, però {\bf heu d'eliminar} aquesta informació
+%%   en el codi que envieu al Jutge. 
+
+%% \item Qualsevol enviament al Jutge ha de ser un intent honest de jugar.
+%%   Qualsevol intent de fer trampes de qualsevol manera serà durament penalitzat.
+
+%% \item Un cop hagueu enviat un jugador al Jutge que hagi derrotat al
+%%   Dummy, podeu fer més enviaments però haureu de canviar el nom
+%%   del jugador. És a dir, un cop un jugador ha vençut al Dummy, el
+%%   seu nom queda bloquejat i no es pot reutilitzar.
+%% \end{itemize}
+
+

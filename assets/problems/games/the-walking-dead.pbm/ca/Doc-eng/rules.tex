@@ -1,0 +1,194 @@
+
+\section{Game Rules}
+
+Due to yet unknown reasons, the Earth is going through a zombie
+apocalypse. The few human survivors fight to stay alive and to gain
+control of the scarce existing resources.
+
+This is a game for four players, identified with numbers from 0 to
+3. Each player has control over a clan of alive units. But there are
+two additional types of units in the game: dead units and zombies.
+
+The game lasts 200 rounds, numbered from 1 to 200. Each unit
+can move at most once per round. Dead units, as expected, cannot move.
+During the rounds, the clans accumulate points and the winner
+of the game is the clan with the largest amount of points after
+round 200.
+
+The board game has dimensions $60 \times 60$. Units cannot move
+outside it.  A position in the board is given by a pair of integers
+$(r,c)$ where $0 \leq r < 60$ and $0\leq c < 60$. The top-left
+position is $(0,0)$, whereas the bottom-right position is
+$(59,59)$. Hence, $r$ (for row) refers to the vertical axis and $c$
+(for column) refers to the horizontal axis. Each cell in the board is
+either part of a street or is full of waste. Units cannot move on
+waste and must necessarily move through streets.
+
+Clans start the game with a certain amount of strength points.  The
+{\em strength of a clan} is defined as $\left\lfloor{{\texttt{strength
+      points}}\over{\texttt{alive units}}}\right\rfloor$ and is key
+for determining the winner of the fights that will occur during the
+game.  After each round, the strength points of a clan will be
+decremented in an amount equal to the number of alive units of that
+clan. However, strength points are never negative. In order to
+increment strength points, alive units can collect food. It is easy to
+see that a clan with a lot of alive units needs to collect a lot of
+food in order to have a good amount of strength.  Thus, some units
+decide to abandon their clan: at each round, with a probability of
+$20\%$, a unit from the clan with the most number of alive units
+becomes part of the clan with the least amount of alive units. If
+there are several clans with these properties, one of them is chosen
+randomly.
+
+\bigskip
+    {\bf Movements of alive units.} An alive unit moves in the board following these rules:
+    
+\begin{itemize}
+\item It can only move to adjacent cells horizontally and vertically, never in diagonal.
+  
+\item If it tries to move to a cell occupied by waste, by a unit of
+  the same clan, o by a dead unit, the movement will be ignored.
+
+\item If it moves to a cell with food, the strength points of its clan will be incremented,
+  the unit will occupy the cell, the food item will disappear and the clan will possess this cell.
+  At the end of the round, a food item will reappear in another position. Note that we will never
+  find a cell occupied by food and by a unit.
+
+\item It it tries to move to an empty cell (without food or unit),
+  the movement will be done and the clan will possess this cell.
+
+\item If it moves to a cell occupied by a zombie, the zombie will die but the unit will not move. As a result,
+  the clan will receive a certain number of points and, at the end of the round, an alive unit
+  of this clan will reappear in another position, and the zombie will disappear.
+
+\item If it moves to a cell occupied by an alive unit of another clan, a fight will start. The
+  unit losing the fight will become a dead unit, and the process of zombie conversion will start: after a certain
+  number of rounds, it will be a zombie. If this unit had already started a zombie conversion process for being
+  bitten by a zombie, the process will restart. The clan of the unit winning the fight will receive
+  a certain number of points, but the unit will not move. The winner of the fight is determined as follows:
+
+  With a probability of $30\%$, the unit starting the fight will
+  surprise the other unit and hence will win the fight
+  immediately. Otherwise, if the strengths of the clans involved in
+  the fight are $N$ and $M$, respectively, the first unit will win
+  with probability $N/(N+M)$ and the second unit with probability
+  $M/(N+M)$. If $N = M = 0$, the units will have the same probability
+  of winning.
+\end{itemize}
+
+{\bf Movements of zombies.} Zombies are not part of any clan and hence
+are not controlled by any player.  Zombies will always move to the
+closest alive unit, considering that they cannot move through
+waste. If there are multiple units at the same distance, one of them
+will be randomly chosen. A zombie will always move following these
+rules:
+
+\bigskip
+\begin{itemize}
+  
+\item It can move to adjacent cells horizontally, vertically and also in diagonal.
+    
+\item It will never move to a cell occupied by waste, a dead unit or a zombie.
+    
+\item If it moves to a cell occupied by food, the food will
+  disappear. At the end of the round, a food item will reappear in a
+  random position. If a clan was possessing this cell, it will stop
+  doing so.
+
+\item If it moves to an empty cell (with no food or unit)
+  owned by a clan, this clan will stop possessing this cell.
+
+\item If it tries to move to a cell with an alive unit on it, the movement will not be done.
+  However, it will bite the unit and it will start the process of becoming a zombie, that will finish
+  after a certain number of rounds. If that process had already started due to a previous bite,
+  the process will not restart, but rather continue. During the conversion, the unit will behave
+  as an alive one.
+\end{itemize}
+
+As a result of the previous rules, the total number of units is constant during the game.
+
+\bigskip
+    {\bf Object regeneration.}
+    Every time a food unit or an alive unit needs to be regenerated, it will always appear in an
+    empty cell $C$ with no unit or food in the surrounding cells (the ones with an x in the table):
+
+\medskip
+\begin{center}
+  \begin{tabular}{|c|c|c|c|c|}\hline
+    x & x & x & x & x \\\hline
+    x & x & x & x & x \\\hline
+    x & x & C & x & x \\\hline
+    x & x & x & x & x \\\hline
+    x & x & x & x & x \\\hline
+  \end{tabular}
+\end{center}
+\medskip
+
+If there is no safe cell in this sense, the object will reappear in an empty cell,
+with no unit or food in it.
+
+It is important to remark that units have an identifier that never changes, not even
+after they are regenerated. For example, if a unit with a certain initial identifier becomes
+a zombie, it will still have the same identifier. If, later on, the zombie is killed and reappears
+as an alive unit of another clan, the identifier will still be the same.
+
+\bigskip
+    {\bf Score computation.} The score of a clan in a given round is given by two components.
+    On the one hand, for each zombie that the clan has killed so far, 10 points will be awarded.
+    For each killed alive unit, 50 points will be given.
+
+    On the other hand, for each cell owned by the clan {\bf in this
+      round} 1 point is given. The score of a clan is the sum of these
+    two components. Note that the score can be decremented if a clan
+    loses the possession of a cell. The constants 10, 50 and 1, as
+    well as other constants that define the initial settings of the
+    game, are defined in the input file \texttt{default.cnf}.  All
+    games will be played with the values given in this file.
+    
+\bigskip
+{\bf Execution of orders.}
+In each round, more than one order can be given to the same unit,
+although only the first such order (if any) will be selected. Any player
+that tries to give more than 1000 orders during the same round will be aborted.
+
+Every round, the selected movements of the four players will be executed using a random order,
+but respecting the relative order of the units of the same clan.
+As a consequence of the previous rule, consider giving the orders to your units at every
+round from most urgent to least urgent.
+
+Take into account that the every movement is applied to the board resulting
+of the previous movements. For example, consider the board
+
+\medskip
+\begin{center}
+  \begin{tabular}{|c|c|c|c|c|}\hline
+    x & x & x & x \\\hline
+    x & F & U & x \\\hline
+    x & V & x & x \\\hline
+    x & x & x & x \\\hline
+  \end{tabular}
+\end{center}
+\medskip
+
+where F represents food and U, V two alive units of different clans.
+Let us assume that the player controlling U decides that it should go
+left, and the player controlling V decides to go up. If the V movement
+is executed first, then U has no food left, because V has already
+taken it. Moreover, the subsequent movement of U is an attack to V. If
+U dies in this fight, in the visualization of the game we will see a
+transition from the previous matrix to a situation where U has
+disappeared. Obviously, there could be no attack between U and V in
+the original configuration because units cannot move diagonally, but
+the execution order of the movements has made it possible. Take this
+into account when you do not understand certain situations in the
+visualization of games.
+
+After the execution of all movements from the players, the movements
+of zombies are executed.  After that, the following processes are
+executed in this order: units that have finished their conversion
+process become zombies, killed zombies will reappear as alive units, a
+unit from the clan with the largest number of alive units might move
+to the clan with the least number of alive units, food items will be
+regenerated and scores will be updated.
+
+

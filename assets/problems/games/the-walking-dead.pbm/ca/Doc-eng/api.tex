@@ -1,0 +1,246 @@
+\documentclass[catalan]{article}
+\pagestyle{plain}
+
+\usepackage{float}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{mdwlist}
+\usepackage{textcomp}
+\usepackage{mathpazo}
+\usepackage{listings}
+\usepackage{parskip}
+\usepackage{color}
+\usepackage{xspace}
+\usepackage{url}
+
+\makeatletter
+\usepackage[catalan]{babel}
+\makeatother
+
+\newcommand{\warning}[1]{{\color{red} #1}}
+
+\input{defs}
+
+%%% LISTINGS
+
+\lstset{language=C++}
+\lstset{columns=flexible}
+%\lstset{basewidth={1em,1em}}
+\lstset{keepspaces=true}
+\lstset{morekeywords={include,cin,cout,cerr,endl,null,string}}
+\lstset{deletekeywords={for}}
+\lstset{belowskip=0mm}
+\lstset{stringstyle={}}
+\lstset{commentstyle={}}
+\lstset{numberstyle=\tiny\sffamily}
+\lstset{numbersep=-5pt}
+\lstset{keywordstyle=\bfseries}
+\lstset{identifierstyle=\itshape}
+\lstset{showstringspaces=false}
+\lstset{upquote=true}
+\lstset{texcl=true}
+\lstset{mathescape=true}
+\lstset{literate={->}{$\rightarrow$}1 {<=}{$\le$}1 {>=}{$\ge$}1 {!=}{$\neq$}1 {<<}{$<\!\!\!<$}2 {>>}{$>\!\!\!>$}2}
+\lstset{xleftmargin=0.3cm}
+\lstMakeShortInline@
+
+\begin{document}
+
+\begin{center}
+{\bf \Large{Summarized API for playing The Walking Dead}}
+\end{center}
+
+\bigskip
+This short document briefly presents the main types, classes and methods that you
+may need to program your player.
+
+{\bf Positions and directions.}
+\begin{lstlisting}
+  // Enum to encode directions. Alive units cannot move diagonally
+  enum Dir {
+    Down, DR, Right, RU, Up, UL, Left, LD
+  };
+
+  // Simple struct to handle positions.
+  struct Pos {
+    int i, j;
+  };
+
+  Pos (int i, int j);
+  // Example: Pos p(3, 6);
+
+  ostream& operator<< (ostream& os, const Pos& p);
+  // Example: cerr $<\!\!<$ p $<\!\!<$ endl;
+
+  bool operator== (const Pos& a, const Pos& b);
+  // Example: if (p == Pos(3, 2)) ...
+
+  bool operator $!\!=$ (const Pos& a, const Pos& b);
+  // Example: if (p != Pos(3, 2)) ...
+
+  / Compares using lexicographical order (first by i, then by j).
+  // If needed, you can sort vectors of positions or build sets of positions.
+  bool operator< (const Pos& a, const Pos& b);
+  // Example: if (p $<$ Pos(3, 2)) ...
+
+  Pos& operator+= (Dir d);
+  // Example: p += Right;
+
+  Pos operator+ (Dir d );
+  // Example: Pos p2 = p + Left;
+  
+  Pos& operator+= (Pos p);
+  // Example: p += Pos(3, 2);
+
+  Pos operator+ (Pos p );
+  // Example: p2 = p + Pos(3, 2);
+
+  // Returns whether (i, j) is a position inside the board.
+  bool pos$\_$ok (int i , int j );
+  // Example: if (pos ok(i + 1, j - 1)) ...
+
+  // Returns whether p is a position inside the board.
+  bool pos$\_$ok (Pos p );
+  // Example: if (pos ok(p1 + Down)) ...
+\end{lstlisting}
+
+\medskip
+{\bf State of the game.}
+\begin{lstlisting}
+  // Returns whether pl is a valid player identifier.
+  bool player$\_$ok (int pl) const;
+
+  // Identifier of your player, between 0 and 3.
+  int me ();
+
+  // Defines kinds of cells.
+  enum CellType {
+    Street,
+    Waste
+  };
+
+  // Describes a cell on the board, and its contents.
+  struct Cell {    
+    CellType         type; // The kind of cell (street or waste).
+    int             owner; // The player that owns it, otherwise -1.
+    int                id; // The id of a unit if present, or -1 otherwise.
+    bool             food; // Whether it contains food
+  };
+  
+  // Defines the type of the unit.
+  enum UnitType {
+    Alive,
+    Dead,
+    Zombie
+  };
+
+  // Describes an unit on the board and its properties.
+  struct Unit {    
+    UnitType type;         // The type of unit.
+    int id;                // The unique id of this unit during the game.
+    int player;            // The player that owns this unit
+                           // (-1 if is a zombie)
+    Pos pos;               // The position on the board.    
+    int rounds$\_$for$\_$zombie; // Rounds before it becomes a zombie
+                          // (-1 if is not being converted to zombie)
+  };
+
+  // Returns the current round.
+  int round () const;
+
+  // Returns a copy of the cell at (i, j).
+  Cell cell (int i, int j) const;
+  // Example: Cell c3 = cell(3, 6);
+  
+  // Returns a copy of the cell at p.
+  Cell cell (Pos p) const;
+  // Example: Cell c2 = cell(p);
+  
+  // Returns a copy of the unit with identifier id.
+  Unit unit (int id) const;
+  // Example: Unit u2 = unit(23);
+  
+  // Returns the ids of the alive units of a player
+  vector$<$int$>$ alive$\_$units (int pl) const;
+  // Example: vector$<$int$>$ au = alive$\_$units(3);
+  
+  // Returns the ids of the dead units of a player
+  vector$<$int$>$ dead$\_$units (int pl) const;
+  // Example: vector$<$int$>$ du = dead$\_$units(0)
+
+  // Returns the ids of the zombies
+  vector$<$int$>$ zombies () const;
+  // Example: vector$<$int$>$ z = zombies();
+  
+  // Returns the current strength of a player ( strength$\_$points/alive$\_$units )
+  int strength (int pl) const;
+  
+  // Returns the current score of a player.
+  int score (int pl) const;
+\end{lstlisting}
+
+\bigskip
+{\bf Command actions.}
+\begin{lstlisting}
+  // Commands unit with identifier id to move following direction dir.
+  void move (int id, Dir dir);
+  // Example: move(23,Down);
+\end{lstlisting}
+
+\bigskip
+{\bf Initial settings.}
+\begin{lstlisting}
+  // Returns the number of players in the game.
+  int num$\_$players () const;
+  
+  // Returns the number of rounds a match lasts.
+  int num$\_$rounds () const;
+
+  // Returns the number of rows of the board.
+  int board$\_$rows () const;
+
+  // Returns the number of columns of the board.
+  int board$\_$cols () const;
+
+  // Returns the initial number of units per clan
+  int num$\_$ini$\_$units$\_$per$\_$clan () const;
+
+  // Returns the initial number of zombies on the board
+  int num$\_$ini$\_$zombies () const;
+
+  // Returns the initial number of food items on the board
+  int num$\_$ini$\_$food () const;
+
+  // Returns the initial strength of each clan
+  int clan$\_$ini$\_$strength () const;
+
+  // Returns the points obtained after killing a person
+  int points$\_$for$\_$killing$\_$person () const;
+
+  // Returns the points obtained after killing a zombie
+  int points$\_$for$\_$killing$\_$zombie () const;
+
+  // Returns the points obtained for each owned cell at the end of a round
+  int points$\_$per$\_$owned$\_$cell () const;
+
+  // Returns the units of strenght obtained by eating an item of food
+  int food$\_$strength () const;
+  
+  // Returns the number of rounds before a bitten/dead person
+  // becomes a zombie
+  int rounds$\_$before$\_$becoming$\_$zombie () const;
+\end{lstlisting}
+
+\bigskip
+{\bf Random.}
+\begin{lstlisting}
+  // Returns a random integer in [l..u]. u - l + 1 must be between 1 and $10^6$ .
+  int random (int l , int u );
+  // Example: if (random(0, 4) $<$ 2) whatever();
+  // This code executes whatever() with probability 2/5.
+
+  // Returns a random permutation of [0..n-1]. n must be between 0 and $10^6$.
+  vector$<$int$>$ random permutation (int n);
+\end{lstlisting}
+
+\end{document}

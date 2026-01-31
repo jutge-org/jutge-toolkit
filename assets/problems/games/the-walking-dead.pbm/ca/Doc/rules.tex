@@ -1,0 +1,222 @@
+
+\section{Regles del Joc}
+
+Per motius que encara ningú coneix amb certesa, l'apocalipsi zombi
+s'ha apoderat de la Terra. Els pocs humans que hi queden intenten
+sobreviure i apoderar-se dels escassos recursos encara existents.
+
+Es tracta d'un joc per a quatre jugadors, identificats amb números de
+0 a 3. Cada jugador té el control d'un clan d'unitats vives.  Però al
+joc coexisteixen dos tipus més d'unitats: unitats mortes i zombis.
+
+El joc té una durada de 200 rondes, numerades de l'1 al 200. Cada
+unitat pot moure's com a màxim una vegada per ronda. Les unitats
+mortes, com és d'esperar, no es poden moure. Durant aquestes rondes
+els clans aniran acumulant punts i guanyarà la partida qui tingui més
+punts en acabar la ronda 200.
+
+El tauler del joc té dimensions $60 \times 60$.  Les unitats no es
+poden moure en cap cas fora d'ell. Una posició del tauler ve
+determinada per un parell d'enters $(f,c)$ on $0 \leq f < 60$ i $0\leq
+c < 60$. La posició de més a dalt i a l'esquerra és la $(0,0)$, mentre
+que la de més a baix i a la dreta és $(59,59)$. Per tant, la primera
+coordenada ($f$ de fila) és la que indica la posició en l'eix vertical
+i la segona ($c$ de columna) en l'eix horitzontal.  Cada cel·la del
+tauler o bé forma part d'un carrer o bé està plena de deixalla. Les
+unitats no poden trepitjar la deixalla i s'han de moure necessàriament
+pels carrers.
+
+Els clans comencen la partida amb una certa quantitat de punts de
+força.  La {\em força d'un clan} es defineix com
+$\left\lfloor{{\texttt{punts força}}\over{\texttt{unitats
+      vives}}}\right\rfloor$ i serà clau per determinar el guanyador
+de les lluites que hi haurà durant la partida. En acabar cada ronda,
+els punts de força d'una clan es decrementaran en una quantitat igual
+al nombre d'unitats vives d'aquest clan. No obstant, mai esdevindrà
+una quantitata negativa. Per tal d'incrementar els punts de força, les
+unitats vives poden agafar menjar que trobaran al tauler. És fàcil
+veure que un clan amb moltes unitats vives necessita recollir molt
+menjar per a poder mantenir una força considerable. És per això que
+algunes unitats decideixen canviar de clan: cada ronda, amb un $20\%$
+de probabilitat, una unitat del clan amb més unitats vives passa a
+formar part del clan amb menys unitats vives. En cas d'haver-hi
+diferents clans amb aquestes propietats, se'n selecciona un d'ells de
+forma aleatòria.
+
+\bigskip
+{\bf Moviments de les unitats vives.} Una unitat viva d'un clan es
+pot moure pel tauler de la manera següent:
+
+\begin{itemize}
+  \item Només pot accedir a les cel·les adjacents en horitzontal i
+    vertical, mai en diagonal.
+
+  \item Si es mou cap a una cel·la ocupada per deixalla, per una
+    unitat del seu mateix clan o per una unitat morta, el moviment
+    s'ignorarà.
+
+  \item Si es mou cap a una cel·la ocupada per menjar, els punts de
+    força del seu clan s'incrementaran, la unitat ocuparà la cel·la
+    tot fent desaparèixer el menjar i el seu clan posseirà aquesta
+    cel·la. En acabar la ronda, una unitat de menjar reapareixerà en
+    una altra posició. Notem que no trobarem mai una cel·la ocupada
+    per menjar i per una unitat.
+
+  \item Si es mou cap a una cel·la buida (sense menjar ni cap unitat),
+    el moviment s'efectuarà i el seu clan passarà a posseir aquesta
+    cel·la.
+
+  \item Si es mou cap a una cel·la ocupada per un zombi, el zombi
+    morirà però la unitat no es mourà. Com a resultat, el clan rebrà
+    un cert nombre de punts i, en acabar la ronda, una unitat viva
+    d'aquest clan reapareixerà en una altra posició reemplaçant al
+    zombi, que desapareixerà.
+
+  \item Si es mou cap a una cel·la ocupada per una unitat viva d'un
+    altre clan, es produirà una lluita. La unitat que perdi la lluita
+    passarà a ser una unitat morta, i s'inicia el seu procés de
+    conversió: al cap d'un cert nombre de rondes, passarà a ser un
+    zombi. Si ja havia començat el procés de conversió per haver estat
+    mossegat per un zombi, el procés torna a començar. El clan de la
+    unitat que guanyi l'atac rebrà un cert nombre de
+    punts, però no es mourà de posició. El guanyador de la lluita
+    es determina de la manera següent:
+
+    Amb un $30\%$ de probabilitat, la unitat que ha desencadenat
+    l'atac agafarà l'altra per sorpresa i serà la guanyadora sense
+    haver de lluitar. En cas contrari, si les forces dels dos clans
+    involucrats en la lluita són $N$ i $M$, respectivament, el primer
+    guanyarà amb probabilitat $N/(N+M)$ i el segon amb probabilitat
+    $M/(N+M)$. En cas que $N = M = 0$, les dues unitats tindran la
+    mateixa probabilitat de guanyar.   
+\end{itemize}
+
+{\bf Moviments dels zombis.} Els zombis no formen part de cap clan i
+per tant no podran ser controlats per cap jugador. Els zombis sempre
+es mouran cap a la unitat viva més propera a ells, tenint en compte la
+presència d'obstacles. En cas d'haver-n'hi diverses a la mínima
+distància, n'escolliran una a l'atzar. Els moviments d'un zombi es
+regiran per les següent regles:
+
+\bigskip
+\begin{itemize}
+  
+\item Pot accedir a les cel·les adjacents en horitzontal i vertical, i
+  també en diagonal.
+  
+\item Mai es mourà cap a una cel·la ocupada per deixalla, per una
+  unitat morta o per un zombi.
+  
+\item Si es mou cap a una cel·la ocupada per menjar, el menjar
+  desapareixerà. En acabar la ronda, una unitat de menjar reapareixerà
+  en una posició aleatòria. Si un clan posseïa aquesta cel·la, deixarà
+  de fer-ho.
+
+\item Si es mou cap a una cel·la buida (sense menjar ni cap unitat)
+  posseïda per un clan, aquest perdrà la possessió.
+
+\item Si es vol moure cap a una cel·la ocupada per una unitat viva, el
+  moviment no s'efectuarà.  No obstant, mossegarà a la unitat i
+  aquesta iniciarà el seu procés de conversió a zombi, que tindrà lloc
+  al cap d'un cert nombre de rondes. Si aquest procés ja s'havia
+  iniciat per una mossegada prèvia, el procés de conversió no tornarà
+  a començar sinó que continuarà el seu curs. Durant la conversió a zombi,
+  la unitat es comportarà igual que una unitat viva.
+
+\end{itemize}
+
+Com a resultat de les anterior regles, el nombre d'unitats totals és
+constant al llarg de tot el joc.
+
+\bigskip
+{\bf Regeneració d'objectes.} Cada vegada que cal regenerar una unitat
+de menjar o una unitat viva, aquesta reapareixerà sempre en una
+cel·la buida $C$ i tal que no hi ha cap unitat ni menjar en les posicions que
+l'envolten (les marcades amb una x a la taula):
+
+\medskip
+\begin{center}
+  \begin{tabular}{|c|c|c|c|c|}\hline
+    x & x & x & x & x \\\hline
+    x & x & x & x & x \\\hline
+    x & x & C & x & x \\\hline
+    x & x & x & x & x \\\hline
+    x & x & x & x & x \\\hline
+  \end{tabular}
+\end{center}
+\medskip
+
+Si en el moment de reaparèixer no existeix cap cel·la segura en aquest
+sentit, l'objecte reapareixerà en una cel·la buida, que no tingui cap unitat ni menjar.
+
+És important remarcar que les unitats tenen un identificador que mai
+canvia, ni tan sols durant el procés de regeneració. És a dir, si una
+unitat amb un cert identificador inicial es converteix en zombi,
+aquest continuarà amb el mateix identificador. Si posteriorment el
+zombi mor i reapareix com una unitat viva d'un altre clan,
+l'identificador es mantindrà.
+
+\bigskip
+{\bf Càlcul de la puntuació.} La puntuació d'un clan en una ronda ve
+determinada per dos components. D'una banda, per cada zombi que el
+clan hagi matat fins aquell moment s'obtindran
+10 punts.  Per cada unitat que hagi
+matat s'obtindran 50 punts.
+
+D'altra banda, per cada cel·la posseïda pel clan {\bf en aquesta
+  ronda} s'obtindrà 1 punt.  La puntuació del clan és la suma
+d'aquestes quantitats. Així doncs, la puntuació es pot decrementar si
+es perd la possessió d'algunes cel·les. Les constants 10, 50 i 1, així
+com d'altres que especifiquen els paràmetres inicials del joc, estan
+definides a l'arxiu d'entrada \texttt{default.cnf}. Totes les partides
+es jugaran amb exactament els valors donats en aquest arxiu.
+
+\bigskip
+{\bf Execució d'ordres.}
+A cada ronda es pot donar més d’una ordre a la mateixa unitat,
+tot i que només se seleccionarà la primera d'elles (si n’hi ha alguna).
+Tot programa que intenti donar més de 1000 comandes
+durant la mateixa ronda s'avortarà.
+
+Cada ronda, les ordres seleccionades dels quatre jugadors
+s'executaran amb ordre aleatori,
+però respectant l’ordre relatiu entre les unitats d’un mateix clan.
+Com a conseqüència de la norma anterior, considereu la possibilitat de
+donar les ordres a les vostres unitats a cada ronda de més urgent a
+menys urgent.
+
+Tingueu en compte que s’aplica cada moviment sobre el tauler
+que resulta dels moviments anteriors. Per exemple, considereu el tauler
+
+\medskip
+\begin{center}
+  \begin{tabular}{|c|c|c|c|c|}\hline
+    x & x & x & x \\\hline
+    x & M & U & x \\\hline
+    x & V & x & x \\\hline
+    x & x & x & x \\\hline
+  \end{tabular}
+\end{center}
+\medskip
+
+on M representa menjar i  U i V dues unitats vives de diferents clans.
+Imaginem que el jugador que controla U ha decidit que aquest vagi cap a l'esquerra,
+i el jugador que controla V ha decidit que vagi amunt. Si s'executa
+primer el moviment de V, aleshores U s'ha quedat sense menjar,
+perquè V ja l'ha consumit i a més, la posterior execució del moviment de U és
+un atac cap a V del qual en pot sortir malparat. Si U mor durant aquest atac,
+en la visualització de la partida veurem una transició de la matriu anterior
+cap a una situació on U ha desaparegut. Òbviament, no hi podia haver un atac entre U i V des
+de la configuració inicial, perquè les unitats vives no es poden moure en diagonal, però l'ordre
+d'execució de les comandes sí que ho ha fet possible. Tingueu això en compte quan no entengueu
+certes situacions durant la visualització de les partides.
+
+Després de l'execució de tots els moviments dels jugadors, es
+procedeixen a efectuar els moviments dels zombis.  En acabar, els
+següents processos s'executaran en aquest ordre: les unitats que han
+acabat el seu procés de conversió passaran a ser zombis, els zombis
+morts es convertiran en unitats vives, una unitat del clan amb més
+unitats vives potser passarà a formar part del clan amb menys unitats
+vives, es regeneraran les unitats de menjar consumides i
+s'actualitzaran les puntuacions.
+
