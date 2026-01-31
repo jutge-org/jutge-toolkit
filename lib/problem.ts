@@ -79,6 +79,10 @@ export class Problem {
                 this.structure = 'multi'
             } else {
                 this.structure = 'single'
+                const parent = join(this.directory, '..')
+                if (!parent.endsWith('.pbm')) {
+                    throw new Error(`Parent directory ${parent} is not a problem root directory (missing .pbm suffix)`)
+                }
             }
             tui.print(this.structure)
         })
@@ -219,7 +223,7 @@ export class Problem {
                 const files = await Array.fromAsync(glob('solution{.tar,.cc,.hh}', { cwd: this.directory }))
                 this.solutions = files.sort()
             } else if (this.handler.compilers === 'MakePRO2') {
-                this.solutions = ["solution.tar"]
+                this.solutions = ['solution.tar']
             } else {
                 const { proglangNames } = await import('./data')
                 const comaSeparatedExtensions = Object.keys(proglangNames).join(',')

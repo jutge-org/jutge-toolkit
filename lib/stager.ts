@@ -47,9 +47,12 @@ export class Stager {
 
     constructor(directory: string, problem_nm: string) {
         this.directory = resolve(directory)
+        if (!this.directory.endsWith('.pbm')) {
+            throw new Error(`Directory ${this.directory} is not a problem root directory (missing .pbm suffix)`)
+        }
         this.problem_nm = problem_nm
         this.workspace = join(directory, toolkitPrefix() + '-stage', nanoid8())
-        this.workDir = join(this.workspace, 'work')
+        this.workDir = join(this.workspace, 'work.pbm')
         this.stagingDir = join(this.workspace, 'stage', this.problem_nm)
     }
 
@@ -383,8 +386,6 @@ export class Stager {
     }
 
     private async stageProblemFiles_Std(language: string) {
-
-
         const accept = (filename: string) => {
             // general
             if (filename === 'handler.yml') return true
