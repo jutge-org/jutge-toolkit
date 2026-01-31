@@ -1,3 +1,4 @@
+import open, { openApp, apps } from 'open'
 import { rings } from '@dicebear/collection'
 import { createAvatar } from '@dicebear/core'
 import dayjs from 'dayjs'
@@ -87,6 +88,7 @@ export class Stager {
             tui.print(tree(this.stagingDir))
         })
         tui.success(`Problem successfully staged at directory ${tui.hyperlink(this.stagingDir)}`)
+        await open(this.stagingDir)
     }
 
     async stageLanguage_Std(language: string) {
