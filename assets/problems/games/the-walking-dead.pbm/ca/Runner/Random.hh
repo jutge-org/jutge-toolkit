@@ -22,6 +22,9 @@ public:
    */
   vector<int> random_permutation (int n);
 
+  template<class C>
+  vector<C> shuffle_vector(const vector<C>& v);
+  
 
   //////// STUDENTS DO NOT NEED TO READ BELOW THIS LINE ////////
   
@@ -85,4 +88,13 @@ inline vector<int> Random_generator::random_permutation (int n) {
     return v;
   }
 
+template<class C>
+inline vector<C> Random_generator::shuffle_vector (const vector<C>& v) {
+  // Random shuffle
+  vector<int> aux = random_permutation(v.size());
+  vector<C> res_shuff(v.size());
+  for (uint i = 0; i < aux.size(); ++i) res_shuff[aux[i]] = v[i];
+  
+  return res_shuff;
+}
 #endif
