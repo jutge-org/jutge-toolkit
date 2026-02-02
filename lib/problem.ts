@@ -100,7 +100,6 @@ export class Problem {
 
     private async loadLanguagesMulti() {
         const files = await Array.fromAsync(glob('problem.*.yml', { cwd: this.directory }))
-        console.log(files)
         const languages = files
             .map((file) => {
                 const match = file.match(/problem\.(.+)\.yml/)
@@ -181,7 +180,7 @@ export class Problem {
                 const scores = Scores.parse(data)
                 tui.yaml(scores)
             } else {
-                tui.print('scores.yml not defined')
+                tui.print('no scoring, scores.yml not defined')
             }
         })
     }

@@ -121,7 +121,14 @@ async function markdown(content: string): Promise<void> {
 
 function yaml(content: any): void {
     const output = YAML.stringify(content, null, 4).trim()
-    print(highlight(output, { language: 'yaml' }))
+    print(
+        highlight(output, {
+            language: 'yaml',
+            theme: {
+                string: chalk.white,
+            },
+        }),
+    )
 }
 
 function json(content: any): void {
