@@ -512,6 +512,7 @@ export class Stager {
                 && ((filename.endsWith('.inp') || filename.endsWith('.cor')))) {
                 return true
             }
+            if (filename === "sample.dt") return true
 
             return false
         }
