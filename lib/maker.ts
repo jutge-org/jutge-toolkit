@@ -584,8 +584,8 @@ export class Maker {
         // txt
         if (tasks.includes('txt')) {
             try {
-                tui.command('pandoc --sandbox --quiet root.tex --to plain --output root.txt')
-                await execa({ cwd: tmpDir })`pandoc --sandbox --quiet root.tex --to plain --output root.txt`
+                tui.command('pandoc --quiet root.tex --to plain --output root.txt')
+                await execa({ cwd: tmpDir })`pandoc --quiet root.tex --to plain --output root.txt`
                 await cp(join(tmpDir, 'root.txt'), join(this.problem.directory, `${filename}.txt`))
                 tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.txt`))
             } catch (e) {
@@ -597,11 +597,11 @@ export class Maker {
         if (tasks.includes('md')) {
             try {
                 tui.command(
-                    'pandoc --sandbox --quiet root.tex --to markdown --to markdown-header_attributes --lua-filter=fixCodeBlocks.lua --output root.md',
+                    'pandoc --quiet root.tex --to markdown --to markdown-header_attributes --lua-filter=fixCodeBlocks.lua --output root.md',
                 )
                 await execa({
                     cwd: tmpDir,
-                })`pandoc --sandbox --quiet root.tex --to markdown --to markdown-header_attributes --lua-filter=fixCodeBlocks.lua --output root.md`
+                })`pandoc --quiet root.tex --to markdown --to markdown-header_attributes --lua-filter=fixCodeBlocks.lua --output root.md`
                 await cp(join(tmpDir, 'root.md'), join(this.problem.directory, `${filename}.md`))
                 tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.md`))
             } catch (e) {
@@ -612,10 +612,10 @@ export class Maker {
         // html
         if (tasks.includes('html')) {
             try {
-                tui.command('pandoc --sandbox --quiet root.tex --to html --mathml --embed-resources --output root.html')
+                tui.command('pandoc --quiet root.tex --to html --mathml --embed-resources --output root.html')
                 await execa({
                     cwd: tmpDir,
-                })`pandoc --sandbox --quiet root.tex --to html --mathml --embed-resources --output root.html`
+                })`pandoc --quiet root.tex --to html --mathml --embed-resources --output root.html`
                 await cp(join(tmpDir, 'root.html'), join(this.problem.directory, `${filename}.html`))
                 tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.html`))
             } catch (e) {
