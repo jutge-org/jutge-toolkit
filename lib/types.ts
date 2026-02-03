@@ -1,4 +1,18 @@
-import { z } from 'zod'
+import { email, z } from 'zod'
+
+export const ProblemOriginalLangYml = z.object({
+    title: z.string(),
+    author: z.string(),
+    email: z.string(),
+})
+
+export const ProblemTranslationLangYml = z.object({
+    title: z.string(),
+    translator: z.string(),
+    translator_email: z.string(),
+})
+
+export const ProblemLangYml = z.union([ProblemOriginalLangYml, ProblemTranslationLangYml])
 
 export const Handler = z.object({
     handler: z.enum(['std', 'graphic', 'quiz', 'circuits', 'game']).default('std'),

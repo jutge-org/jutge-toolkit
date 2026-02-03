@@ -10,7 +10,7 @@ import { invert } from 'radash'
 import tree from 'tree-node-cli'
 import { probeCodeMetrics } from './doctor'
 import tui from './tui'
-import { QuizRoot } from './types'
+import { ProblemLangYml, QuizRoot } from './types'
 import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
 import { packageJson } from './versions'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
@@ -207,6 +207,7 @@ export class Stager {
             for (const language of this.languages) {
                 const path = join(this.workDir, language, `problem.${language}.yml`)
                 this.problem_ymls[language] = await readYaml(path)
+                ProblemLangYml.parse(this.problem_ymls[language])
             }
 
             // read handlers

@@ -6,7 +6,7 @@ import { basename, join, normalize, sep } from 'path'
 import tui from './tui'
 import { existsInDir, nothing, readYamlInDir } from './utils'
 import { languageNames, proglangNames } from './data'
-import { Handler, ProblemInfo, Scores } from './types'
+import { Handler, ProblemInfo, ProblemLangYml, Scores } from './types'
 
 export async function newProblem(directory: string): Promise<Problem> {
     const problem = new Problem(directory)
@@ -113,6 +113,7 @@ export class Problem {
             await tui.section(`Loading problem.${language}.yml`, async () => {
                 this.problemLangYmls[language] = await readYamlInDir(this.directory, `problem.${language}.yml`)
                 tui.yaml(this.problemLangYmls[language])
+                ProblemLangYml.parse(this.problemLangYmls[language])
             })
         }
     }
