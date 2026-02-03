@@ -50,7 +50,7 @@
         "depcheck": "bunx depcheck",
         "dev": "bun build --target bun --outfile dist/index.js ./toolkit --watch",
         "build": "bun build --target bun --minify --outfile dist/index.js ./toolkit",
-        "update-jutge-client": "(cd lib ; rm -f jutge_api_client.ts ; https --download https://api.jutge.org/clients/download/typescript)"
+        "update-jutge-client": "(cd lib ; rm -f jutge_api_client.ts ; jutge clients typescript)"
     },
     "files": [
         "README.md",

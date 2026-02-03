@@ -92,7 +92,7 @@ async function createProblemInJutgeOrg(directory: string, zipFilePath: string): 
 
         await tui.section('Creating problem in Jutge.org', async () => {
             const file = await createFileFromPath(zipFilePath, 'application/zip')
-            const { id } = await jutge.instructor.problems.legacyCreateWithTerminal(info.passcode, file)
+            const { id } = await jutge.instructor.problems.create(info.passcode, file)
             const problem_nm = await showTerminalOutput(id)
 
             if (!problem_nm) throw new Error('Failed to get problem name')
@@ -121,7 +121,7 @@ async function updateProblemInJutgeOrg(
 
         await tui.section('Updating problem in Jutge.org', async () => {
             const file = await createFileFromPath(zipFilePath, 'application/zip')
-            const { id } = await jutge.instructor.problems.legacyUpdateWithTerminal(info.problem_nm, file)
+            const { id } = await jutge.instructor.problems.update(info.problem_nm, file)
             await showTerminalOutput(id)
             info.updated_at = new Date().toISOString()
         })
@@ -173,7 +173,7 @@ async function showTerminalOutput(id: string): Promise<string | null> {
         if (done) return problem_nm || null
 
         const text = new TextDecoder().decode(value as Uint8Array)
-        tui.print(text)
+        tui.print(text.trim())
 
         const matchCreated = text.match(/Problem ([A-Z]\d{5}) created\./)
         if (matchCreated) problem_nm = matchCreated[1]
