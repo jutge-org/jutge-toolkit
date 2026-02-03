@@ -27,7 +27,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/jutge-org/new-jutge-toolkit.git"
+        "url": "git+https://github.com/jutge-org/jutge-toolkit.git"
     },
     "keywords": [
         "jutge.org",
