@@ -230,6 +230,7 @@ jtk make                            # Build all problem elements
 jtk verify <program>                # Test a solution
 jtk upload                          # Upload to Jutge.org
 jtk clean                           # Clean temporary files
+jtk passcode                        # Manage problem passcode
 
 jtk doctor                          # Check system dependencies
 ```

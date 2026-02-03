@@ -136,6 +136,11 @@ jtk stage                           # Stage problem for Jutge.org
 # Publishing
 jtk upload                          # Upload problem to Jutge.org
 
+# Passcode management
+jtk passcode show                   # Show the passcode of the problem
+jtk passcode set                    # Set the passcode of the problem
+jtk passcode remove                 # Remove the passcode of the problem
+
 # Maintenance
 jtk upgrade                         # Update to latest version
 jtk doctor                          # Check system dependencies

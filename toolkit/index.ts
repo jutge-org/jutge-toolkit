@@ -18,6 +18,7 @@ import { makeCmd } from './make'
 import { quizCmd } from './quiz'
 import { upgradeCmd } from './upgrade'
 import { uploadCmd } from './upload'
+import { cmdPasscode } from './passcode'
 import { askCmd } from './ask'
 import { convertCmd } from './convert'
 import { stageCmd } from './stage'
@@ -31,6 +32,7 @@ program.addHelpText('after', '\nMore documentation:\n  https://github.com/jutge-
 
 program.addCommand(makeCmd)
 program.addCommand(uploadCmd)
+program.addCommand(cmdPasscode)
 program.addCommand(cleanCmd)
 program.addCommand(cloneCmd)
 program.addCommand(generateCmd)
