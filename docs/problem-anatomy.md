@@ -319,7 +319,7 @@ Test cases are used to evaluate the correctness of user submissions. Each test c
 
 In addition, `test` can also make use of a `test.ops` file to describe some low-level advanced options for its correction.
 
-Test case names should be made of letters, digits, dashes, and underscores. Do not use special characters or blanks in them. Test cases whose name starts with `sample`, `public`, `hint`, or `distilled` have a special meaning and are considered public (might be seen by users). It is common to name test cases with names such as `sample-1`, `sample-2`, or `test-hard`.
+Test case names should be made of letters, digits, dashes, and underscores. Do not use special characters or blanks in them. Test cases whose name contain `sample` or starts with `public`, `hint`, or `distilled` have a special meaning and are considered public (might be seen by users). It is common to name test cases with names such as `sample-1`, `sample-2`, or `test-hard`.
 
 At correction time, public test cases are corrected before the private ones. The cases are processed sequentially, ordered by their name.
 
@@ -335,7 +335,7 @@ In addition, there must be no spaces before a line break. In particular, there m
 
 ### Sample test cases
 
-Sample test cases start with `sample` and will be revealed to users in the problem statement. As such, they should make clear the format of the input and the output for the problem and should be reasonably short.
+Sample test cases that contain `sample` in their filename and will be revealed to users in the problem statement. As such, they should make clear the format of the input and the output for the problem and should be reasonably short.
 
 ### Public test cases
 

@@ -508,7 +508,10 @@ export class Stager {
                 if (filename === `main.${extension}`) return true
                 if (filename === `code.${extension}`) return true
             }
-            if (/^(sample|public).*\.(inp|cor)$/.test(filename)) return true
+            if ((filename.includes('sample') || filename.startsWith('public') || filename.startsWith('hint') || filename.startsWith('distilled'))
+                && ((filename.endsWith('.inp') || filename.endsWith('.cor')))) {
+                return true
+            }
 
             return false
         }

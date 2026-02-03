@@ -339,7 +339,7 @@ export class Maker {
         const samples2col: string[] = []
         let index = 1
         for (const testcase of this.problem.testcases) {
-            if (testcase.startsWith('sample')) {
+            if (testcase.includes('sample')) {
                 let size = ''
                 if (graphic) {
                     await cp(join(this.problem.directory, `${testcase}.cor`), join(tmpDir, `${testcase}.cor.png`))
