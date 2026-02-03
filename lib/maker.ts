@@ -431,12 +431,12 @@ export class Maker {
 
         // latex
         try {
-            tui.command('xelatex -interaction=nonstopmode -file-line-error root.tex')
+            tui.command('xelatex -no-shell-escape -interaction=nonstopmode -file-line-error root.tex')
             await execa({
                 stderr: 'inherit',
                 // stdout: 'inherit',
                 cwd: tmpDir,
-            })`xelatex -interaction=nonstopmode -file-line-error root.tex`
+            })`xelatex -no-shell-escape -interaction=nonstopmode -file-line-error root.tex`
             await cp(join(tmpDir, 'root.pdf'), join(this.problem.directory, `problem.${language}.pdf`))
             tui.success(
                 `Generated ${tui.hyperlink(this.problem.directory, `problem.${language}.pdf`)} see ${tui.hyperlink(tmpDir, `root.log`)}`,
@@ -584,8 +584,8 @@ export class Maker {
         // txt
         if (tasks.includes('txt')) {
             try {
-                tui.command('pandoc --quiet root.tex --to plain --output root.txt')
-                await execa({ cwd: tmpDir })`pandoc --quiet root.tex --to plain --output root.txt`
+                tui.command('pandoc --sandbox --quiet root.tex --to plain --output root.txt')
+                await execa({ cwd: tmpDir })`pandoc --sandbox --quiet root.tex --to plain --output root.txt`
                 await cp(join(tmpDir, 'root.txt'), join(this.problem.directory, `${filename}.txt`))
                 tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.txt`))
             } catch (e) {
@@ -597,11 +597,11 @@ export class Maker {
         if (tasks.includes('md')) {
             try {
                 tui.command(
-                    'pandoc --quiet root.tex --to markdown --to markdown-header_attributes --lua-filter=fixCodeBlocks.lua --output root.md',
+                    'pandoc --sandbox --quiet root.tex --to markdown --to markdown-header_attributes --lua-filter=fixCodeBlocks.lua --output root.md',
                 )
                 await execa({
                     cwd: tmpDir,
-                })`pandoc --quiet root.tex --to markdown --to markdown-header_attributes --lua-filter=fixCodeBlocks.lua --output root.md`
+                })`pandoc --sandbox --quiet root.tex --to markdown --to markdown-header_attributes --lua-filter=fixCodeBlocks.lua --output root.md`
                 await cp(join(tmpDir, 'root.md'), join(this.problem.directory, `${filename}.md`))
                 tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.md`))
             } catch (e) {
@@ -612,10 +612,10 @@ export class Maker {
         // html
         if (tasks.includes('html')) {
             try {
-                tui.command('pandoc --quiet root.tex --to html --mathml --embed-resources --output root.html')
+                tui.command('pandoc --sandbox --quiet root.tex --to html --mathml --embed-resources --output root.html')
                 await execa({
                     cwd: tmpDir,
-                })`pandoc --quiet root.tex --to html --mathml --embed-resources --output root.html`
+                })`pandoc --sandbox --quiet root.tex --to html --mathml --embed-resources --output root.html`
                 await cp(join(tmpDir, 'root.html'), join(this.problem.directory, `${filename}.html`))
                 tui.success('Generated ' + tui.hyperlink(this.problem.directory, `${filename}.html`))
             } catch (e) {
@@ -700,11 +700,11 @@ export class Maker {
                     const status = result.error
                         ? 'EE'
                         : (await filesAreEqual(
-                                join(this.problem.directory, `${result.testcase}.cor`),
-                                join(this.problem.directory, `${toolkitPrefix()}-${result.testcase}.${extension}.out`),
-                            ))
-                          ? 'OK'
-                          : 'WA'
+                            join(this.problem.directory, `${result.testcase}.cor`),
+                            join(this.problem.directory, `${toolkitPrefix()}-${result.testcase}.${extension}.out`),
+                        ))
+                            ? 'OK'
+                            : 'WA'
                     const time = prettyMs(result.time)
                     tui.print(
                         (status !== 'OK' ? chalk.red : chalk.green)(
@@ -744,12 +744,12 @@ export class Maker {
                             stdout: 'inherit',
                             cwd: join(directory, dir),
                         })`tar cf ../${dir}.tar .`
-    
+
                         if (exitCode !== 0) {
                             console.log(exitCode)
                             throw new Error(`Error making ${dir}.tar`)
                         }
-    
+
                         tui.success(`Created ${tui.hyperlink(directory, `${dir}.tar`)}`)
                     }
                 }

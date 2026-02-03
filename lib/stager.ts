@@ -316,9 +316,9 @@ export class Stager {
             const dir = join(this.workDirLang, 'Doc')
 
             await tui.section('Generating PDF with xelatex', async () => {
-                tui.command('xelatex -interaction=nonstopmode -file-line-error main.tex')
-                await execa({ cwd: dir })`xelatex -interaction=nonstopmode -file-line-error main.tex`
-                await execa({ cwd: dir })`xelatex -interaction=nonstopmode -file-line-error main.tex`
+                tui.command('xelatex -no-shell-escape -interaction=nonstopmode -file-line-error main.tex')
+                await execa({ cwd: dir })`xelatex -no-shell-escape -interaction=nonstopmode -file-line-error main.tex`
+                await execa({ cwd: dir })`xelatex -no-shell-escape -interaction=nonstopmode -file-line-error main.tex`
                 await cp(join(dir, 'main.pdf'), join(this.workDirLang, `problem.${language}.pdf`))
                 tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.pdf`)}`)
             })
@@ -326,8 +326,8 @@ export class Stager {
             // games have short statements equal to full statements
 
             await tui.section('Generating TXT with pandoc', async () => {
-                tui.command('pandoc --quiet main.tex --to plain --output main.txt')
-                await execa({ cwd: dir })`pandoc --quiet main.tex --to plain --output main.txt`
+                tui.command('pandoc --sandbox --quiet main.tex --to plain --output main.txt')
+                await execa({ cwd: dir })`pandoc --sandbox --quiet main.tex --to plain --output main.txt`
                 await cp(join(dir, 'main.txt'), join(this.workDirLang, `problem.${language}.txt`))
                 tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.txt`)}`)
                 await cp(join(dir, 'main.txt'), join(this.workDirLang, `problem.${language}.short.txt`))
@@ -335,10 +335,10 @@ export class Stager {
             })
 
             await tui.section('Generating Markdown with pandoc', async () => {
-                tui.command('pandoc --quiet main.tex --to markdown --to markdown-header_attributes --output main.md')
+                tui.command('pandoc --sandbox --quiet main.tex --to markdown --to markdown-header_attributes --output main.md')
                 await execa({
                     cwd: dir,
-                })`pandoc --quiet main.tex --to markdown --to markdown-header_attributes --output main.md`
+                })`pandoc --sandbox --quiet main.tex --to markdown --to markdown-header_attributes --output main.md`
                 await cp(join(dir, 'main.md'), join(this.workDirLang, `problem.${language}.md`))
                 tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.md`)}`)
                 await cp(join(dir, 'main.md'), join(this.workDirLang, `problem.${language}.short.md`))
@@ -347,11 +347,11 @@ export class Stager {
 
             await tui.section('Generating HTML with pandoc', async () => {
                 tui.command(
-                    'pandoc --quiet main.tex --to html --mathml --embed-resources --standalone --output main.html',
+                    'pandoc --sandbox --quiet main.tex --to html --mathml --embed-resources --standalone --output main.html',
                 )
                 await execa({
                     cwd: dir,
-                })`pandoc --quiet main.tex --to html --mathml --embed-resources --standalone --output main.html`
+                })`pandoc --sandbox --quiet main.tex --to html --mathml --embed-resources --standalone --output main.html`
                 await cp(join(dir, 'main.html'), join(this.workDirLang, `problem.${language}.html`))
                 tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.html`)}`)
                 await cp(join(dir, 'main.html'), join(this.workDirLang, `problem.${language}.short.html`))
