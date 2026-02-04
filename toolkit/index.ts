@@ -6,7 +6,6 @@ import { fromError } from 'zod-validation-error'
 import { settings } from '../lib/settings'
 import { packageJson } from '../lib/versions'
 import { aboutCmd } from './about'
-import { aiCmd } from './ai'
 import { verifyCmd } from './verify'
 import { cleanCmd } from './clean'
 import { compilersCmd } from './compilers'
@@ -43,7 +42,6 @@ program.addCommand(doctorCmd)
 if (settings.developer) {
     program.addCommand(quizCmd)
     program.addCommand(compilersCmd)
-    program.addCommand(aiCmd)
 }
 program.addCommand(configCmd)
 program.addCommand(upgradeCmd)
