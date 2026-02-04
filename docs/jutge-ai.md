@@ -29,54 +29,42 @@ In particular, Jutge<sup>AI</sup> features can assist in:
 
     - You can create new test case generators to extend the existing test suite.
 
-    - You can generate `award.png` and `award.html` files for the problem. (Note: `award.png` requires `dall-e-3` model access.)
+    - You can generate `award.png` and `award.html` files for the problem.
 
 As in any other use of AI and LLMs, it is important to review and validate the generated content to ensure its correctness and quality. Treat the generated content as a first draft that needs to be refined and validated.
 
-In order to use the Jutge<sup>AI</sup> features of the toolkit, you need to have API keys for the models you wish to use. You should get the keys from the respective providers and set them as environment variables in your system. Because of the costs associated to the use of these models, the toolkit or Jutge.org cannot provide these keys directly.
+# Jutge<sup>AI</sup> models
 
-UPC users can get free access to Gemini models through their institutional Google accounts. These work well with Jutge<sup>AI</sup> features but have usage limits. If you need more capacity, consider using an OpenAI API key.
+The toolkit currently supports the following models:
 
-## How to get Gemini API key
+### Google Gemini
 
-1. Visit Google AI Studio:
+Google Gemini is fast and free for UPC users but its rate limits are so low it is almost impossible to use it for practical purposes.
 
-    Go to [aistudio.google.com](https://aistudio.google.com/) and sign in with your Google Account.
+Available models:
 
-2. Access the API Section:
+- google/gemini-2.5-flash
+- google/gemini-2.5-flash-lite
 
-    Click on the **Get API key** button located in the left-hand sidebar menu.
+### OpenAI GPT
 
-3. Generate the Key:
-    - Click the **Create API key** button.
-    - You will have two options: **Create API key in new project** (recommended for beginners) or **Create API key in existing project.**
-    - Select your preference, and the system will generate a unique key for you.
+OpenAI is slower but more reliable and has a higher rate limit. However, it is not free and requires a paid account.
 
-4. Secure Your Key:
+Available models:
 
-    Copy the generated key immediately.
+- openai/gpt-5-nano
+- openai/gpt-5-mini
+- openai/gpt-4.1-nano
+- openai/gpt-4.1-mini
 
-5. Set `GEMINI_API_KEY` environment variable with the obtained key to use it in the toolkit. This will make models such as `google/gemini-2.5-flash` or `google/gemini-2.5-flash-lite` available for Jutge<sup>AI</sup> features.
+See https://platform.openai.com/docs/pricing for the pricing of the OpenAI models.
 
-## How to get OpenAI API key
+### Recommendation
 
-1. Create an OpenAI Account:
+Try to use `gpt-4.1-nano` or `gpt-4.1-mini` for the quickest results. If you need more reliable results, use `gpt-5-nano` or `gpt-5-mini`.
 
-    Go to the OpenAI website and sign up (or log in if you already have an account).
+# Jutge<sup>AI</sup> costs
 
-2. Access the API Dashboard:
+In order to use the Jutge<sup>AI</sup> features of the toolkit, we have allocated a small budget to cover the costs associated to pay for the use of the models. This budget is shared by all instructors of Jutge.org. Jutge.org records the costs incurred for each instructor as estimated from input and output token counts. Rate limits are applied to avoid abuse or misuse.
 
-    After logging in, open the **API dashboard** from your account menu.
-
-3. Create an API Key:
-    - Navigate to **API Keys**.
-    - Click **Create new secret key**.
-    - Copy the key immediately (it will not be shown again).
-
-4. Secure Your Key: Copy the generated key immediately.
-
-5. Set `OPENAI_API_KEY` environment variable with the obtained key to use it in the toolkit.This will make models such as `openai/gpt-5-mini` or `openai/gpt-5-nano` available for Jutge<sup>AI</sup> features.
-
-## Other models
-
-We use `multi-llm-ts` package to interface with different models. If you have access to other models supported by this package, you can set the corresponding environment variables as described in the [multi-llm-ts documentation](https://github.com/nbonamy/multi-llm-ts) to use them with Jutge<sup>AI</sup> features.
+Please contact the Jutge.org team if you need to increase your budget.

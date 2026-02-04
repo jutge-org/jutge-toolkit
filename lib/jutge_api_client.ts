@@ -1,5 +1,5 @@
 /**
- * This file has been automatically generated at 2026-02-03T10:04:44.344Z
+ * This file has been automatically generated at 2026-02-04T14:34:32.348Z
  *
  * Name:    Jutge API
  * Version: 2.0.0
@@ -772,6 +772,22 @@ export type SubmissionQuery = {
 export type SubmissionsQuery = SubmissionQuery[]
 
 export type TagsDict = Record<string, string[]>
+
+export type ChatMessage =
+    | { role: string; content: string }
+    | {
+          role: string
+          content: string
+      }
+    | {
+          role: string
+          content: string
+      }
+
+export type ChatPrompt = {
+    model: string
+    messages: ChatMessage[]
+}
 
 export type InstructorEntry = {
     username: string
@@ -2665,6 +2681,7 @@ class Module_instructor {
     readonly problems: Module_instructor_problems
     readonly queries: Module_instructor_queries
     readonly tags: Module_instructor_tags
+    readonly jutgeai: Module_instructor_jutgeai
 
     constructor(root: JutgeApiClient) {
         this.root = root
@@ -2675,6 +2692,7 @@ class Module_instructor {
         this.problems = new Module_instructor_problems(root)
         this.queries = new Module_instructor_queries(root)
         this.tags = new Module_instructor_tags(root)
+        this.jutgeai = new Module_instructor_jutgeai(root)
     }
 }
 
@@ -3446,7 +3464,7 @@ class Module_instructor_problems {
      *
      * 🔐 Authentication: instructor
      * No warnings
-     * This endpoint uses terminal web streaming: It returns an id from which the problem feedback is streamed over /webstreams/<id>.
+     * This endpoint uses terminal web streaming: It returns an id from which the problem feedback is streamed over <URL>/api/webstreams/<id>.
      */
     async create(passcode: string, ifile: File): Promise<WebStream> {
         const [output, ofiles] = await this.root.execute("instructor.problems.create", passcode, [ifile])
@@ -3458,7 +3476,7 @@ class Module_instructor_problems {
      *
      * 🔐 Authentication: instructor
      * No warnings
-     * This endpoint uses terminal web streaming: It returns an id from which the problem feedback is streamed over /webstreams/<id>.
+     * This endpoint uses terminal web streaming: It returns an id from which the problem feedback is streamed over <URL>/api/webstreams/<id>.
      */
     async update(problem_nm: string, ifile: File): Promise<WebStream> {
         const [output, ofiles] = await this.root.execute("instructor.problems.update", problem_nm, [ifile])
@@ -3548,6 +3566,31 @@ class Module_instructor_tags {
      */
     async get(tag: string): Promise<string[]> {
         const [output, ofiles] = await this.root.execute("instructor.tags.get", tag)
+        return output
+    }
+}
+
+/**
+ *
+ * No description yet
+ *
+ */
+class Module_instructor_jutgeai {
+    private readonly root: JutgeApiClient
+
+    constructor(root: JutgeApiClient) {
+        this.root = root
+    }
+
+    /**
+     * Chat with an AI model using a list of messages.
+     *
+     * 🔐 Authentication: instructor
+     * No warnings
+     * Send a conversation (list of system|user|assistant messages) and get the next assistant reply. Models are identified by provider and model name, e.g. openai/gpt-5-nano, google/gemini-2.5-flash-lite. This endpoint uses terminal web streaming: It returns an id from which the chat is streamed over <URL>/api/webstreams/<id>.
+     */
+    async chat(data: ChatPrompt): Promise<WebStream> {
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.chat", data)
         return output
     }
 }
@@ -4298,18 +4341,6 @@ class Module_admin_problems {
     }
 
     /**
-     * Prepare summary for a problem.
-     *
-     * 🔐 Authentication: admin
-     * No warnings
-     *
-     */
-    async prepareProblemSummary(data: { problem_id: string; model: string }): Promise<ProblemSummary> {
-        const [output, ofiles] = await this.root.execute("admin.problems.prepareProblemSummary", data)
-        return output
-    }
-
-    /**
      * Get summary for a problem.
      *
      * 🔐 Authentication: admin
@@ -4342,18 +4373,6 @@ class Module_admin_problems {
      */
     async getProblemsWithoutSummary(): Promise<string[]> {
         const [output, ofiles] = await this.root.execute("admin.problems.getProblemsWithoutSummary", null)
-        return output
-    }
-
-    /**
-     * Prepare solution tags for an abstract problem.
-     *
-     * 🔐 Authentication: admin
-     * No warnings
-     *
-     */
-    async prepareAbstractProblemSolutionTags(data: { problem_nm: string; model: string }): Promise<SolutionTags> {
-        const [output, ofiles] = await this.root.execute("admin.problems.prepareAbstractProblemSolutionTags", data)
         return output
     }
 

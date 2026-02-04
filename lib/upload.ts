@@ -9,6 +9,7 @@ import tui from './tui'
 import { ProblemInfo } from './types'
 import { createFileFromPath, nanoid12, nanoid8, readYaml, toolkitPrefix, writeYamlInDir } from './utils'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
+import { loginToJutge } from './login'
 
 export async function uploadProblemInDirectory(directory: string): Promise<void> {
     //
@@ -138,24 +139,6 @@ async function saveProblemYml(directory: string, info: ProblemInfo, action: 'Cre
     await tui.section(`${action === 'Created' ? 'Creating' : 'Updating'} problem.yml`, async () => {
         await writeYamlInDir(directory, 'problem.yml', info)
         tui.success(`${action} problem.yml`)
-    })
-}
-
-async function loginToJutge(jutge: JutgeApiClient): Promise<string> {
-    // returns email
-
-    return await tui.section('Loging in into Jutge.org', async () => {
-        let email = process.env.JUTGE_EMAIL
-        let password = process.env.JUTGE_PASSWORD
-
-        if (!email || !password) {
-            tui.warning('set JUTGE_EMAIL and JUTGE_PASSWORD environment variables to login without prompt')
-            email = await input({ message: 'Jutge.org email:', default: settings.email || '' })
-            password = await input_password({ message: 'Jutge.org password:' })
-        }
-
-        await jutge.login({ email, password })
-        return email
     })
 }
 

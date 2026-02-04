@@ -1,8 +1,6 @@
 import { Argument, Command } from '@commander-js/extra-typings'
-import { join } from 'path'
-import sharp from 'sharp'
-import { complete, generateImage } from '../lib/ai'
-import { languageKeys, languageNames, proglangKeys } from '../lib/data'
+import { createProblemWithJutgeAI } from '../lib/create-with-jutgeai'
+import { languageKeys, languageNames, proglangKeys, proglangNames } from '../lib/data'
 import {
     addAlternativeSolution,
     addMainFile,
@@ -12,8 +10,7 @@ import {
 import { newProblem } from '../lib/problem'
 import { settings } from '../lib/settings'
 import tui from '../lib/tui'
-import { writeText } from '../lib/utils'
-import { createProblemWithJutgeAI } from '../lib/create-with-jutgeai'
+import { getLoggedInJutgeClient } from '../lib/login'
 
 export const generateCmd = new Command('generate')
     .description('Generate problem elements using JutgeAI')
@@ -33,7 +30,10 @@ generateCmd
     .option('-m, --model <model>', 'AI model to use', settings.defaultModel)
 
     .action(async ({ input, output, directory, model, doNotAsk }) => {
-        await createProblemWithJutgeAI(model, directory, input, output, doNotAsk)
+        const jutge = await getLoggedInJutgeClient()
+        await tui.section('Generating problem with JutgeAI', async () => {
+            await createProblemWithJutgeAI(jutge, model, directory, input, output, doNotAsk)
+        })
     })
 
 generateCmd
@@ -47,8 +47,8 @@ The original statement will be used as the source text for translation.
 
 Provide one or more target language from the following list:
 ${Object.entries(languageNames)
-    .map(([key, name]) => `  - ${key}: ${name}`)
-    .join('\n')}
+            .map(([key, name]) => `  - ${key}: ${name}`)
+            .join('\n')}
 
 The added translations will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -58,10 +58,11 @@ The added translations will be saved in the problem directory overwrite possible
     .option('-m, --model <model>', 'AI model to use', settings.defaultModel)
 
     .action(async (languages, { directory, model }) => {
+        const jutge = await getLoggedInJutgeClient()
         const problem = await newProblem(directory)
         await tui.section('Generating statement translations', async () => {
             for (const language of languages) {
-                await addStatementTranslation(model, problem, language)
+                await addStatementTranslation(jutge, model, problem, language)
             }
         })
     })
@@ -77,8 +78,8 @@ The golden solution will be used as a reference for generating the alternatives.
 
 Provide one or more target programming languages from the following list:
 ${Object.entries(languageNames)
-    .map(([key, name]) => `  - ${key}: ${name}`)
-    .join('\n')}
+            .map(([key, name]) => `  - ${key}: ${name}`)
+            .join('\n')}
 
 The added solutions will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -88,10 +89,15 @@ The added solutions will be saved in the problem directory overwrite possible ex
     .option('-m, --model <model>', 'AI model to use', settings.defaultModel)
 
     .action(async (proglangs, { directory, model }) => {
+        const jutge = await getLoggedInJutgeClient()
         const problem = await newProblem(directory)
-        for (const proglang of proglangs) {
-            await addAlternativeSolution(model, problem, proglang)
-        }
+        await tui.section('Generating statement translations', async () => {
+            for (const proglang of proglangs) {
+                await tui.section(`Generating solution in ${proglangNames[proglang]}`, async () => {
+                    await addAlternativeSolution(jutge, model, problem, proglang)
+                })
+            }
+        })
     })
 
 generateCmd
@@ -107,8 +113,8 @@ The main file for the golden solution will be used as a reference for generating
 
 Provide one or more target programming languages from the following list:
 ${Object.entries(languageNames)
-    .map(([key, name]) => `  - ${key}: ${name}`)
-    .join('\n')}
+            .map(([key, name]) => `  - ${key}: ${name}`)
+            .join('\n')}
 
 The added main files will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -118,9 +124,10 @@ The added main files will be saved in the problem directory overwrite possible e
     .option('-m, --model <model>', 'AI model to use', settings.defaultModel)
 
     .action(async (proglangs, { directory, model }) => {
+        const jutge = await getLoggedInJutgeClient()
         const problem = await newProblem(directory)
         for (const proglang of proglangs) {
-            await addMainFile(model, problem, proglang)
+            await addMainFile(jutge, model, problem, proglang)
         }
     })
 
@@ -138,14 +145,15 @@ generateCmd
     .option('-m, --model <model>', 'AI model to use', settings.defaultModel)
 
     .action(async ({ efficiency, hard, random, all, directory, model, output }) => {
+        const jutge = await getLoggedInJutgeClient()
         const problem = await newProblem(directory)
         await tui.section('Generating test cases generators', async () => {
-            if (all || random) await generateTestCasesGenerator(model, problem, output, 'random')
-            if (all || hard) await generateTestCasesGenerator(model, problem, output, 'hard')
-            if (all || efficiency) await generateTestCasesGenerator(model, problem, output, 'efficiency')
+            if (all || random) await generateTestCasesGenerator(jutge, model, problem, output, 'random')
+            if (all || hard) await generateTestCasesGenerator(jutge, model, problem, output, 'hard')
+            if (all || efficiency) await generateTestCasesGenerator(jutge, model, problem, output, 'efficiency')
         })
     })
-
+/*
 generateCmd
     .command('award.png')
     .summary('Generate award.png using JutgeAI')
@@ -216,3 +224,4 @@ The new message will be saved as award.html in the problem directory, overriding
         await writeText(output, message)
         tui.success(`Added ${output}`)
     })
+*/

@@ -4,8 +4,9 @@ import Handlebars from 'handlebars'
 import checkboxPlus from 'inquirer-checkbox-plus-plus'
 import { join } from 'path'
 import YAML from 'yaml'
-import { ChatBot, cleanMardownCodeString, estimatePowerConsumption } from './ai'
+import { ChatBot, cleanMardownCodeString, estimatePowerConsumption } from './aiclient'
 import { languageNames, proglangNames } from './data'
+import type { JutgeApiClient } from './jutge_api_client'
 import { getPromptForProglang, getTitleFromStatement } from './helpers'
 import { settings } from './settings'
 import tui from './tui'
@@ -35,6 +36,7 @@ const sampleTestCasesPrompt = await readText(join(promptsDir, 'creators', 'sampl
 const privateTestCasesPrompt = await readText(join(promptsDir, 'creators', 'private-test-cases.txt'))
 
 export async function createProblemWithJutgeAI(
+    jutge: JutgeApiClient,
     model: string,
     directory: string,
     inputPath: string | undefined,
@@ -49,13 +51,15 @@ export async function createProblemWithJutgeAI(
     }
 
     const spec = await getSpecification(inputPath, outputPath, doNotAsk)
-    const generator = new ProblemGenerator(spec, model)
+    const generator = new ProblemGenerator(spec, jutge, model)
     await generator.run()
     await generator.save(directory)
     await createGitIgnoreFile(directory)
     tui.success(`Created problem ${tui.hyperlink(directory)}`)
     const treeFiles = tree(directory, { allFiles: true, dirsFirst: false })
-    console.log(treeFiles)
+    tui.print(treeFiles)
+    tui.warning(`Estimated cost: 0.11 €`)
+    tui.warning(`Estimated emissions: 0.000001 g CO₂`)
 }
 
 async function getSpecification(
@@ -65,9 +69,12 @@ async function getSpecification(
 ): Promise<Specification> {
     let spec: Specification
     if (inputPath) {
-        tui.action(`Reading specification from ${inputPath}`)
-        const data = await readYaml(inputPath)
-        spec = Specification.parse(data)
+        let data: any
+        spec = await tui.section(`Reading specification from ${inputPath}`, async () => {
+            data = await readYaml(inputPath)
+            return Specification.parse(data)
+        })
+        tui.yaml(spec)
     } else {
         doNotAsk = true
         spec = {
@@ -188,10 +195,10 @@ class ProblemGenerator {
     private problemPrivateTests2: string = ''
     private problemReadme: string = ''
 
-    constructor(info: Specification, model: string) {
+    constructor(info: Specification, jutge: JutgeApiClient, model: string) {
         this.model = model
         this.spec = info
-        this.bot = new ChatBot(model, systemPrompt)
+        this.bot = new ChatBot(jutge, model, systemPrompt)
     }
 
     async generateStatement(): Promise<string> {
@@ -271,6 +278,7 @@ class ProblemGenerator {
                     const prompt = Handlebars.compile(promptTemplate)({ statement })
                     const answer = cleanMardownCodeString(await this.bot.complete(prompt))
                     generators[type] = answer
+                    this.bot.forgetLastInteraction()
                 })
             }
             return generators
@@ -321,11 +329,11 @@ ${YAML.stringify(this.spec, null, 4)}
 
 ## Model information
 
-\`\`\`yaml
-${YAML.stringify(this.bot.modelInformation(), null, 2)}
-\`\`\`
+Model name: ${this.model}
 
 ## Estimated cost
+
+TODO!
 
 The following information is based on estimations from token counts and do not reflect the actual costs incurred. Using GPT-5 pricing as reference.
 
@@ -343,15 +351,16 @@ The following information is based on estimations from token counts and do not r
     }
 
     async run() {
-        await tui.section('Generating problem with JutgeAI', async () => {
-            await this.bot.init()
+        await tui.section(`Generating problem with JutgeAI using ${this.model}`, async () => {
             this.problemStatement = await this.generateStatement()
-            this.problemSampleTests1 = await this.generateSampleTests()
-            this.bot.forgetLastInteraction() // forget first sample tests
-            this.problemSampleTests2 = await this.generateSampleTests()
-            this.problemPrivateTests1 = await this.generatePrivateTests()
-            this.bot.forgetLastInteraction() // forget first private tests
-            this.problemPrivateTests2 = await this.generatePrivateTests()
+            await tui.section(`Generating testcases`, async () => {
+                this.problemSampleTests1 = await this.generateSampleTests()
+                this.bot.forgetLastInteraction() // forget first sample tests
+                this.problemSampleTests2 = await this.generateSampleTests()
+                this.problemPrivateTests1 = await this.generatePrivateTests()
+                this.bot.forgetLastInteraction() // forget first private tests
+                this.problemPrivateTests2 = await this.generatePrivateTests()
+            })
             this.problemMoreSolutions = await this.generateSolutions() // these are forgotten inside
             this.bot.forgetLastInteraction() // forget private tests
             this.bot.forgetLastInteraction() // forget sample tests

@@ -17,9 +17,9 @@ A powerful command-line toolkit for creating and managing programming problems o
 
 The toolkit requires [Bun](https://bun.sh) as a JavaScript runtime. Follow the installation guides for your platform:
 
-- **[Linux Installation Guide](docs/linux-installation.md)**
-- **[macOS Installation Guide](docs/macos-installation.md)**
-- **[Windows Installation Guide](docs/windows-installation.md)**
+- **[Linux Installation Guide](docs/install-linux.md)**
+- **[macOS Installation Guide](docs/install-macos.md)**
+- **[Windows Installation Guide](docs/install-windows.md)**
 
 ### Quick Install
 

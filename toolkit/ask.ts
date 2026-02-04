@@ -1,6 +1,6 @@
 import { Command } from '@commander-js/extra-typings'
 import { glob } from 'fs/promises'
-import { complete } from '../lib/ai'
+import { complete } from '../lib/aiclient'
 import { settings } from '../lib/settings'
 import tui from '../lib/tui'
 import { projectDir, readTextInDir } from '../lib/utils'

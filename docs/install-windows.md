@@ -57,33 +57,6 @@ This command will show which tools are installed on your system.
     2. Extract to a folder (e.g., `C:\w64devkit`)
     3. Run `w64devkit.exe` to open a terminal with GCC available
 
-## Setting Up AI Features (Optional)
-
-If you want to use JutgeAI features to generate problems and content, you need to set up API keys:
-
-### For Google Gemini (Free for UPC users):
-
-1. Visit https://aistudio.google.com/ and sign in
-2. Click "Get API key" in the sidebar
-3. Click "Create API key"
-4. Copy the generated key
-5. Set the environment variable permanently:
-
-    ```powershell
-    [System.Environment]::SetEnvironmentVariable('GEMINI_API_KEY', 'your-key-here', 'User')
-    ```
-
-### For OpenAI (Paid):
-
-1. Create an account at https://platform.openai.com/
-2. Navigate to API Keys section
-3. Create a new secret key
-4. Set the environment variable permanently:
-
-    ```powershell
-    [System.Environment]::SetEnvironmentVariable('OPENAI_API_KEY', 'your-key-here', 'User')
-    ```
-
 ## Troubleshooting
 
 **Command not found after installation:**

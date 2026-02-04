@@ -1,3 +1,4 @@
+dir-resolved.json
 __pycache__/
 tests/problems/**/*.cor
 tests/problems/**/*.exe
