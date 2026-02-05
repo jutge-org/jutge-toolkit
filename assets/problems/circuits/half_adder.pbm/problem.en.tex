@@ -1,0 +1,27 @@
+\Problem{Half adder}
+
+
+\Statement
+Design a \textbf{half adder} that is a circuit that performs the addition of
+two binary digits, \lstinline|a| and \lstinline|b|. It outputs the \lstinline|sum| and the output \lstinline|carry|.
+
+\Specification
+
+\begin{lstlisting}[language=verilog]
+module halfadder(a, b, sum, carry);
+    input a, b;
+    output sum, carry;
+\end{lstlisting}
+
+
+\Input
+\begin{itemize}
+\item \lstinline|a| and \lstinline|b| are the two input values.
+\end{itemize}
+
+\Output
+\begin{itemize}
+\item \lstinline|sum| is the least significant digit of $a + b$.
+
+\item \lstinline|carry| is the output carry, i.e., the most significant digit of $a + b$.
+\end{itemize}

@@ -1,0 +1,26 @@
+\Problem{Full adder}
+%\UseVerilog
+
+\Statement
+Design a \textbf{full adder}. A full adder is a circuit that performs
+a 1-bit addition receiving an input carry and generating an
+output carry.
+
+\Specification
+\begin{verbatim}
+module full_adder(a, b, cin, sum, cout);
+   input a, b, cin;
+   output sum, cout;
+\end{verbatim}
+
+\Input
+\begin{itemize}
+\item \lstinline|a| and \lstinline|b| are the two inputs.
+\item \lstinline|cin| is the input carry.
+\end{itemize}
+
+\Output
+\begin{itemize}
+\item \lstinline|sum| is the sum of the two bits and the input carry.
+\item \lstinline|cout| is the output carry.
+\end{itemize}
