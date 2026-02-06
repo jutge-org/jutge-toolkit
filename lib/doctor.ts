@@ -417,19 +417,6 @@ export async function checkPandoc(): Promise<void> {
     }
 }
 
-export async function checkAIEnvVars(): Promise<void> {
-    await nothing()
-    const vars = ['OPENAI_API_KEY', 'GEMINI_API_KEY']
-    for (const v of vars) {
-        if (process.env[v]) {
-            tui.success(`${v} environment variable is set`)
-        } else {
-            tui.warning(`${v} environment variable is not set`)
-            tui.print(`You will not be able to use related AI models`)
-        }
-    }
-}
-
 export async function checkTerminal(): Promise<void> {
     await nothing()
     if (process.stdout.isTTY) {
