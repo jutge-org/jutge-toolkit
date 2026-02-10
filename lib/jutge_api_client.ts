@@ -1,5 +1,5 @@
 /**
- * This file has been automatically generated at 2026-02-10T14:32:33.136Z
+ * This file has been automatically generated at 2026-02-10T14:36:46.101Z
  *
  * Name:    Jutge API
  * Version: 2.0.0
@@ -786,7 +786,20 @@ export type ChatMessage =
 
 export type ChatPrompt = {
     model: string
+    label: string
     messages: ChatMessage[]
+    addUsage: boolean
+}
+
+export type LlmUsageEntry = {
+    id: string
+    created_at: string | string | string | number
+    model: string
+    label: string
+    duration: number
+    input_tokens: number
+    output_tokens: number
+    finish_reason: string
 }
 
 export type InstructorEntry = {
@@ -3583,14 +3596,38 @@ class Module_instructor_jutgeai {
     }
 
     /**
+     * Get the list of supported models.
+     *
+     * 🔐 Authentication: instructor
+     * No warnings
+     *
+     */
+    async supportedModels(): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.supportedModels", null)
+        return output
+    }
+
+    /**
      * Chat with an AI model using a list of messages.
      *
      * 🔐 Authentication: instructor
      * No warnings
-     * Send a conversation (list of system|user|assistant messages) and get the next assistant reply. Models are identified by provider and model name, e.g. openai/gpt-5-nano, google/gemini-2.5-flash-lite. This endpoint uses terminal web streaming: It returns an id from which the chat is streamed over <URL>/api/webstreams/<id>.
+     * Send a conversation (list of system|user|assistant messages) and get the next assistant reply. Models are listed in the `supportedModels` endpoint. This endpoint uses terminal web streaming: It returns an id from which the chat is streamed over <URL>/api/webstreams/<id>. If `addUsage` is true, the usage of the model will be added at the end of the response as a JSON object between `---USAGE_JSON_START---` and `---USAGE_JSON_END---`.
      */
     async chat(data: ChatPrompt): Promise<WebStream> {
         const [output, ofiles] = await this.root.execute("instructor.jutgeai.chat", data)
+        return output
+    }
+
+    /**
+     * Get audit usage of LLM models.
+     *
+     * 🔐 Authentication: instructor
+     * No warnings
+     *
+     */
+    async getLlmUsage(): Promise<LlmUsageEntry[]> {
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.getLlmUsage", null)
         return output
     }
 }
