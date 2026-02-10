@@ -3,25 +3,31 @@ import { exists, mkdir } from 'fs/promises'
 import Handlebars from 'handlebars'
 import checkboxPlus from 'inquirer-checkbox-plus-plus'
 import { join } from 'path'
+import tree from 'tree-node-cli'
 import YAML from 'yaml'
-import { ChatBot, cleanMardownCodeString, estimatePowerConsumption } from './aiclient'
+import { ChatBot, cleanMardownCodeString, llmEstimates } from './aiclient'
 import { languageNames, proglangNames } from './data'
-import type { JutgeApiClient } from './jutge_api_client'
 import { getPromptForProglang, getTitleFromStatement } from './helpers'
+import type { JutgeApiClient, LlmUsageEntry } from './jutge_api_client'
 import { settings } from './settings'
 import tui from './tui'
 import { Specification } from './types'
 import {
     createGitIgnoreFile,
-    nothing,
+    nanoid12,
     projectDir,
     readText,
+    readTextInDir,
     readYaml,
     writeTextInDir,
     writeYaml,
     writeYamlInDir,
 } from './utils'
-import tree from 'tree-node-cli'
+
+import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+
+dayjs.extend(duration)
 
 const promptsDir = join(projectDir(), 'assets', 'prompts')
 
@@ -51,15 +57,15 @@ export async function createProblemWithJutgeAI(
     }
 
     const spec = await getSpecification(inputPath, outputPath, doNotAsk)
-    const generator = new ProblemGenerator(spec, jutge, model)
+    const generator = new ProblemGenerator(spec, jutge, model, directory)
     await generator.run()
     await generator.save(directory)
     await createGitIgnoreFile(directory)
-    tui.success(`Created problem ${tui.hyperlink(directory)}`)
+    const readme = await readTextInDir(directory, 'README.md')
+    await tui.markdown(readme)
     const treeFiles = tree(directory, { allFiles: true, dirsFirst: false })
     tui.print(treeFiles)
-    tui.warning(`Estimated cost: 0.11 €`)
-    tui.warning(`Estimated emissions: 0.000001 g CO₂`)
+    tui.success(`Created problem ${tui.hyperlink(directory)}`)
 }
 
 async function getSpecification(
@@ -183,6 +189,9 @@ class ProblemGenerator {
     private model: string
     private spec: Specification
     private bot: ChatBot
+    private jutge: JutgeApiClient
+    private label: string
+    private dir: string
 
     // generated problem parts
     private problemStatement: string = ''
@@ -195,13 +204,17 @@ class ProblemGenerator {
     private problemPrivateTests2: string = ''
     private problemReadme: string = ''
 
-    constructor(info: Specification, jutge: JutgeApiClient, model: string) {
+    constructor(info: Specification, jutge: JutgeApiClient, model: string, dir: string) {
+        this.jutge = jutge
         this.model = model
         this.spec = info
-        this.bot = new ChatBot(jutge, model, systemPrompt)
+        this.label = `create-problem-${nanoid12()}`
+        this.bot = new ChatBot(jutge, model, this.label, systemPrompt)
+        this.dir = dir
     }
 
     async generateStatement(): Promise<string> {
+        tui.print(`Chat label: ${this.label}`)
         return await tui.section(
             `Generating problem statement in ${languageNames[this.spec.original_language]}`,
             async () => {
@@ -287,7 +300,38 @@ class ProblemGenerator {
 
     async generateReadme(): Promise<string> {
         return tui.section('Generating README.md', async () => {
-            await nothing()
+
+            const llmEntries: LlmUsageEntry[] = await this.jutge.instructor.jutgeai.getLlmUsage()
+
+            const total = {
+                inputTokens: 0,
+                outputTokens: 0,
+                duration: 0,
+                priceEurTax: 0,
+                wattHours: 0,
+                co2Grams: 0,
+                trees: 0,
+                brainHours: 0,
+                carKm: 0,
+                waterLiters: 0,
+            }
+            for (const entry of llmEntries) {
+                if (entry.label === this.label) {
+                    const estimation = await llmEstimates(entry.input_tokens, entry.output_tokens, entry.model)
+                    total.inputTokens += entry.input_tokens
+                    total.outputTokens += entry.output_tokens
+                    total.duration += entry.duration
+                    total.priceEurTax += estimation.priceEurTax
+                    total.wattHours += estimation.wattHours
+                    total.co2Grams += estimation.co2Grams
+                    total.trees += estimation.trees
+                    total.brainHours += estimation.brainHours
+                    total.carKm += estimation.carKm
+                    total.waterLiters += estimation.waterLiters
+                }
+            }
+
+
             const readme = `
 # Problem information
 
@@ -331,19 +375,24 @@ ${YAML.stringify(this.spec, null, 4)}
 
 Model name: ${this.model}
 
-## Estimated cost
+## Audit information
 
-TODO!
+Chat label: ${this.label}
 
-The following information is based on estimations from token counts and do not reflect the actual costs incurred. Using GPT-5 pricing as reference.
+## Estimated cost of LLM usage
 
-- Total input tokens:   ${this.bot.totalInputTokens}
-- Total output tokens:  ${this.bot.totalOutputTokens}
-- Total input cost:     ${this.bot.totalInputCost.toFixed(6)} USD
-- Total output cost:    ${this.bot.totalOutputCost.toFixed(6)} USD
-- Total estimated cost: ${(this.bot.totalInputCost + this.bot.totalOutputCost).toFixed(6)} USD
-- Energy:               ${estimatePowerConsumption(this.bot.totalInputTokens, this.bot.totalOutputTokens).wattHours.toFixed(6)} Wh
-- CO₂ emissions:        ${estimatePowerConsumption(this.bot.totalInputTokens, this.bot.totalOutputTokens).co2Grams.toFixed(6)} g CO₂
+The following information is based on **estimations** from token counts and used models.
+
+- Total duration:               ${dayjs.duration(total.duration * 1000).format('HH:mm:ss')} 
+- Total input tokens:           ${total.inputTokens}
+- Total output tokens:          ${total.outputTokens}
+- Total cost incl taxes:        ${total.priceEurTax.toFixed(6)} €
+- Water usage:                  ${total.waterLiters.toFixed(6)} l
+- Energ consumption:            ${total.wattHours.toFixed(6)} Wh
+- CO₂ emissions:                ${total.co2Grams.toFixed(6)} g CO₂
+- Equivalent trees:             ${total.trees.toFixed(6)} trees
+- Equivalent human brain time:  ${dayjs.duration(total.brainHours * 1000 * 3600).format('HH:mm:ss')} 
+- Equivalent car distance:      ${total.carKm.toFixed(6)} km
 
 `
             return readme
