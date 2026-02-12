@@ -103,9 +103,9 @@ export class RunHaskell_Compiler extends Compiler {
         const script2 = await readText(join(directory, scriptPath2))
         let mergedScript = script1
         mergedScript += '\n\n\nmain = do\n'
-        for (const line of script2.split('\n')) {
+        for (const line of script2.trim().split('\n')) {
             if (line.trim() === '') {
-                mergedScript += '\n'
+                mergedScript += '    print ()\n'   // The "()" is because the drive does so
             } else if (line.startsWith('let')) {
                 mergedScript += `    ${line}\n`
             } else {
