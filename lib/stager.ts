@@ -251,7 +251,7 @@ export class Stager {
                 goldenSolution = 'solution.v'
             } else if (compilers === 'RunPython') {
                 goldenSolution = 'solution.py'
-            } else if (compilers === 'RunHaskell' || compilers === 'GHC' || solution === 'Haskell') {
+            } else if (compilers === 'RunHaskell' || compilers === 'GHC' || solution === 'Haskell' || solution === 'GHC') {
                 goldenSolution = 'solution.hs'
             } else if (compilers === 'RunClojure' || compilers === 'Clojure') {
                 goldenSolution = 'solution.clj'

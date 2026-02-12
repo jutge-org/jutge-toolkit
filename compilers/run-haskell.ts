@@ -27,7 +27,8 @@ export class RunHaskell_Compiler extends Compiler {
     }
 
     flags1(): string {
-        return ''
+        // we disable some warnings for backward compatibility with old Haskell code
+        return '-Wno-empty-enumerations -Wno-tabs -Wno-x-partial'
     }
 
     flags2(): string {
@@ -48,14 +49,14 @@ export class RunHaskell_Compiler extends Compiler {
         // If there are compilation errors, they'll be shown. If it loads successfully and just exits, the code compiles.
         // With execa, it seems we have to remove the quotes around :q
 
-        tui.command(`ghci -e ':q' ${sourcePath}`)
+        tui.command(`ghci -e ':q' ${this.flags1()} ${sourcePath}`)
 
         const { exitCode } = await execa({
             reject: false,
             stderr: 'inherit',
             stdout: 'inherit',
             cwd: directory,
-        })`ghci -e :q ${sourcePath}`
+        })`ghci -e :q ${this.flags1().split(' ')} ${sourcePath}`
 
         if (exitCode !== 0) {
             throw new Error(`Compilation failed for ${sourcePath}`)
@@ -81,14 +82,13 @@ export class RunHaskell_Compiler extends Compiler {
         tui.command(`merge ${sourcePath} ${inputPath} > ${newSourcePath}`)
         await this.mergeScripts(directory, sourcePath, inputPath, newSourcePath)
 
-        tui.command(`runhaskell ${newSourcePath} > ${outputPath}`)
-
+        tui.command(`runhaskell ${this.flags1()} ${newSourcePath} > ${outputPath}`)
         const { exitCode } = await execa({
             reject: false,
             stdout: { file: join(directory, outputPath) },
             stderr: 'inherit',
             cwd: directory,
-        })`runhaskell ${newSourcePath}`
+        })`runhaskell ${this.flags1().split(' ')} ${newSourcePath}`
 
         if (exitCode !== 0) throw new Error(`Execution failed for ${newSourcePath}`)
     }
