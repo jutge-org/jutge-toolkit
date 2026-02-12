@@ -2,8 +2,13 @@ import open, { openApp, apps } from 'open'
 import { rings } from '@dicebear/collection'
 import { createAvatar } from '@dicebear/core'
 import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+dayjs.extend(duration)
+dayjs.extend(relativeTime)
 import { execa } from 'execa'
-import { cp, exists, glob, mkdir, rm, writeFile } from 'fs/promises'
+import { cp, exists, glob, mkdir, rm, stat, writeFile } from 'fs/promises'
 import os from 'os'
 import { join, resolve } from 'path'
 import { invert } from 'radash'
@@ -92,6 +97,7 @@ export class Stager {
     }
 
     async stageLanguage_Std(language: string) {
+        await this.checkMTimes_Std(language)
         await this.prepareStatements_Std(language)
         await this.computeCodeMetrics(language)
         await this.stageProblemFiles_Std(language)
@@ -173,7 +179,7 @@ export class Stager {
                 const files = await Array.fromAsync(glob(`*`, { cwd: this.directory }))
                 for (const file of files) {
                     if (this.doNotCopy(file, language)) continue
-                    await cp(join(this.directory, file), join(langDir, file), { recursive: true })
+                    await cp(join(this.directory, file), join(langDir, file), { recursive: true, preserveTimestamps: true })
                 }
             }
             tui.success(`Found languages: ${languages.join(', ')}`)
@@ -194,7 +200,7 @@ export class Stager {
                 const files = await Array.fromAsync(glob(`*`, { cwd: incommingPbmDirWithLang }))
                 for (const file of files) {
                     if (this.doNotCopy(file, language)) continue
-                    await cp(join(incommingPbmDirWithLang, file), join(langDir, file), { recursive: true })
+                    await cp(join(incommingPbmDirWithLang, file), join(langDir, file), { recursive: true, preserveTimestamps: true })
                 }
             }
             tui.success(`Found languages: ${languages.join(', ')}`)
@@ -288,6 +294,88 @@ export class Stager {
 
             tui.success(`Golden solution: ${goldenSolution}`)
             return goldenSolution
+        })
+
+    }
+
+    private formatTimeMismatch(
+        olderName: string,
+        olderMs: number,
+        newerName: string,
+        newerMs: number,
+    ): string[] {
+        const diffMs = newerMs - olderMs
+        const humanDiff = dayjs.duration(diffMs).humanize()
+        return [
+            `- ${newerName} is ${humanDiff} newer than ${olderName}`,
+        ]
+    }
+
+    private async checkMTimes_Std(language: string) {
+        await tui.section('Checking test cases (.inp/.cor pairing and .cor after .inp and solution)', async () => {
+            const dir = this.workDirLang
+            const goldenSolution = await this.findGoldenSolution(language)
+            const goldenPath = join(dir, goldenSolution)
+
+            const corFiles = await Array.fromAsync(glob('*.cor', { cwd: dir }))
+            const inpFiles = await Array.fromAsync(glob('*.inp', { cwd: dir }))
+            const errors: string[] = []
+
+            const corBases = new Set(corFiles.map((f) => f.replace(/\.cor$/, '')))
+
+            for (const inpFile of inpFiles) {
+                const base = inpFile.replace(/\.inp$/, '')
+                if (!corBases.has(base)) {
+                    errors.push(`- ${inpFile}: no corresponding .cor file found`)
+                }
+            }
+
+            let goldenMtimeMs: number
+            try {
+                goldenMtimeMs = (await stat(goldenPath)).mtimeMs
+            } catch {
+                errors.push(`- Golden solution not found or not readable: ${goldenPath}`)
+                goldenMtimeMs = 0
+            }
+
+            for (const corFile of corFiles) {
+                const base = corFile.replace(/\.cor$/, '')
+                const inpFile = `${base}.inp`
+                const corPath = join(dir, corFile)
+                const inpPath = join(dir, inpFile)
+
+                let corMtimeMs: number
+                try {
+                    corMtimeMs = (await stat(corPath)).mtimeMs
+                } catch {
+                    errors.push(`- ${corFile}: could not stat`)
+                    continue
+                }
+
+                try {
+                    const inpMtimeMs = (await stat(inpPath)).mtimeMs
+                    if (corMtimeMs <= inpMtimeMs) {
+                        errors.push(...this.formatTimeMismatch(corFile, corMtimeMs, inpFile, inpMtimeMs))
+                    }
+                } catch {
+                    errors.push(`${corFile}: corresponding input ${inpFile} not found or not readable`)
+                }
+
+                if (goldenMtimeMs > 0 && corMtimeMs <= goldenMtimeMs) {
+                    errors.push(...this.formatTimeMismatch(corFile, corMtimeMs, goldenSolution, goldenMtimeMs))
+                }
+            }
+
+            if (errors.length > 0) {
+                tui.error('Check failed: each .inp must have a .cor, and .cor files must be generated after their .inp and the golden solution.')
+                for (const line of errors) {
+                    tui.error(line)
+                }
+                tui.warning('Suggestion: Use `jtk make cor` to generate the .cor files again.')
+                throw new Error('File order check failed. See report above.')
+            }
+
+            tui.success('All .inp have a .cor and all .cor files seem newer than their .inp and the golden solution')
         })
     }
 
@@ -420,7 +508,7 @@ export class Stager {
         const files = await Array.fromAsync(glob('*', { cwd: this.workDirLang }))
         for (const file of files) {
             if (accept(file)) {
-                await cp(join(this.workDirLang, file), join(dst, file))
+                await cp(join(this.workDirLang, file), join(dst, file), { preserveTimestamps: true })
             }
         }
         await cp(join(this.workDirLang, `problem.${language}.yml`), join(dst, `problem.yml`))
