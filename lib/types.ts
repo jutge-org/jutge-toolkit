@@ -233,3 +233,21 @@ function getDefinedCompilerIds(): string[] {
         'Zig',
     ]
 }
+
+
+// type of the credentials.json file of jutge-cli
+
+export const Credential = z.object({
+    email: z.string(),
+    user_uid: z.string(),
+    token: z.string().optional(),
+    expiration: z.iso.datetime().optional(),
+    savedPassword: z.string().optional(),
+    active: z.boolean().optional(),
+});
+
+export type Credential = z.infer<typeof Credential>;
+
+export const Credentials = z.record(z.string(), Credential);
+
+export type Credentials = z.infer<typeof Credentials>;

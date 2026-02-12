@@ -210,6 +210,18 @@ jtk upload
 
 If this is a new problem, it will be created on Jutge.org and a `problem.yml` file will be generated with the problem ID. For subsequent uploads, the problem will be updated. Do not modify `problem.yml`!
 
+### How to log in to Jutge.org
+
+Logging in to Jutge.org is necessary to upload problems to the platform or to use Jutge<sup>AI</sup> features.
+
+You can log in to Jutge.org in any of the following ways:
+
+- Use the `JUTGE_TOKEN` environment variable to directoly log in with a token.
+- Use the `JUTGE_EMAIL` and `JUTGE_PASSWORD` environment variables to log in with email and password.
+- Use the credentials file of [jutge-cli](https://github.com/jutge-org/jutge-cli) to log in with email and password.
+
+If the toolkit does not find such credentials, it will prompt for an email and password when needed.
+
 ## Common Commands Reference
 
 Here's a quick reference of the most commonly used commands:

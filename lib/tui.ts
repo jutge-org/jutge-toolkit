@@ -106,11 +106,11 @@ function gray(text: string) {
     print(chalk.gray(text))
 }
 
-function print(text: string = ''): void {
+function print(text: string = '', endline: boolean = true): void {
     const lines = text.split('\n')
     for (const line of lines) {
         const whitespace = (verticalLine + ' '.repeat(spacesPerLevel - 1)).repeat(level)
-        process.stdout.write(whitespace + line + '\n')
+        process.stdout.write(whitespace + line + (endline ? '\n' : ''))
     }
 }
 
@@ -149,6 +149,18 @@ function fileLink(dir: string, path?: string): string {
     }
 }
 
+function tryTo(text: string) {
+    print(chalk.blue(text), false)
+}
+
+function trySuccess() {
+    process.stdout.write(" ✅ \n")
+}
+
+function tryFailure() {
+    process.stdout.write(" ❌ \n")
+}
+
 export default {
     getIndentationLevel,
     getIndentationLevelAsString,
@@ -171,4 +183,7 @@ export default {
     json,
     image,
     hyperlink: fileLink,
+    tryTo,
+    trySuccess,
+    tryFailure,
 }

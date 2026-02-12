@@ -1,15 +1,13 @@
 // TODO: improve the use of the email to ensure the user is the owner of the problem
 
-import { input, password as input_password } from '@inquirer/prompts'
 import { exists, glob, mkdir } from 'fs/promises'
 import { basename, join, normalize, resolve, sep } from 'path'
 import { JutgeApiClient } from './jutge_api_client'
-import { settings } from './settings'
+import { getLoggedInJutgeClient } from './login'
 import tui from './tui'
 import { ProblemInfo } from './types'
 import { createFileFromPath, nanoid12, nanoid8, readYaml, toolkitPrefix, writeYamlInDir } from './utils'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
-import { loginToJutge } from './login'
 
 export async function uploadProblemInDirectory(directory: string): Promise<void> {
     //
@@ -80,8 +78,9 @@ function displayProblemInfo(info: ProblemInfo): void {
 
 async function createProblemInJutgeOrg(directory: string, zipFilePath: string): Promise<ProblemInfo> {
     return await tui.section('Creating problem in Jutge.org', async () => {
-        const jutge = new JutgeApiClient()
-        const email = await loginToJutge(jutge)
+        const jutge = await getLoggedInJutgeClient()
+        const profile = await jutge.student.profile.get()
+        const email = profile.email
 
         const info: ProblemInfo = {
             problem_nm: '',
@@ -117,8 +116,7 @@ async function updateProblemInJutgeOrg(
     zipFilePath: string,
 ): Promise<ProblemInfo> {
     return await tui.section('Updating problem in Jutge.org', async () => {
-        const jutge = new JutgeApiClient()
-        await loginToJutge(jutge)
+        const jutge = await getLoggedInJutgeClient()
 
         await tui.section('Updating problem in Jutge.org', async () => {
             const file = await createFileFromPath(zipFilePath, 'application/zip')
