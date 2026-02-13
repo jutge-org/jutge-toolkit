@@ -301,10 +301,11 @@ For platform-specific troubleshooting, refer to your installation guide.
 - You may need to convert your files to the new formats. Here are some examples:
 
     ```bash
-    epstopdf file.eps -o file.pdf       # Convert EPS to PDF
-    pdf2svg file.pdf file.svg           # Convert PDF to SVG
-    fig2dev -L svg file.fig file.svg    # Convert FIG to SVG
-    fig2dev -L pdf file.fig file.pdf    # Convert FIG to PDF
+    epstopdf file.eps -o file.pdf               # Convert EPS to PDF
+    pdf2svg file.pdf file.svg                   # Convert PDF to SVG
+    fig2dev -L svg file.fig file.svg            # Convert FIG to SVG
+    fig2dev -L pdf file.fig file.pdf            # Convert FIG to PDF
+    rsvg-convert -f pdf -o file.pdf file.svg    # Convert SVG to PDF
     ```
 
     Or use https://convertio.co to convert between many formats online or ImageMagick to convert between formats locally.
