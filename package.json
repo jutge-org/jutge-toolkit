@@ -84,6 +84,7 @@
         "pretty-ms": "^9.3.0",
         "radash": "^12.1.1",
         "semver": "^7.7.3",
+        "sharp": "^0.34.5",
         "terminal-link": "^5.0.0",
         "tree-node-cli": "^1.6.0",
         "yaml": "^2.8.2",

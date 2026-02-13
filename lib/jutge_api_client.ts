@@ -1,5 +1,5 @@
 /**
- * This file has been automatically generated at 2026-02-10T14:36:46.101Z
+ * This file has been automatically generated at 2026-02-13T14:52:00.945Z
  *
  * Name:    Jutge API
  * Version: 2.0.0
@@ -800,6 +800,13 @@ export type LlmUsageEntry = {
     input_tokens: number
     output_tokens: number
     finish_reason: string
+}
+
+export type CreateImageInput = {
+    model: string
+    label: string
+    prompt: string
+    size: string
 }
 
 export type InstructorEntry = {
@@ -3608,6 +3615,18 @@ class Module_instructor_jutgeai {
     }
 
     /**
+     * Get the list of supported image models.
+     *
+     * 🔐 Authentication: instructor
+     * No warnings
+     *
+     */
+    async supportedImageModels(): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.supportedImageModels", null)
+        return output
+    }
+
+    /**
      * Chat with an AI model using a list of messages.
      *
      * 🔐 Authentication: instructor
@@ -3617,6 +3636,18 @@ class Module_instructor_jutgeai {
     async chat(data: ChatPrompt): Promise<WebStream> {
         const [output, ofiles] = await this.root.execute("instructor.jutgeai.chat", data)
         return output
+    }
+
+    /**
+     * Create an image using an AI image model.
+     *
+     * 🔐 Authentication: instructor
+     * No warnings
+     * Some models only accept certain sizes and aspect ratios.
+     */
+    async createImage(data: CreateImageInput): Promise<Download> {
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.createImage", data)
+        return ofiles[0]
     }
 
     /**

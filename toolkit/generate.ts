@@ -1,5 +1,8 @@
 import { Argument, Command } from '@commander-js/extra-typings'
+import { join } from 'path'
+import sharp from 'sharp'
 import { createProblemWithJutgeAI } from '../lib/create-with-jutgeai'
+import { complete } from '../lib/aiclient'
 import { languageKeys, languageNames, proglangKeys, proglangNames } from '../lib/data'
 import {
     addAlternativeSolution,
@@ -10,6 +13,7 @@ import {
 import { newProblem } from '../lib/problem'
 import { settings } from '../lib/settings'
 import tui from '../lib/tui'
+import { writeText } from '../lib/utils'
 import { getLoggedInJutgeClient } from '../lib/login'
 
 export const generateCmd = new Command('generate')
@@ -153,7 +157,7 @@ generateCmd
             if (all || efficiency) await generateTestCasesGenerator(jutge, model, problem, output, 'efficiency')
         })
     })
-/*
+
 generateCmd
     .command('award.png')
     .summary('Generate award.png using JutgeAI')
@@ -179,15 +183,25 @@ The new image will be saved as award.png in the problem directory, overriding an
     .argument('[prompt]', 'prompt to generate the image', '')
 
     .action(async (prompt, { directory, model }) => {
+        const jutge = await getLoggedInJutgeClient()
         const output = join(directory, 'award.png')
         const problem = await newProblem(directory)
-        if (prompt.trim() === '') {
-            prompt = problem.problemLangYmls[problem.originalLanguage!].title || 'A colorful award'
+        let imagePrompt = prompt.trim()
+        if (imagePrompt === '') {
+            imagePrompt = 'A colorful award on a white background'
         }
-        const image = await generateImage(model, prompt)
-        await sharp(image).resize(512, 512).toFile(output)
-        await tui.image(output, 20, 10)
-        tui.success(`Added ${output}`)
+        await tui.section('Generating award image', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- generated API client
+            const download = await jutge.instructor.jutgeai.createImage({
+                model,
+                label: 'award',
+                prompt: imagePrompt,
+                size: '1024x1024',
+            })
+            await sharp(Buffer.from(download.data)).resize(512, 512).toFile(output)
+            await tui.image(output, 20, 10)
+            tui.success(`Added ${output}`)
+        })
     })
 
 generateCmd
@@ -217,11 +231,14 @@ The new message will be saved as award.html in the problem directory, overriding
     .option('-m, --model <model>', 'AI model to use', settings.defaultModel)
 
     .action(async (prompt, { directory, model }) => {
+        const jutge = await getLoggedInJutgeClient()
         const output = join(directory, 'award.html')
-        const problem = await newProblem(directory)
-        const message = await complete(model, '', prompt)
-        tui.print(message)
-        await writeText(output, message)
-        tui.success(`Added ${output}`)
+        const systemPrompt =
+            'You generate short textual award messages shown when a user solves a problem. Output only the message text, no markdown code blocks or explanation. If you like, use a famous quote by a famous person. In this case, use the name of the person in the message.'
+        await tui.section('Generating award message', async () => {
+            const message = await complete(jutge, model, 'award', systemPrompt, prompt)
+            tui.print(message)
+            await writeText(output, message)
+            tui.success(`Added ${output}`)
+        })
     })
-*/
