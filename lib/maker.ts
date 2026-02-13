@@ -337,6 +337,14 @@ export class Maker {
         const graphic = this.problem.handler.handler === 'graphic'
         const samples1col: string[] = []
         const samples2col: string[] = []
+
+        let samples = 0;
+        for (const testcase of this.problem.testcases) {
+            if (testcase.includes('sample')) {
+                samples++;
+            }
+        }
+
         let index = 1
         for (const testcase of this.problem.testcases) {
             if (testcase.includes('sample')) {
@@ -346,8 +354,14 @@ export class Maker {
                     const dimensions = await imageSizeFromFile(join(tmpDir, `${testcase}.cor.png`))
                     size = `(${dimensions.width}$\\times$${dimensions.height})`
                 }
-                samples1col.push(`\n\\SampleOneColInputOutput[${size}]{${testcase}}{${index}}\n`)
-                samples2col.push(`\n\\SampleTwoColInputOutput[${size}]{${testcase}}{${index}}\n`)
+                if (samples > 1) {
+                    samples1col.push(`\n\\SampleOneColInputOutput[${size}]{${testcase}}{${index}}\n`)
+                    samples2col.push(`\n\\SampleTwoColInputOutput[${size}]{${testcase}}{${index}}\n`)
+                }
+                else {
+                    samples1col.push(`\n\\SampleOneColInputOutput[${size}]{${testcase}}{}\n`)
+                    samples2col.push(`\n\\SampleTwoColInputOutput[${size}]{${testcase}}{}\n`)
+                }
                 index++
             }
         }
