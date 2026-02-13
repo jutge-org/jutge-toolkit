@@ -276,6 +276,13 @@ jtk doctor                          # Check system dependencies
 
 ## Troubleshooting
 
+**Filenames and directory names:**
+
+- Use lowercase letters, numbers, dashes, and underscores for filenames and directory names.
+- Avoid spaces in filenames and directory names.
+- Avoid special characters in filenames and directory names.
+- Remember that problem directories should have a `.pbm` extension.
+
 **AI features not working:**
 
 - Verify your API keys are set correctly
@@ -289,6 +296,21 @@ jtk doctor                          # Check system dependencies
 
 For platform-specific troubleshooting, refer to your installation guide.
 
----
+**Compatibility issues with previous tools:**
+
+- You may need to convert your files to the new formats. Here are some examples:
+
+    ```bash
+    epstopdf file.eps -o file.pdf       # Convert EPS to PDF
+    pdf2svg file.pdf file.svg           # Convert PDF to SVG
+    fig2dev -L svg file.fig file.svg    # Convert FIG to SVG
+    fig2dev -L pdf file.fig file.pdf    # Convert FIG to PDF
+    ```
+
+    Or use https://convertio.co to convert between many formats online or ImageMagick to convert between formats locally.
+
+- You may have statements with old `@` behaviour to enclose inline code. You can convert them to the new format using the `jtk convert transform-at-signs` command.
+
+## End
 
 You're now ready to start creating problems with Jutge Toolkit! If you have questions or need help, don't hesitate to consult the documentation, use the `ask` command or reach out to the community.
