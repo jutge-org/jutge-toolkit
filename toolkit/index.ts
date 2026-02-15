@@ -18,6 +18,7 @@ import { quizCmd } from './quiz'
 import { upgradeCmd } from './upgrade'
 import { uploadCmd } from './upload'
 import { cmdPasscode } from './passcode'
+import { submitCmd } from './submit'
 import { askCmd } from './ask'
 import { convertCmd } from './convert'
 import { stageCmd } from './stage'
@@ -36,6 +37,7 @@ program.addCommand(cleanCmd)
 program.addCommand(cloneCmd)
 program.addCommand(generateCmd)
 program.addCommand(verifyCmd)
+program.addCommand(submitCmd)
 program.addCommand(convertCmd)
 program.addCommand(stageCmd)
 program.addCommand(doctorCmd)

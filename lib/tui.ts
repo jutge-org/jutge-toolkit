@@ -149,6 +149,10 @@ function fileLink(dir: string, path?: string): string {
     }
 }
 
+function weblink(url: string, text: string): string {
+    return terminalLink(text, url)
+}
+
 function tryTo(text: string) {
     print(chalk.blue(text), false)
 }
@@ -183,6 +187,7 @@ export default {
     json,
     image,
     hyperlink: fileLink,
+    weblink,
     tryTo,
     trySuccess,
     tryFailure,
