@@ -60,11 +60,14 @@ jtk generate problem
 cd my-problem.pbm
 jtk make
 
-# Verify a solution
-jtk verify solution.py
+# Verify a solution (locally)
+jtk verify candidate.py
 
 # Upload to Jutge.org
 jtk upload
+
+# Submit a solution to Jutge.org
+jtk submit candidate.py
 ```
 
 For a complete walkthrough, see the [Getting Started Guide](docs/getting-started-guide.md).
@@ -85,8 +88,8 @@ For a complete walkthrough, see the [Getting Started Guide](docs/getting-started
 3. Build the problem
     - Run `jtk make` to build all problem elements (statements, solutions, correct test cases)
 
-4. Optional: Verify alternative solutions
-    - Use `jtk verify <solution>` to test alternative solutions for correctness (efficiency testing not yet supported)
+4. Optional: Locally verify candidate solutions
+    - Use `jtk verify <solution>` to test candidate solutions for correctness
 
 5. Optional: Stage the problem
     - Run `jtk stage` to stage the files as will be used by Jutge.org
@@ -95,6 +98,11 @@ For a complete walkthrough, see the [Getting Started Guide](docs/getting-started
     - Use `jtk upload` to publish the problem on Jutge.org
 
         Remember that Jutge.org does not generate the correct test cases; you must provide them.
+
+7. Optional: Test a candidate solution by submitting it to Jutge.org
+    - Use `jtk submit -l <language> <solution>` to submit the solution to Jutge.org in a specific language
+
+        In order to submit a candidate solution, you need to have the problem uploaded to Jutge.org. This solution will be judged by Jutge.org and you will get its verdict.
 
 ## Documentation
 
@@ -135,6 +143,9 @@ jtk stage                           # Stage problem for Jutge.org
 
 # Publishing
 jtk upload                          # Upload problem to Jutge.org
+
+# Testing
+jtk submit -l en candidate.py       # Submit a candidate solution to Jutge.org
 
 # Passcode management
 jtk passcode show                   # Show the passcode of the problem

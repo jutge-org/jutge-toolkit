@@ -241,6 +241,7 @@ jtk generate problem                # Create problem with AI
 jtk make                            # Build all problem elements
 jtk verify <program>                # Test a solution
 jtk upload                          # Upload to Jutge.org
+jtk submit -l <language> <solution> # Submit a solution to Jutge.org
 jtk clean                           # Clean temporary files
 jtk passcode                        # Manage problem passcode
 

@@ -36,27 +36,15 @@ function isSubmissionPending(submission: Submission): boolean {
     return submission.veredict === "Pending"
 }
 
-export async function submitInDirectory(
+type SubmissionEntry = { sourceFile: string; submission_id: string }
+
+async function verifyProblemOnJutge(
+    jutge: Awaited<ReturnType<typeof getLoggedInJutgeClient>>,
+    problem_id: string,
+    info: ProblemInfo,
     directory: string,
-    language: string,
-    sourceFiles: string[],
-    noWait: boolean,
 ): Promise<void> {
-    const dir = resolve(directory)
-    const info = await ensureProblemYml(dir)
-    if (!info.problem_nm) {
-        throw new Error(
-            'Problem not uploaded to Jutge.org. Upload it first with jtk upload',
-        )
-    }
-
-    const jutge = await getLoggedInJutgeClient()
-
-    const problem_id = `${info.problem_nm}_${language}`
-
-
     await tui.section(`Checking for ${problem_id} on Jutge.org`, async () => {
-        // check that the jutge user is the same as the one in the problem.yml
         const profile = await jutge.student.profile.get()
         if (profile.email !== info.email) {
             throw new Error(
@@ -65,7 +53,6 @@ export async function submitInDirectory(
         }
         tui.success(`Problem owner verified`)
 
-        // check that the problem exists
         try {
             await jutge.problems.getProblem(problem_id)
         } catch {
@@ -75,39 +62,46 @@ export async function submitInDirectory(
         }
         tui.success(`Problem ${problem_id} found`)
     })
+}
 
-    type SubmissionEntry = { sourceFile: string; submission_id: string }
-    const submissions: SubmissionEntry[] = []
+function compilerIdForJutge(compilerId: string): string {
+    return compilerId === 'GXX' ? 'G++17' : compilerId
+}
 
-    await tui.section('Submitting solutions', async () => {
-        for (const sourceFile of sourceFiles) {
-            const fullPath = resolve(dir, sourceFile)
-            const ext = getExtension(basename(sourceFile))
-            const compiler = getCompilerByExtension(ext)
-            let compiler_id = compiler.id()
-            if (compiler_id === 'GXX') compiler_id = 'G++17'
+async function submitOneFile(
+    jutge: Awaited<ReturnType<typeof getLoggedInJutgeClient>>,
+    dir: string,
+    problem_id: string,
+    sourceFile: string,
+): Promise<SubmissionEntry> {
+    const fullPath = resolve(dir, sourceFile)
+    const ext = getExtension(basename(sourceFile))
+    const compiler = getCompilerByExtension(ext)
+    const compiler_id = compilerIdForJutge(compiler.id())
 
-            const sourceFileUrl = tui.hyperlink(sourceFile)
-            const problem_id_url = tui.weblink(`https://jutge.org/problems/${problem_id}`, problem_id)
-            const compiler_id_url = tui.weblink(`https://jutge.org/documentation/compilers/${compiler_id}`, compiler_id)
-            await tui.section(`Submitting ${sourceFileUrl} to problem ${problem_id_url} with compiler ${compiler_id_url}`, async () => {
-                const file = await createFileFromPath(fullPath, 'text/plain')
-                const out = await jutge.student.submissions.submitFull(
-                    { problem_id, compiler_id, annotation: '' },
-                    file,
-                )
-                submissions.push({ sourceFile, submission_id: out.submission_id })
-                const url = `https://jutge.org/problems/${problem_id}/submissions/${out.submission_id}`
-                tui.url(url)
-                await open(url)
-            })
-        }
+    const sourceFileUrl = tui.hyperlink(sourceFile)
+    const problem_id_url = tui.weblink(`https://jutge.org/problems/${problem_id}`, problem_id)
+    const compiler_id_url = tui.weblink(`https://jutge.org/documentation/compilers/${compiler_id}`, compiler_id)
+    let entry: SubmissionEntry
+    await tui.section(`Submitting ${sourceFileUrl} to problem ${problem_id_url} with compiler ${compiler_id_url}`, async () => {
+        const file = await createFileFromPath(fullPath, 'text/plain')
+        const out = await jutge.student.submissions.submitFull(
+            { problem_id, compiler_id, annotation: '' },
+            file,
+        )
+        entry = { sourceFile, submission_id: out.submission_id }
+        const url = `https://jutge.org/problems/${problem_id}/submissions/${out.submission_id}`
+        tui.url(url)
+        await open(url)
     })
+    return entry!
+}
 
-    if (noWait) return
-
-    if (submissions.length === 0) return
-
+async function waitForVerdicts(
+    jutge: Awaited<ReturnType<typeof getLoggedInJutgeClient>>,
+    problem_id: string,
+    submissions: SubmissionEntry[],
+): Promise<void> {
     await tui.section('Waiting for verdicts', async () => {
         const pending = new Map(submissions.map((s) => [s.submission_id, s]))
         const pollIntervalMs = 1000
@@ -134,3 +128,33 @@ export async function submitInDirectory(
     })
 }
 
+export async function submitInDirectory(
+    directory: string,
+    language: string,
+    sourceFiles: string[],
+    noWait: boolean,
+): Promise<void> {
+    const dir = resolve(directory)
+    const info = await ensureProblemYml(dir)
+    if (!info.problem_nm) {
+        throw new Error(
+            'Problem not uploaded to Jutge.org. Upload it first with jtk upload',
+        )
+    }
+
+    const jutge = await getLoggedInJutgeClient()
+    const problem_id = `${info.problem_nm}_${language}`
+
+    await verifyProblemOnJutge(jutge, problem_id, info, directory)
+
+    const submissions: SubmissionEntry[] = []
+    await tui.section('Submitting solutions', async () => {
+        for (const sourceFile of sourceFiles) {
+            submissions.push(await submitOneFile(jutge, dir, problem_id, sourceFile))
+        }
+    })
+
+    if (!noWait && submissions.length > 0) {
+        await waitForVerdicts(jutge, problem_id, submissions)
+    }
+}
