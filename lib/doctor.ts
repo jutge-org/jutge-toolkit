@@ -374,7 +374,9 @@ export async function checkPdfLaTeX(): Promise<void> {
     } else {
         tui.warning('LaTeX does not appear to be installed')
         tui.print('You will not be able to generate PDF statements')
-        tui.print('TODO: Provide instructions for installing LaTeX')
+        tui.print('Install a TeX distribution: macOS: brew install --cask mactex (or basictex for smaller install)')
+        tui.print('  Ubuntu/Debian: sudo apt install texlive-full')
+        tui.print('  Other: https://www.tug.org/texlive/ or https://miktex.org/')
     }
 }
 
@@ -399,8 +401,10 @@ export async function checkXeLaTeX(): Promise<void> {
         tui.success('XeLaTeX seems installed')
     } else {
         tui.warning('XeLaTeX does not appear to be installed')
-        tui.print('You will not be able to generate PDF statements with Unicode support')
-        tui.print('TODO: Provide instructions for installing XeLaTeX')
+        tui.print('You will not be able to generate PDF statements')
+        tui.print('Install a TeX distribution: macOS: brew install --cask mactex (or basictex for smaller install)')
+        tui.print('  Ubuntu/Debian: sudo apt install texlive-full')
+        tui.print('  Other: https://www.tug.org/texlive/ or https://miktex.org/')
     }
 }
 
