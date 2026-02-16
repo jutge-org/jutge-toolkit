@@ -83,6 +83,7 @@ async function submitOneFile(
     sourceFile: string,
     forcedCompilerId: string | null,
     annotation: string,
+    openBrowser: boolean,
 ): Promise<SubmissionEntry> {
     const fullPath = resolve(dir, sourceFile)
     const compiler_id = forcedCompilerId ?? (() => {
@@ -104,7 +105,7 @@ async function submitOneFile(
         entry = { sourceFile, submission_id: out.submission_id }
         const url = `https://jutge.org/problems/${problem_id}/submissions/${out.submission_id}`
         tui.url(url)
-        await open(url)
+        if (openBrowser) await open(url)
     })
     return entry!
 }
@@ -149,6 +150,7 @@ export async function submitInDirectory(
     language: string,
     sourceFiles: string[],
     noWait: boolean,
+    openBrowser: boolean,
     compilerOption: string = 'auto',
     annotation: string,
 ): Promise<void> {
@@ -180,7 +182,7 @@ export async function submitInDirectory(
     const submissions: SubmissionEntry[] = []
     await tui.section('Submitting solutions', async () => {
         for (const sourceFile of sourceFiles) {
-            submissions.push(await submitOneFile(jutge, dir, problem_id, sourceFile, forcedCompilerId, annotation))
+            submissions.push(await submitOneFile(jutge, dir, problem_id, sourceFile, forcedCompilerId, annotation, openBrowser))
         }
     })
 
