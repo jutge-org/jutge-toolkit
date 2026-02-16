@@ -4,6 +4,7 @@ import { languageNames } from './data'
 import { findRealDirectories } from './helpers'
 import { Handler, ProblemInfo, ProblemLangYml } from './types'
 import { readYamlInDir, readTextInDir } from './utils'
+import tui from './tui'
 
 const TESTCASE_NAME_REGEX = /^[a-zA-Z0-9_-]+$/
 
@@ -195,7 +196,7 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
             }
             if (!inpBases.has(base)) {
                 issues.push(
-                    warn('ORPHAN_COR', `No .inp for .cor file; run "jtk make cor" to regenerate`, `${base}.cor`),
+                    warn('ORPHAN_COR', `No .inp for .cor file; consider removing the .cor file`, `${base}.cor`),
                 )
             }
         }

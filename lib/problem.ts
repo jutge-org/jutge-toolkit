@@ -290,6 +290,57 @@ export class Problem {
         })
     }
 
+    /** Reload testcases from disk (no tui). For watch mode. */
+    async reloadTestcases(): Promise<void> {
+        if (this.handler.handler === 'quiz') return
+        const files = await Array.fromAsync(glob('*.inp', { cwd: this.directory }))
+        this.testcases = files.map((file) => file.replace('.inp', '')).sort()
+    }
+
+    /** Reload solutions and golden solution from disk (no tui). For watch mode. */
+    async reloadSolutions(): Promise<void> {
+        if (this.handler.handler === 'quiz') return
+        const { proglangNames, proglangExtensions } = await import('./data')
+        if (this.handler.compilers === 'PRO2') {
+            const files = await Array.fromAsync(glob('solution{.tar,.cc,.hh}', { cwd: this.directory }))
+            this.solutions = files.sort()
+        } else if (this.handler.compilers === 'MakePRO2') {
+            this.solutions = (await existsInDir(this.directory, 'solution')) ? ['solution.tar'] : []
+        } else {
+            const comaSeparatedExtensions = Object.keys(proglangNames).join(',')
+            const files = await Array.fromAsync(
+                glob(`solution.{${comaSeparatedExtensions}}`, { cwd: this.directory }),
+            )
+            this.solutions = files.sort()
+        }
+        if (this.solutions.length === 0) return
+        if (this.handler.handler === 'circuits') {
+            this.goldenSolution = 'solution.v'
+        } else if (this.handler.compilers === 'RunPython') {
+            this.goldenSolution = 'solution.py'
+        } else if (this.handler.compilers === 'RunHaskell' || this.handler.compilers === 'GHC') {
+            this.goldenSolution = 'solution.hs'
+        } else if (this.handler.compilers === 'RunClojure' || this.handler.compilers === 'Clojure') {
+            this.goldenSolution = 'solution.clj'
+        } else if (this.handler.compilers === 'PRO2') {
+            if (await existsInDir(this.directory, 'solution.hh')) {
+                this.goldenSolution = 'solution.hh'
+            } else if (await existsInDir(this.directory, 'solution.cc')) {
+                this.goldenSolution = 'solution.cc'
+            }
+        } else if (this.handler.compilers === 'MakePRO2') {
+            if (await existsInDir(this.directory, 'solution')) {
+                this.goldenSolution = 'solution.tar'
+            }
+        } else {
+            const solutionProglang = this.handler.solution
+            const extension = proglangExtensions[solutionProglang]
+            if (extension && (await existsInDir(this.directory, `solution.${extension}`))) {
+                this.goldenSolution = `solution.${extension}`
+            }
+        }
+    }
+
     private async loadAwards() {
         await tui.section('Loading awards', async () => {
             if (await exists(join(this.directory, 'award.html'))) {

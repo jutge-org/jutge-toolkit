@@ -312,6 +312,40 @@ export class Maker {
         })
     }
 
+    /** Make .cor for a single testcase (watch mode). */
+    public async makeCorrectOutputForTestcase(testcase: string): Promise<void> {
+        if (!this.problem.goldenSolution) return
+        const compiler = this.selectCompiler()
+        await tui.section(`Making correct output for ${testcase}`, async () => {
+            await tui.section(`Using ${compiler.name()}`, async () => {
+                const result = await this.makeCorrectOutput(
+                    testcase,
+                    compiler,
+                    this.problem.goldenSolution!,
+                )
+                const time = prettyMs(result.time)
+                const inputSize = prettyBytes(result.inputSize).replace(' ', '')
+                const outputSize = prettyBytes(result.outputSize).replace(' ', '')
+                tui.print(`testcase           time      input     output`)
+                tui.print(
+                    (result.error ? chalk.red : chalk.green)(
+                        `${result.testcase.padEnd(12)} ${time.padStart(10)} ${inputSize.padStart(10)} ${outputSize.padStart(10)}`,
+                    ),
+                )
+                if (result.error) {
+                    throw new Error(`Error making correct output for ${testcase}`)
+                }
+            })
+        })
+    }
+
+    /** Remake PDF and textual statements (watch mode). */
+    public async remakeStatements(): Promise<void> {
+        await this.makePdfStatements()
+        await this.makeFullTextualStatements(['txt', 'html', 'md'])
+        await this.makeShortTextualStatements(['txt', 'html', 'md'])
+    }
+
     public async makePdfStatements() {
         await tui.section('Making PDF statements', async () => {
             const tmpDirBase = join(this.problem.directory, toolkitPrefix() + '-pdf', nanoid8())
@@ -638,7 +672,9 @@ export class Maker {
         }
     }
 
-    public async verifyCandidate(program: string) {
+    public async verifyCandidate(program: string, testcases?: string[], options?: { skipCompile?: boolean }) {
+        const casesToRun = testcases ?? this.problem.testcases
+        const skipCompile = options?.skipCompile ?? false
         await tui.section(`Verifying ${program}`, async () => {
             const extension = program.split('.').pop()!
 
@@ -654,48 +690,50 @@ export class Maker {
             const compiler = getCompilerByExtension(extension)
             const newProgram = `${toolkitPrefix()}-${program}`
 
-            await tui.section(
-                `Copying ${tui.hyperlink(this.problem.directory, program)} to ${tui.hyperlink(this.problem.directory, newProgram)}`,
-                async () => {
-                    await cp(join(this.problem.directory, program), join(this.problem.directory, newProgram))
-                },
-            )
+            if (!skipCompile) {
+                await tui.section(
+                    `Copying ${tui.hyperlink(this.problem.directory, program)} to ${tui.hyperlink(this.problem.directory, newProgram)}`,
+                    async () => {
+                        await cp(join(this.problem.directory, program), join(this.problem.directory, newProgram))
+                    },
+                )
 
-            await tui.section(
-                `Using compiler ${compiler.name()} to compile ${tui.hyperlink(this.problem.directory, newProgram)}`,
-                async () => {
-                    try {
-                        let outputPath: string
-                        if (this.problem.handler.source_modifier === 'none') {
-                            outputPath = await compiler.compileNormal(
-                                this.problem.handler,
-                                this.problem.directory,
-                                newProgram,
-                            )
-                        } else if (this.problem.handler.source_modifier === 'no_main') {
-                            outputPath = await compiler.compileWithMain(
-                                this.problem.handler,
-                                this.problem.directory,
-                                newProgram,
-                            )
-                        } else {
-                            throw new Error(
-                                `Unknown source modifier: ${this.problem.handler.source_modifier as string}`,
-                            )
+                await tui.section(
+                    `Using compiler ${compiler.name()} to compile ${tui.hyperlink(this.problem.directory, newProgram)}`,
+                    async () => {
+                        try {
+                            let outputPath: string
+                            if (this.problem.handler.source_modifier === 'none') {
+                                outputPath = await compiler.compileNormal(
+                                    this.problem.handler,
+                                    this.problem.directory,
+                                    newProgram,
+                                )
+                            } else if (this.problem.handler.source_modifier === 'no_main') {
+                                outputPath = await compiler.compileWithMain(
+                                    this.problem.handler,
+                                    this.problem.directory,
+                                    newProgram,
+                                )
+                            } else {
+                                throw new Error(
+                                    `Unknown source modifier: ${this.problem.handler.source_modifier as string}`,
+                                )
+                            }
+                            if (!(await exists(join(this.problem.directory, outputPath)))) {
+                                throw new Error(`Compilation failed for ${newProgram}`)
+                            }
+                            tui.success(`Compiled ${newProgram} to ${outputPath}`)
+                        } catch (error) {
+                            throw new Error(`Compilation failed: ${error as any}`)
                         }
-                        if (!(await exists(join(this.problem.directory, outputPath)))) {
-                            throw new Error(`Compilation failed for ${newProgram}`)
-                        }
-                        tui.success(`Compiled ${newProgram} to ${outputPath}`)
-                    } catch (error) {
-                        throw new Error(`Compilation failed: ${error as any}`)
-                    }
-                },
-            )
+                    },
+                )
+            }
 
             const results: ExecutionResult[] = []
             await tui.section('Executing testcases', async () => {
-                for (const testcase of this.problem.testcases) {
+                for (const testcase of casesToRun) {
                     results.push(
                         await this.runTestcase(
                             testcase,
@@ -731,7 +769,7 @@ export class Maker {
 
                 if (errors) {
                     tui.error(`${errors} errors found for ${program}`)
-                } else {
+                } else if (casesToRun.length === this.problem.testcases.length) {
                     tui.success(`All testcases passed successfully for ${program}`)
                 }
             })

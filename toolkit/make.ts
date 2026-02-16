@@ -9,7 +9,6 @@ import type { Problem } from '../lib/problem'
 import tui from '../lib/tui'
 import { nothing, projectDir } from '../lib/utils'
 import chalk from 'chalk'
-import ora from 'ora'
 
 const WATCH_DEBOUNCE_MS = 300
 
@@ -144,14 +143,6 @@ async function runWatch(maker: Maker): Promise<void> {
     }
     let debounceTimer: ReturnType<typeof setTimeout> | null = null
     let running = false
-    let idleSpinner: ReturnType<typeof ora> | null = null
-
-    function stopIdleSpinner() {
-        if (idleSpinner) {
-            idleSpinner.stop()
-            idleSpinner = null
-        }
-    }
 
     function scheduleRun() {
         if (debounceTimer) clearTimeout(debounceTimer)
@@ -162,7 +153,6 @@ async function runWatch(maker: Maker): Promise<void> {
 
     async function flush() {
         debounceTimer = null
-        stopIdleSpinner()
         if (
             running ||
             (pending.inp.size === 0 &&
@@ -171,7 +161,6 @@ async function runWatch(maker: Maker): Promise<void> {
                 !pending.statementTex &&
                 !pending.ymlSchema)
         ) {
-            await printIdleMessage()
             return
         }
         const inp = new Set(pending.inp)
@@ -244,24 +233,39 @@ async function runWatch(maker: Maker): Promise<void> {
             }
         } finally {
             running = false
-            await printIdleMessage()
+            printIdleMessage()
         }
     }
 
-    async function printIdleMessage() {
+    function printIdleMessage() {
         tui.print()
-        await tui.section(`Watching ${directory}`, async () => {
-            await nothing()
-            tui.print('╭───╮ ╭───╮ ╭───╮ ')
-            tui.print('│ ' + chalk.bold('A') + ' │ │ ' + chalk.bold('L') + ' │ │ ' + chalk.bold('Q') + ' │ ')
-            tui.print('╰───╯ ╰───╯ ╰───╯ ')
-            tui.print('  ♻️     🔍    🔚')
-            tui.print(' ' + chalk.blue('All') + '  ' + chalk.blue('Lint') + '   ' + chalk.blue('Quit') + ' ')
-            tui.print('')
-        })
-        idleSpinner = ora({
-            text: 'Watching for changes or keypress...',
-        }).start()
+        tui.title(`Watching ${directory}`)
+        tui.print('╭───╮ ╭───╮ ╭───╮ ╭───╮ ')
+        tui.print(
+            '│ ' +
+            chalk.bold('A') +
+            ' │ │ ' +
+            chalk.bold('L') +
+            ' │ │ ' +
+            chalk.bold('H') +
+            ' │ │ ' +
+            chalk.bold('Q') +
+            ' │ ',
+        )
+        tui.print('╰───╯ ╰───╯ ╰───╯ ╰───╯ ')
+        tui.print('  ♻️     🔍    ❓    🚫')
+        tui.print(
+            ' ' +
+            chalk.blue('All') +
+            '  ' +
+            chalk.blue('Lint') +
+            '   ' +
+            chalk.blue('Help') +
+            '  ' +
+            chalk.blue('Quit') +
+            ' ',
+        )
+        tui.print(chalk.gray('Waiting for changes or keypress...'))
     }
 
     const watchDir = resolve(directory)
@@ -300,20 +304,42 @@ async function runWatch(maker: Maker): Promise<void> {
     watcher.on('add', onFileEvent)
     watcher.on('change', onFileEvent)
 
-    await printIdleMessage()
+    printIdleMessage()
 
     await new Promise<void>((resolveExit, rejectExit) => {
+        function printHelp() {
+            tui.print()
+            tui.print('Under watch mode, the toolkit automatically rebuilds the necessary files in the problem directory when you make changes to your files.')
+            tui.print(
+                [
+                    'Key bindings:',
+                    '',
+                    '  A     Make all (full rebuild from scratch)',
+                    '  L     Run lint to check issues in the problem directory',
+                    '  H     Show this help',
+                    '  Q     Quit watch mode',
+                    '',
+                ].join('\n'),
+
+            )
+            tui.print('The watch mode is under development. Please report any issues to the developers.')
+            printIdleMessage()
+        }
+
         const onKey = (key: Buffer | string) => {
             const k = typeof key === 'string' ? key : key.toString()
             if (k === 'q' || k === 'Q' || k === '\x03') {
                 cleanup()
                 tui.print()
-                tui.success('Watch stopped')
+                tui.success('Watch mode stopped')
                 resolveExit()
                 return
             }
+            if (k === 'h' || k === 'H') {
+                printHelp()
+                return
+            }
             if (k === 'a' || k === 'A') {
-                stopIdleSpinner()
                 if (debounceTimer) {
                     clearTimeout(debounceTimer)
                     debounceTimer = null
@@ -332,12 +358,11 @@ async function runWatch(maker: Maker): Promise<void> {
                         tui.error(e instanceof Error ? e.message : String(e))
                     } finally {
                         running = false
-                        await printIdleMessage()
+                        printIdleMessage()
                     }
                 })()
             }
             if (k === 'l' || k === 'L') {
-                stopIdleSpinner()
                 void (async () => {
                     running = true
                     try {
@@ -351,14 +376,13 @@ async function runWatch(maker: Maker): Promise<void> {
                         tui.error(e instanceof Error ? e.message : String(e))
                     } finally {
                         running = false
-                        await printIdleMessage()
+                        printIdleMessage()
                     }
                 })()
             }
         }
 
         function cleanup() {
-            stopIdleSpinner()
             void watcher.close()
             process.stdin.removeListener('data', onKey)
             if (typeof process.stdin.setRawMode === 'function') {

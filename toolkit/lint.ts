@@ -1,63 +1,65 @@
 import { Command } from '@commander-js/extra-typings'
 import chalk from 'chalk'
-import { lintDirectories, type LintIssue } from '../lib/lint'
+import { lintDirectories, type LintIssue, type LintResult } from '../lib/lint'
+import tui from '../lib/tui'
+import { nothing } from '../lib/utils'
 
-function formatIssue(issue: LintIssue): string {
+export function formatLintIssue(issue: LintIssue): string {
     const prefix = issue.severity === 'error' ? chalk.red('error') : chalk.yellow('warning')
     const path = issue.path ? chalk.gray(` (${issue.path})`) : ''
     return `  ${prefix} ${issue.code}: ${issue.message}${path}`
 }
 
-export const lintCmd = new Command('lint')
-    .summary('Lint a problem directory')
-    .description(
-        'Check problem.yml/handler.yml schema, required files present, naming conventions, statement structure, sample vs public test consistency, etc.',
-    )
-    .argument('[directories...]', 'problem directories to lint (default: current directory)')
-    .option('-d, --directory <path>', 'problem directory when no arguments given', '.')
-    .action(async (directories: string[], { directory }) => {
-    const dirs = directories.length > 0 ? directories : [directory]
-    const results = await lintDirectories(dirs)
+export async function printLintResults(results: LintResult[], directories: string[]): Promise<{ hasError: boolean }> {
+    let hasError = false
+    for (const result of results) {
+        const errors = result.issues.filter((i) => i.severity === 'error')
+        if (errors.length > 0) hasError = true
 
-    if (results.length === 0) {
-        console.log(chalk.yellow('No problem directories found (looked for handler.yml in the given path(s)).'))
-        return
+        const dirLabel = result.directory === directories[0] && results.length === 1 ? result.directory : result.directory
+        if (result.issues.length === 0) {
+            tui.print(chalk.green('✓') + ' ' + dirLabel + ' ' + chalk.gray('— no issues'))
+        } else {
+            tui.print()
+            await tui.section(`Linting ${dirLabel}`, async () => {
+                await nothing()
+                for (const issue of result.issues) {
+                    tui.print(formatLintIssue(issue))
+                }
+            })
+        }
     }
 
-    let hasError = false
-        let hasWarning = false
+    if (results.length > 1) {
+        tui.print()
+        const totalErrors = results.reduce((s, r) => s + r.issues.filter((i) => i.severity === 'error').length, 0)
+        const totalWarnings = results.reduce((s, r) => s + r.issues.filter((i) => i.severity === 'warning').length, 0)
+        if (totalErrors > 0 || totalWarnings > 0) {
+            tui.gray(
+                `Total: ${totalErrors} error(s), ${totalWarnings} warning(s) across ${results.length} problem(s)`,
+            )
+        }
+    }
 
-        for (const result of results) {
-            const errors = result.issues.filter((i) => i.severity === 'error')
-            const warnings = result.issues.filter((i) => i.severity === 'warning')
-            if (errors.length > 0) hasError = true
-            if (warnings.length > 0) hasWarning = true
+    return { hasError }
+}
 
-            const dirLabel = result.directory === dirs[0] && results.length === 1 ? result.directory : result.directory
-            if (result.issues.length === 0) {
-                console.log(chalk.green('✓'), dirLabel, chalk.gray('— no issues'))
-            } else {
-                console.log()
-                console.log(chalk.bold(dirLabel))
-                for (const issue of result.issues) {
-                    console.log(formatIssue(issue))
-                }
-            }
+export const lintCmd = new Command('lint')
+    .summary('Lint a problem directory')
+
+    .argument('[directories...]', 'problem directories to lint (default: current directory)')
+    .option('-d, --directory <path>', 'problem directory when no arguments given', '.')
+
+    .action(async (directories: string[], { directory }) => {
+        const dirs = directories.length > 0 ? directories : [directory]
+        const results = await lintDirectories(dirs)
+
+        if (results.length === 0) {
+            tui.warning('No problem directories found (looked for handler.yml in the given path(s)).')
+            return
         }
 
-        if (results.length > 1) {
-            console.log()
-            const totalErrors = results.reduce((s, r) => s + r.issues.filter((i) => i.severity === 'error').length, 0)
-            const totalWarnings = results.reduce((s, r) => s + r.issues.filter((i) => i.severity === 'warning').length, 0)
-            if (totalErrors > 0 || totalWarnings > 0) {
-                console.log(
-                    chalk.gray(
-                        `Total: ${totalErrors} error(s), ${totalWarnings} warning(s) across ${results.length} problem(s)`,
-                    ),
-                )
-            }
-        }
-
+        const { hasError } = await printLintResults(results, dirs)
         if (hasError) {
             process.exitCode = 1
         }
