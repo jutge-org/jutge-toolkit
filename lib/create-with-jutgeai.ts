@@ -29,17 +29,34 @@ import duration from 'dayjs/plugin/duration'
 
 dayjs.extend(duration)
 
-const promptsDir = join(projectDir(), 'assets', 'prompts')
+interface CreatorPrompts {
+    latexExample: string
+    statementCoda: string
+    systemPrompt: string
+    statementPromptTemplate: string
+    translationPromptTemplate: string
+    solutionPromptTemplate: string
+    sampleTestCasesPrompt: string
+    privateTestCasesPrompt: string
+}
 
-// TODO: make dynamic to speed up loading times
-const latexExample = await readText(join(promptsDir, 'examples', 'statement.tex'))
-const statementCoda = await readText(join(promptsDir, 'examples', 'statement-coda.tex'))
-const systemPrompt = await readText(join(promptsDir, 'creators', 'system-prompt.txt'))
-const statementPromptTemplate = await readText(join(promptsDir, 'creators', 'create-statement.tpl.txt'))
-const translationPromptTemplate = await readText(join(promptsDir, 'creators', 'create-translation.tpl.txt'))
-const solutionPromptTemplate = await readText(join(promptsDir, 'creators', 'create-solution.tpl.txt'))
-const sampleTestCasesPrompt = await readText(join(promptsDir, 'creators', 'sample-test-cases.txt'))
-const privateTestCasesPrompt = await readText(join(promptsDir, 'creators', 'private-test-cases.txt'))
+let promptsCache: CreatorPrompts | null = null
+
+async function loadPrompts(): Promise<CreatorPrompts> {
+    if (promptsCache) return promptsCache
+    const dir = join(projectDir(), 'assets', 'prompts')
+    promptsCache = {
+        latexExample: await readText(join(dir, 'examples', 'statement.tex')),
+        statementCoda: await readText(join(dir, 'examples', 'statement-coda.tex')),
+        systemPrompt: await readText(join(dir, 'creators', 'system-prompt.txt')),
+        statementPromptTemplate: await readText(join(dir, 'creators', 'create-statement.tpl.txt')),
+        translationPromptTemplate: await readText(join(dir, 'creators', 'create-translation.tpl.txt')),
+        solutionPromptTemplate: await readText(join(dir, 'creators', 'create-solution.tpl.txt')),
+        sampleTestCasesPrompt: await readText(join(dir, 'creators', 'sample-test-cases.txt')),
+        privateTestCasesPrompt: await readText(join(dir, 'creators', 'private-test-cases.txt')),
+    }
+    return promptsCache
+}
 
 export async function createProblemWithJutgeAI(
     jutge: JutgeApiClient,
@@ -57,7 +74,8 @@ export async function createProblemWithJutgeAI(
     }
 
     const spec = await getSpecification(inputPath, outputPath, doNotAsk)
-    const generator = new ProblemGenerator(spec, jutge, model, directory)
+    const creatorPrompts = await loadPrompts()
+    const generator = new ProblemGenerator(spec, jutge, model, directory, creatorPrompts)
     await generator.run()
     await generator.save(directory)
     await createGitIgnoreFile(directory)
@@ -192,6 +210,7 @@ class ProblemGenerator {
     private jutge: JutgeApiClient
     private label: string
     private dir: string
+    private prompts: CreatorPrompts
 
     // generated problem parts
     private problemStatement: string = ''
@@ -204,12 +223,13 @@ class ProblemGenerator {
     private problemPrivateTests2: string = ''
     private problemReadme: string = ''
 
-    constructor(info: Specification, jutge: JutgeApiClient, model: string, dir: string) {
+    constructor(info: Specification, jutge: JutgeApiClient, model: string, dir: string, prompts: CreatorPrompts) {
         this.jutge = jutge
         this.model = model
         this.spec = info
         this.label = `create-problem-${nanoid12()}`
-        this.bot = new ChatBot(jutge, model, this.label, systemPrompt)
+        this.prompts = prompts
+        this.bot = new ChatBot(jutge, model, this.label, prompts.systemPrompt)
         this.dir = dir
     }
 
@@ -218,28 +238,28 @@ class ProblemGenerator {
         return await tui.section(
             `Generating problem statement in ${languageNames[this.spec.original_language]}`,
             async () => {
-                const statementPrompt = Handlebars.compile(statementPromptTemplate)({
+                const statementPrompt = Handlebars.compile(this.prompts.statementPromptTemplate)({
                     language: languageNames[this.spec.original_language],
-                    latexExample,
+                    latexExample: this.prompts.latexExample,
                     title: this.spec.title,
                     description: this.spec.description,
                 })
                 const answer = await this.bot.complete(statementPrompt)
-                return cleanMardownCodeString(answer) + statementCoda
+                return cleanMardownCodeString(answer) + this.prompts.statementCoda
             },
         )
     }
 
     async generateSampleTests(): Promise<string> {
         return await tui.section('Generating sample test cases', async () => {
-            const answer = await this.bot.complete(sampleTestCasesPrompt)
+            const answer = await this.bot.complete(this.prompts.sampleTestCasesPrompt)
             return cleanMardownCodeString(answer)
         })
     }
 
     async generatePrivateTests(): Promise<string> {
         return await tui.section('Generating private test cases', async () => {
-            const answer = await this.bot.complete(privateTestCasesPrompt)
+            const answer = await this.bot.complete(this.prompts.privateTestCasesPrompt)
             return cleanMardownCodeString(answer)
         })
     }
@@ -250,7 +270,7 @@ class ProblemGenerator {
             for (const proglang of this.spec.more_proglangs.concat([this.spec.golden_proglang]).reverse()) {
                 await tui.section(`Generating solution in ${proglangNames[proglang]}`, async () => {
                     const proglangPrompt = await getPromptForProglang(proglang)
-                    const solutionPrompt = Handlebars.compile(solutionPromptTemplate)({
+                    const solutionPrompt = Handlebars.compile(this.prompts.solutionPromptTemplate)({
                         proglang: proglangNames[proglang],
                         proglangPrompt,
                     })
@@ -268,11 +288,11 @@ class ProblemGenerator {
             const translations: Record<string, string> = {}
             for (const language of this.spec.more_languages.sort()) {
                 await tui.section(`Translating to ${languageNames[language]}`, async () => {
-                    const translationPrompt = Handlebars.compile(translationPromptTemplate)({
+                    const translationPrompt = Handlebars.compile(this.prompts.translationPromptTemplate)({
                         language: languageNames[language],
                     })
                     const answer = await this.bot.complete(translationPrompt)
-                    translations[language] = cleanMardownCodeString(answer) + statementCoda
+                    translations[language] = cleanMardownCodeString(answer) + this.prompts.statementCoda
                     this.bot.forgetLastInteraction()
                 })
             }
