@@ -4,7 +4,7 @@ import open from 'open'
 import { basename, join, resolve } from 'path'
 import { sleep } from 'radash'
 import { getCompilerByExtension } from '../compilers'
-import type { Submission } from './jutge_api_client'
+import type { Submission, Verdict } from './jutge_api_client'
 import { getLoggedInJutgeClient } from './login'
 import tui from './tui'
 import { ProblemInfo } from './types'
@@ -15,6 +15,14 @@ function colorizeVerdict(verdict: string): string {
     if (verdict === 'AC') return chalk.green(verdict)
     if (verdict === 'PE') return chalk.yellow(verdict)
     return chalk.red(verdict)
+}
+
+function showVerdict(allVerdicts: Record<string, Verdict>, verdict: string): string {
+    const verdictInfo = allVerdicts[verdict]
+    if (!verdictInfo) return verdict
+    const colorized = colorizeVerdict(verdict)
+    const emoji = verdictInfo.emoji || ''
+    return `${emoji} ${colorized} ${verdictInfo.name}`
 }
 
 async function ensureProblemYml(dir: string): Promise<ProblemInfo> {
@@ -73,20 +81,24 @@ async function submitOneFile(
     dir: string,
     problem_id: string,
     sourceFile: string,
+    forcedCompilerId: string | null,
+    annotation: string,
 ): Promise<SubmissionEntry> {
     const fullPath = resolve(dir, sourceFile)
-    const ext = getExtension(basename(sourceFile))
-    const compiler = getCompilerByExtension(ext)
-    const compiler_id = compilerIdForJutge(compiler.id())
+    const compiler_id = forcedCompilerId ?? (() => {
+        const ext = getExtension(basename(sourceFile))
+        const compiler = getCompilerByExtension(ext)
+        return compilerIdForJutge(compiler.id())
+    })()
 
     const sourceFileUrl = tui.hyperlink(sourceFile)
     const problem_id_url = tui.weblink(`https://jutge.org/problems/${problem_id}`, problem_id)
     const compiler_id_url = tui.weblink(`https://jutge.org/documentation/compilers/${compiler_id}`, compiler_id)
     let entry: SubmissionEntry
-    await tui.section(`Submitting ${sourceFileUrl} to problem ${problem_id_url} with compiler ${compiler_id_url}`, async () => {
+    await tui.section(`Submitting ${sourceFileUrl} to problem ${problem_id_url} with compiler ${compiler_id_url} and annotation ${annotation}`, async () => {
         const file = await createFileFromPath(fullPath, 'text/plain')
         const out = await jutge.student.submissions.submitFull(
-            { problem_id, compiler_id, annotation: '' },
+            { problem_id, compiler_id, annotation },
             file,
         )
         entry = { sourceFile, submission_id: out.submission_id }
@@ -101,8 +113,12 @@ async function waitForVerdicts(
     jutge: Awaited<ReturnType<typeof getLoggedInJutgeClient>>,
     problem_id: string,
     submissions: SubmissionEntry[],
+    annotation: string,
 ): Promise<void> {
     await tui.section('Waiting for verdicts', async () => {
+        const allVerdicts = await jutge.tables.getVerdicts()
+
+
         const pending = new Map(submissions.map((s) => [s.submission_id, s]))
         const pollIntervalMs = 1000
 
@@ -117,7 +133,7 @@ async function waitForVerdicts(
                     if (!isSubmissionPending(submission)) {
                         pending.delete(submission_id)
                         const verdict = submission.veredict ?? "Pending"
-                        tui.print(entry.sourceFile.padEnd(20) + " " + colorizeVerdict(verdict))
+                        tui.print(entry.sourceFile.padEnd(20) + " " + showVerdict(allVerdicts, verdict))
                     }
                 } catch {
                     // keep in pending, retry next round
@@ -133,6 +149,8 @@ export async function submitInDirectory(
     language: string,
     sourceFiles: string[],
     noWait: boolean,
+    compilerOption: string = 'auto',
+    annotation: string,
 ): Promise<void> {
     const dir = resolve(directory)
     const info = await ensureProblemYml(dir)
@@ -145,16 +163,28 @@ export async function submitInDirectory(
     const jutge = await getLoggedInJutgeClient()
     const problem_id = `${info.problem_nm}_${language}`
 
+    let forcedCompilerId: string | null = null
+    if (compilerOption !== 'auto') {
+        const compilers = await jutge.tables.getCompilers()
+        if (!(compilerOption in compilers)) {
+            const valid = Object.keys(compilers).sort().join(', ')
+            throw new Error(
+                `Unknown compiler '${compilerOption}'. Valid compilers from Jutge.org: ${valid}`,
+            )
+        }
+        forcedCompilerId = compilerOption
+    }
+
     await verifyProblemOnJutge(jutge, problem_id, info, directory)
 
     const submissions: SubmissionEntry[] = []
     await tui.section('Submitting solutions', async () => {
         for (const sourceFile of sourceFiles) {
-            submissions.push(await submitOneFile(jutge, dir, problem_id, sourceFile))
+            submissions.push(await submitOneFile(jutge, dir, problem_id, sourceFile, forcedCompilerId, annotation))
         }
     })
 
     if (!noWait && submissions.length > 0) {
-        await waitForVerdicts(jutge, problem_id, submissions)
+        await waitForVerdicts(jutge, problem_id, submissions, annotation)
     }
 }
