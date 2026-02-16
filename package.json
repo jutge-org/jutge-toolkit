@@ -81,7 +81,6 @@
         "inquirer-checkbox-plus-plus": "^1.1.1",
         "nanoid": "^5.1.6",
         "open": "^11.0.0",
-        "ora": "^9.3.0",
         "pretty-bytes": "^7.1.0",
         "pretty-ms": "^9.3.0",
         "radash": "^12.1.1",
