@@ -320,7 +320,6 @@ class ProblemGenerator {
 
     async generateReadme(): Promise<string> {
         return tui.section('Generating README.md', async () => {
-
             const llmEntries: LlmUsageEntry[] = await this.jutge.instructor.jutgeai.getLlmUsage()
 
             const total = {
@@ -350,7 +349,6 @@ class ProblemGenerator {
                     total.waterLiters += estimation.waterLiters
                 }
             }
-
 
             const readme = `
 # Problem information
@@ -391,21 +389,21 @@ ${listify(this.spec.generators)}
 ${YAML.stringify(this.spec, null, 4)}
 \`\`\`
 
-## Model information
-
-Model name: ${this.model}
-
 ## Audit information
 
 Chat label: ${this.label}
 
-## Estimated cost of LLM usage
-
-The following information is based on **estimations** from token counts and used models.
+## Cost of LLM usage
 
 - Total duration:               ${dayjs.duration(total.duration * 1000).format('HH:mm:ss')} 
 - Total input tokens:           ${total.inputTokens}
 - Total output tokens:          ${total.outputTokens}
+- Model:                        ${this.model}
+
+## Estimated cost of LLM usage
+
+The following informations are **estimations** from token counts and used models.
+
 - Total cost incl taxes:        ${total.priceEurTax.toFixed(6)} €
 - Water usage:                  ${total.waterLiters.toFixed(6)} l
 - Energ consumption:            ${total.wattHours.toFixed(6)} Wh
