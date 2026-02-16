@@ -43,5 +43,8 @@ export async function upgrade(): Promise<void> {
         tui.action(`Upgrading from version ${currentVersion} to ${latestPublishedVersion}`)
         execSync(`bun install --global ${packageJson.name}@latest`, { stdio: 'inherit' })
         tui.success(`Successfully upgraded to version ${latestPublishedVersion}`)
+        tui.print()
+        tui.print('To update shell completions (Bash, Zsh, Fish, PowerShell), run:')
+        tui.print('  jtk completion install')
     }
 }

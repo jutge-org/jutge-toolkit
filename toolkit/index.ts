@@ -23,6 +23,7 @@ import { askCmd } from './ask'
 import { convertCmd } from './convert'
 import { stageCmd } from './stage'
 import { lintCmd } from './lint'
+import { completeInternalCmd, completionCmd } from './completion'
 
 program.name(Object.keys(packageJson.bin as Record<string, string>)[0] as string)
 program.alias(Object.keys(packageJson.bin as Record<string, string>)[1] as string)
@@ -49,8 +50,10 @@ if (settings.developer) {
 }
 program.addCommand(configCmd)
 program.addCommand(upgradeCmd)
+program.addCommand(completionCmd)
 program.addCommand(aboutCmd)
 program.addCommand(askCmd)
+program.addCommand(completeInternalCmd, { hidden: true })
 
 try {
     await program.parseAsync()

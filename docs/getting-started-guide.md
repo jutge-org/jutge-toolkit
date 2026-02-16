@@ -61,6 +61,16 @@ Before we dive into configuration, it's important to know how to get help:
     jtk about
     ```
 
+5. **Enable shell completion (Bash, Zsh, Fish, PowerShell):**
+
+    Completions are available for commands, options, and values (e.g. language codes, compiler ids, template names). To enable them:
+
+    ```bash
+    jtk completion install
+    ```
+
+    After upgrading the toolkit with `jtk upgrade`, run `jtk completion install` again to refresh the completion script.
+
 ### Configuration
 
 Before using the toolkit, you should configure it with your preferences:
@@ -230,6 +240,7 @@ Here's a quick reference of the most commonly used commands:
 jtk --help                          # Show help
 jtk --version                       # Show version
 jtk upgrade                         # Upgrade to latest version
+jtk completion install               # Install/update shell completions
 jtk about                           # Show information about the toolkit
 
 jtk config show                     # Show configuration
@@ -263,7 +274,7 @@ jtk doctor                          # Check system dependencies
 
 ## Tips for Success
 
-1. **Keep the toolkit updated:** Regularly run `jtk upgrade` to get the latest features and fixes.
+1. **Keep the toolkit updated:** Regularly run `jtk upgrade` to get the latest features and fixes. After upgrading, run `jtk completion install` to update shell completions.
 
 2. **Start simple:** Begin with a basic problem and gradually explore more features.
 
