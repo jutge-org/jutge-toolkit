@@ -22,6 +22,7 @@ import { submitCmd } from './submit'
 import { askCmd } from './ask'
 import { convertCmd } from './convert'
 import { stageCmd } from './stage'
+import { lintCmd } from './lint'
 
 program.name(Object.keys(packageJson.bin as Record<string, string>)[0] as string)
 program.alias(Object.keys(packageJson.bin as Record<string, string>)[1] as string)
@@ -37,6 +38,7 @@ program.addCommand(cleanCmd)
 program.addCommand(cloneCmd)
 program.addCommand(generateCmd)
 program.addCommand(verifyCmd)
+program.addCommand(lintCmd)
 program.addCommand(submitCmd)
 program.addCommand(convertCmd)
 program.addCommand(stageCmd)
@@ -52,7 +54,7 @@ program.addCommand(askCmd)
 
 try {
     await program.parseAsync()
-    process.exit(0)
+    process.exit(process.exitCode ?? 0)
 } catch (error) {
     console.log()
     console.error('An error occurred:')
