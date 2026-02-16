@@ -2,6 +2,7 @@ import { Command } from '@commander-js/extra-typings'
 import { join, resolve } from 'path'
 import { findRealDirectories } from '../lib/helpers'
 import { newMaker } from '../lib/maker'
+import { runWatch } from '../lib/make-watch'
 import tui from '../lib/tui'
 import { nothing, projectDir } from '../lib/utils'
 
@@ -10,19 +11,24 @@ export const makeCmd = new Command('make')
 
     .argument('[tasks...]', 'tasks to make: all|info|exe|cor|pdf|txt|md|html', ['all'])
     .option('-d, --directories <directories...>', 'problem directories', ['.'])
+    .option('-w, --watch', 'watch problem directory for changes and rebuild', false)
     .option('-i, --ignore-errors', 'ignore errors on a directory and continue processing', false)
     .option('-e, --only-errors', 'only show errors at the final summary', false)
     .option('-p, --problem_nm <problem_nm>', 'problem nm', 'DRAFT')
 
-    .action(async (tasks, { directories, ignoreErrors, onlyErrors, problem_nm }) => {
+    .action(async (tasks, { directories, ignoreErrors, onlyErrors, problem_nm, watch }) => {
         if (tasks.length === 0) {
             tasks = ['all']
         }
-        if (tasks.includes('all') && tasks.length > 1) {
-            throw new Error("When 'all' is specified, no other tasks should be provided")
-        }
-        if (!tasks.every((t) => ['all', 'info', 'exe', 'cor', 'pdf', 'txt', 'md', 'html'].includes(t))) {
-            throw new Error('Tasks must be one of: all, info, exe, cor, pdf, txt, md, html')
+        if (watch) {
+            tasks = ['all']
+        } else {
+            if (tasks.includes('all') && tasks.length > 1) {
+                throw new Error("When 'all' is specified, no other tasks should be provided")
+            }
+            if (!tasks.every((t) => ['all', 'info', 'exe', 'cor', 'pdf', 'txt', 'md', 'html'].includes(t))) {
+                throw new Error('Tasks must be one of: all, info, exe, cor, pdf, txt, md, html')
+            }
         }
 
         tui.print()
@@ -31,6 +37,18 @@ export const makeCmd = new Command('make')
         const errors: Record<string, string> = {} // directory -> error message
 
         const realDirectories = await findRealDirectories(directories)
+
+        if (watch) {
+            if (realDirectories.length === 0) {
+                tui.warning('No problem directories found')
+                return
+            }
+            if (realDirectories.length > 1) {
+                tui.warning('--watch with multiple directories: watching each in parallel')
+            }
+            await Promise.all(realDirectories.map((directory) => runWatch(directory, problem_nm)))
+            return
+        }
 
         for (const directory of realDirectories) {
             try {

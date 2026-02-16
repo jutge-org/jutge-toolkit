@@ -279,12 +279,17 @@ export class Maker {
     }
 
     public async makeCorrectOutputs() {
+        return this.makeCorrectOutputsForTestcases(this.problem.testcases)
+    }
+
+    public async makeCorrectOutputsForTestcases(testcases: string[]) {
+        if (testcases.length === 0) return
         const compiler = this.selectCompiler()
         await tui.section(`Making correct outputs with golden solution`, async () => {
             await tui.section(`Using ${compiler.name()}`, async () => {
                 const results: ExecutionResult[] = []
 
-                for (const testcase of this.problem.testcases) {
+                for (const testcase of testcases) {
                     results.push(await this.makeCorrectOutput(testcase, compiler, this.problem.goldenSolution!))
                 }
 
@@ -738,6 +743,59 @@ export class Maker {
         })
     }
 
+    /** Run given testcases for all alternative solutions (no recompile). Writes jtk-*.out and compares to .cor. */
+    public async runAlternativeOutputsForTestcases(testcases: string[]) {
+        if (testcases.length === 0) return
+        for (const program of this.problem.solutions) {
+            if (program === this.problem.goldenSolution) continue
+            const extension = program.split('.').pop()!
+            const probe = compilersProbesByExtension[extension]
+            if (!probe || !(await probe())) continue
+            const compiler = getCompilerByExtension(extension)
+            const newProgram = `${toolkitPrefix()}-${program}`
+            if (!(await exists(join(this.problem.directory, newProgram)))) continue
+            await tui.section(`Re-running testcases for ${program}`, async () => {
+                const results: ExecutionResult[] = []
+                for (const testcase of testcases) {
+                    results.push(
+                        await this.runTestcase(
+                            testcase,
+                            `${testcase}.inp`,
+                            `${toolkitPrefix()}-${testcase}.${extension}.out`,
+                            compiler,
+                            newProgram,
+                        ),
+                    )
+                }
+                tui.print()
+                tui.print(`testcase           time     status`)
+                let errors = 0
+                for (const result of results) {
+                    const status = result.error
+                        ? 'EE'
+                        : (await filesAreEqual(
+                              join(this.problem.directory, `${result.testcase}.cor`),
+                              join(this.problem.directory, `${toolkitPrefix()}-${result.testcase}.${extension}.out`),
+                          ))
+                            ? 'OK'
+                            : 'WA'
+                    const time = prettyMs(result.time)
+                    tui.print(
+                        (status !== 'OK' ? chalk.red : chalk.green)(
+                            `${result.testcase.padEnd(12)} ${time.padStart(10)} ${status.padStart(10)}`,
+                        ),
+                    )
+                    if (status !== 'OK') errors++
+                }
+                tui.print()
+                if (errors) {
+                    tui.error(`${errors} errors found for ${program}`)
+                } else {
+                    tui.success(`All testcases passed for ${program}`)
+                }
+            })
+        }
+    }
 
     public async makeTarFiles() {
         const { handler, directory } = this.problem

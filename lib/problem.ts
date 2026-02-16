@@ -290,6 +290,13 @@ export class Problem {
         })
     }
 
+    /** Refresh testcases from disk (no tui). Used in watch mode. */
+    public async refreshTestcases(): Promise<void> {
+        if (this.handler.handler === 'quiz') return
+        const files = await Array.fromAsync(glob('*.inp', { cwd: this.directory }))
+        this.testcases = files.map((file) => file.replace('.inp', '')).sort()
+    }
+
     private async loadAwards() {
         await tui.section('Loading awards', async () => {
             if (await exists(join(this.directory, 'award.html'))) {
