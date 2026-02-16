@@ -51,8 +51,8 @@ The original statement will be used as the source text for translation.
 
 Provide one or more target language from the following list:
 ${Object.entries(languageNames)
-            .map(([key, name]) => `  - ${key}: ${name}`)
-            .join('\n')}
+    .map(([key, name]) => `  - ${key}: ${name}`)
+    .join('\n')}
 
 The added translations will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -82,8 +82,8 @@ The golden solution will be used as a reference for generating the alternatives.
 
 Provide one or more target programming languages from the following list:
 ${Object.entries(languageNames)
-            .map(([key, name]) => `  - ${key}: ${name}`)
-            .join('\n')}
+    .map(([key, name]) => `  - ${key}: ${name}`)
+    .join('\n')}
 
 The added solutions will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -117,8 +117,8 @@ The main file for the golden solution will be used as a reference for generating
 
 Provide one or more target programming languages from the following list:
 ${Object.entries(languageNames)
-            .map(([key, name]) => `  - ${key}: ${name}`)
-            .join('\n')}
+    .map(([key, name]) => `  - ${key}: ${name}`)
+    .join('\n')}
 
 The added main files will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -191,7 +191,6 @@ The new image will be saved as award.png in the problem directory, overriding an
             imagePrompt = 'A colorful award on a white background'
         }
         await tui.section('Generating award image', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- generated API client
             const download = await jutge.instructor.jutgeai.createImage({
                 model,
                 label: 'award',
