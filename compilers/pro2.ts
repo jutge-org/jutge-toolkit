@@ -45,7 +45,7 @@ export class PRO2_Compiler extends Compiler {
 
     override async compileNormal(handler: Handler, directory: string, sourcePath: string): Promise<string> {
         const exePath = `${sourcePath}.exe`
-        const dirPath = `${toolkitPrefix()}-PRO2/${nanoid8()}` // We will work in this directory
+        const dirPath = join(directory, `${toolkitPrefix()}-PRO2/${nanoid8()}`) // We will work in this directory
 
         await rm(dirPath, { recursive: true, force: true })
         await mkdir(dirPath, { recursive: true })
@@ -63,7 +63,7 @@ export class PRO2_Compiler extends Compiler {
 
         //
         const extension = extname(sourcePath)
-        await cp(join(directory, sourcePath), join(directory, dirPath, `program${extension}`))
+        await cp(join(directory, sourcePath), join(dirPath, `program${extension}`))
 
         const ccFiles = await Array.fromAsync(glob(`*.cc`, { cwd: dirPath }))
         await execa({
@@ -71,7 +71,7 @@ export class PRO2_Compiler extends Compiler {
             stderr: 'inherit',
             stdout: 'inherit',
             cwd: dirPath,
-        })`${this.tool()} -o ${exePath} ${ccFiles}`
+        })`${this.tool()} ${this.flags1().split(' ')} -o ${exePath} ${ccFiles}`
 
         if (!(await existsInDir(dirPath, exePath))) {
             throw new Error(`Compilation failed for ${sourcePath}`)

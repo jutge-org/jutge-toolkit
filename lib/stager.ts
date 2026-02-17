@@ -101,6 +101,7 @@ export class Stager {
         // await this.checkMTimes_Std(language)
         await this.prepareStatements_Std(language)
         await this.computeCodeMetrics(language)
+        await this.makeTarFiles_Std(language)
         await this.stageProblemFiles_Std(language)
         await this.stageAwards(language)
         await this.stageStatements(language)
@@ -473,6 +474,30 @@ export class Stager {
                 tui.success(`Generated ${tui.hyperlink(this.stagingDirLang, `code-metrics.json`)}`)
             } catch (error) {
                 tui.warning('Failed to compute code metrics')
+            }
+        })
+    }
+
+    private async makeTarFiles_Std(language: string) {
+        const compilers = this.handlers[language]?.compilers || ''
+        if (compilers !== 'PRO2' && compilers !== 'MakePRO2') return
+
+        await tui.section('Making `.tar` files for PRO2/MakePRO2', async () => {
+            for (const dir of ['public', 'private', 'solution']) {
+                if (await existsInDir(this.workDirLang, dir)) {
+                    const { exitCode } = await execa({
+                        reject: false,
+                        stderr: 'inherit',
+                        stdout: 'inherit',
+                        cwd: join(this.workDirLang, dir),
+                    })`tar cf ../${dir}.tar .`
+
+                    if (exitCode !== 0) {
+                        throw new Error(`Error making ${dir}.tar`)
+                    }
+
+                    tui.success(`Created ${dir}.tar`)
+                }
             }
         })
     }

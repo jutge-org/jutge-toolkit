@@ -266,6 +266,8 @@ export class Maker {
     selectCompiler(): Compiler {
         if (this.problem.handler.compilers === 'PRO2') {
             return getCompilerById('PRO2')
+        } else if (this.problem.handler.compilers === 'MakePRO2') {
+            return getCompilerById('MakePRO2')
         } else if (this.problem.handler.compilers === 'RunPython') {
             return getCompilerById('RunPython')
         } else if (this.problem.handler.compilers === 'RunHaskell') {

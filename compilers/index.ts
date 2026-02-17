@@ -27,7 +27,7 @@ const compilersRegistryById: Record<string, new () => Compiler> = {
     Verilog: Verilog_Compiler,
     R: R_Compiler,
     PRO2: PRO2_Compiler,
-    MakePRO2: PRO2_Compiler,
+    MakePRO2: MakePRO2_Compiler,
 
     RunPython: RunPython_Compiler,
     RunHaskell: RunHaskell_Compiler,
