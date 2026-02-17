@@ -51,18 +51,23 @@ export class MakePRO2_Compiler extends Compiler {
         await mkdir(dirPath, { recursive: true })
         tui.print(`Using working directory ${tui.hyperlink(directory, dirPath)}`)
 
-        // Copy `public` and `private` C++ files over to
-        // NOTE(pauek): We _have_ to copy files in "public", then "private"
+        // Copy `public`, `private`, and `solution` C++ files over
+        // NOTE(pauek): We _have_ to copy files in "public", then "private", then "solution"
         for (const dir of ['public', 'private', 'solution']) {
             const ccfiles = await Array.fromAsync(glob(`${dir}/*.{cc,hh}`, { cwd: directory }))
             for (const file of ccfiles) {
                 const dest = join(dirPath, basename(file))
                 await cp(join(directory, file), dest)
             }
-            if (await existsInDir(dir, `Makefile`)) {
+            if (await existsInDir(join(directory, dir), `Makefile`)) {
                 const dest = join(dirPath, `Makefile`)
                 await cp(join(directory, dir, `Makefile`), dest)
             }
+        }
+
+        // If no solution/ directory, extract from tar
+        if (!(await existsInDir(directory, 'solution'))) {
+            await execa({ cwd: dirPath })`tar xf ${join(directory, sourcePath)}`
         }
 
         const ccFiles = await Array.fromAsync(glob(`*.cc`, { cwd: dirPath }))

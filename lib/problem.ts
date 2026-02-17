@@ -259,10 +259,10 @@ export class Problem {
                     throw new Error(`Didn't find "solution.hh" or "solution.cc" for PRO2!`)
                 }
             } else if (this.handler.compilers === 'MakePRO2') {
-                if (await existsInDir(this.directory, `solution`)) {
+                if (await existsInDir(this.directory, `solution`) || await existsInDir(this.directory, `solution.tar`)) {
                     this.goldenSolution = 'solution.tar'
                 } else {
-                    throw new Error(`Didn't find "solution" for MakePRO2!`)
+                    throw new Error(`Didn't find "solution" or "solution.tar" for MakePRO2!`)
                 }
             } else {
                 const solutionProglang = this.handler.solution
