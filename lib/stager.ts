@@ -1,14 +1,11 @@
-import open, { openApp, apps } from 'open'
 import { rings } from '@dicebear/collection'
 import { createAvatar } from '@dicebear/core'
 import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import relativeTime from 'dayjs/plugin/relativeTime'
-
-dayjs.extend(duration)
-dayjs.extend(relativeTime)
 import { execa } from 'execa'
 import { cp, exists, glob, mkdir, rm, stat, writeFile } from 'fs/promises'
+import open from 'open'
 import os from 'os'
 import { join, resolve } from 'path'
 import { invert } from 'radash'
@@ -19,6 +16,9 @@ import { ProblemLangYml, QuizRoot } from './types'
 import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
 import { packageJson } from './versions'
 import { createZipFromFiles, type FileToArchive } from './zip-creation'
+
+dayjs.extend(duration)
+dayjs.extend(relativeTime)
 
 export class Stager {
     // directory containing the problem to stage
@@ -97,7 +97,8 @@ export class Stager {
     }
 
     async stageLanguage_Std(language: string) {
-        await this.checkMTimes_Std(language)
+        // removed because it did not work when zipping, unzipping, and rezipping
+        // await this.checkMTimes_Std(language)
         await this.prepareStatements_Std(language)
         await this.computeCodeMetrics(language)
         await this.stageProblemFiles_Std(language)
