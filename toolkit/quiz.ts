@@ -15,10 +15,10 @@ quizCmd
     .command('validate')
     .description('Validate a quiz problem')
 
-    .option('-d, --directories <directories...>', 'problem directories', ['.'])
+    .option('-d, --directory <directory>', 'problem directory', '.')
 
-    .action(async ({ directories }) => {
-        const realDirectories = await findRealDirectories(directories)
+    .action(async ({ directory }) => {
+        const realDirectories = await findRealDirectories([directory])
         for (const directory of realDirectories) {
             await tui.section(`Validating quiz in directory ${tui.hyperlink(directory)}`, async () => {
                 await validateQuiz(directory)
