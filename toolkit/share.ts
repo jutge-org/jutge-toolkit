@@ -31,17 +31,17 @@ Finally, it updates problem.yml file with the current sharing settings and shows
     .action(async function () {
         const opts = this.opts()
 
-        let passcode: string | false | undefined
-        if (this.getOptionValueSource('passcode') !== 'default') {
-            const raw = opts.passcode
-            if (raw === false) {
-                passcode = false
-            } else if (raw === true || raw === undefined || raw === '') {
+        let passcode: string | undefined | false
+        if (this.getOptionValueSource('passcode') === undefined) {
+            passcode = undefined
+        } else if (this.getOptionValueSource('passcode') === 'cli') {
+            if (opts.passcode === true) {
                 passcode = await password({ message: 'Passcode:' })
             } else {
-                passcode = raw
+                passcode = opts.passcode
             }
         }
+
         const testcases = this.getOptionValueSource('testcases') !== 'default' ? opts.testcases : undefined
         const solutions = this.getOptionValueSource('solutions') !== 'default' ? opts.solutions : undefined
 
