@@ -1,4 +1,4 @@
-import { email, z } from 'zod'
+import { z } from 'zod'
 
 export const ProblemOriginalLangYml = z.object({
     title: z.string(),
@@ -28,6 +28,8 @@ export const Handler = z.object({
 
 export type Handler = z.infer<typeof Handler>
 
+// scores.yml file
+
 export const Scores = z.array(
     z.object({
         part: z.string(),
@@ -37,6 +39,8 @@ export const Scores = z.array(
 )
 
 export type Scores = z.infer<typeof Scores>
+
+// 
 
 export const Specification = z.object({
     title: z.string(),
@@ -52,15 +56,21 @@ export const Specification = z.object({
 
 export type Specification = z.infer<typeof Specification>
 
+// problem.yml file
+
 export const ProblemInfo = z.object({
     problem_nm: z.string().default(''),
     email: z.string().default(''),
     passcode: z.string().default(''),
+    shared_testcases: z.boolean().default(false),
+    shared_solutions: z.boolean().default(false),
     created_at: z.string().default(''),
     updated_at: z.string().default(''),
 })
 
 export type ProblemInfo = z.infer<typeof ProblemInfo>
+
+// settings.yml file
 
 export const Settings = z.object({
     name: z.string().min(1).default('John Doe'),
@@ -73,6 +83,8 @@ export const Settings = z.object({
 })
 
 export type Settings = z.infer<typeof Settings>
+
+// quizzes
 
 export const QuizRootQuestion = z.object({
     title: z.string().nonempty(),

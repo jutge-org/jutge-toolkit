@@ -161,11 +161,11 @@ async function showMiniProfile(jutge: JutgeApiClient): Promise<void> {
         try {
             return await jutge.student.profile.get()
         } catch (error) {
-            tui.error('❌ Could not get profile, check your credentials or internet connection')
+            tui.error('Could not get profile, check your credentials or internet connection')
             throw error
         }
     })
-    tui.success(`🟢 Logged in as ${profile.name} with email ${profile.email}`)
+    tui.success(`Logged in as ${profile.name} with email ${profile.email}`)
 }
 
 async function loginToJutge(jutge: JutgeApiClient): Promise<void> {

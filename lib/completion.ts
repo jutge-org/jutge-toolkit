@@ -10,7 +10,6 @@ import {
     generateSubcommands,
     languageCodes,
     makeTasks,
-    passcodeSubcommands,
     proglangCodes,
     templateNames,
     topLevelCommands,
@@ -51,7 +50,7 @@ function filterLongOptions(opts: string[], curWord: string): string[] {
 export async function complete(words: string[], curWordIndex: number): Promise<CompletionResult> {
     const curWord = words[curWordIndex] ?? ''
     const prevWord = curWordIndex > 0 ? words[curWordIndex - 1] : ''
-    const isOptionValue = curWordIndex >= 1 && prevWord.startsWith('-')
+    const isOptionValue = curWordIndex >= 1 && (prevWord?.startsWith('-') ?? false)
 
     // Helper: complete option value
     if (curWordIndex >= 2) {
@@ -159,12 +158,18 @@ export async function complete(words: string[], curWordIndex: number): Promise<C
             }
             return { words: filterLongOptions(['--help'], curWord) }
         }
-        case 'passcode': {
-            if (curWordIndex === 2 && !curWord.startsWith('-')) {
-                const list = passcodeSubcommands.filter((s) => s.startsWith(curWord))
-                return { words: list }
-            }
-            return { words: filterLongOptions(['--directory', '--passcode', '--help'], curWord) }
+        case 'share': {
+            const opts = [
+                '--directory',
+                '--passcode',
+                '--no-passcode',
+                '--testcases',
+                '--no-testcases',
+                '--solutions',
+                '--no-solutions',
+                '--help',
+            ]
+            return { words: filterLongOptions(opts, curWord) }
         }
         case 'convert': {
             if (curWordIndex === 2 && !curWord.startsWith('-')) {

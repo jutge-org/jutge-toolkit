@@ -254,7 +254,7 @@ jtk verify <program>                # Test a solution
 jtk upload                          # Upload to Jutge.org
 jtk submit -l <language> <solution> # Submit a solution to Jutge.org
 jtk clean                           # Clean temporary files
-jtk passcode                        # Manage problem passcode
+jtk share                           # Update and show sharing settings (passcode, testcases, solutions)
 
 jtk doctor                          # Check system dependencies
 ```

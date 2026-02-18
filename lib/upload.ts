@@ -86,6 +86,8 @@ async function createProblemInJutgeOrg(directory: string, zipFilePath: string): 
             problem_nm: '',
             email,
             passcode: nanoid12(),
+            shared_testcases: false,
+            shared_solutions: false,
             created_at: '',
             updated_at: '',
         }

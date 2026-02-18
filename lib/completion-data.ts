@@ -15,7 +15,7 @@ import { Settings } from './types'
 export const topLevelCommands = [
     'make',
     'upload',
-    'passcode',
+    'share',
     'clean',
     'clone',
     'generate',
@@ -47,9 +47,6 @@ export const generateSubcommands = [
 
 /** config subcommands */
 export const configSubcommands = ['show', 'list', 'get', 'set', 'edit', 'reset'] as const
-
-/** passcode subcommands */
-export const passcodeSubcommands = ['show', 'set', 'remove'] as const
 
 /** convert subcommands */
 export const convertSubcommands = ['transform-at-signs'] as const

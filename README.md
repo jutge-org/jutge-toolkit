@@ -147,10 +147,12 @@ jtk upload                          # Upload problem to Jutge.org
 # Testing
 jtk submit -l en candidate.py       # Submit a candidate solution to Jutge.org
 
-# Passcode management
-jtk passcode show                   # Show the passcode of the problem
-jtk passcode set                    # Set the passcode of the problem
-jtk passcode remove                 # Remove the passcode of the problem
+# Sharing settings
+jtk share                           # Show and update sharing settings (passcode, testcases, solutions)
+jtk share --passcode <code>         # Set a passcode
+jtk share --no-passcode             # Clear the passcode
+jtk share --testcases               # Share testcases
+jtk share --solutions               # Share solutions
 
 # Maintenance
 jtk upgrade                         # Update to latest version

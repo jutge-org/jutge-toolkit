@@ -169,7 +169,7 @@ The `\Link{...}` macro provides a hyperlink to another problem (without specifie
 
 ## The `problem.yml` file
 
-Once a problem is uploaded to Jutge.org, a `problem.yml` file is automatically created in the root of the problem folder. This file contains metadata about the problem that is used by the system. **The fields of this file should not be modified by hand**. In it, you will find fields such as the problem identifier (e.g., X12345), its passcode, the time of creation, and the time of the last modification. Importantly, the presence of this file indicates that the problem has already been uploaded to Jutge.org.
+Once a problem is uploaded to Jutge.org, a `problem.yml` file is automatically created in the root of the problem folder. This file contains metadata about the problem that is used by the system. **The fields of this file should not be modified by hand**. In it, you will find fields such as the problem identifier (e.g., X12345), its sharing settings (passcode, shared testcases, shared solutions), the time of creation, and the time of the last modification. You can view and update these sharing settings with the `jtk share` command. Importantly, the presence of this file indicates that the problem has already been uploaded to Jutge.org.
 
 If you are creating a problem from a copy of an existing problem, be sure to delete the `problem.yml` file before uploading it to Jutge.org to avoid interfering with the existing problem.
 
@@ -178,6 +178,8 @@ Here is an example of a `problem.yml` file:
 ```yml
 problem_nm: X12345
 passcode: 16PbADb1qfDj
+shared_testcases: false
+shared_solutions: false
 created_at: 2016-01-13T11:33:16.187Z
 updated_at: 2026-01-13T12:47:12.884Z
 ```

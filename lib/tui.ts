@@ -158,11 +158,11 @@ function tryTo(text: string) {
 }
 
 function trySuccess() {
-    process.stdout.write(" ✅ \n")
+    process.stdout.write(chalk.green(" ✓ \n"))
 }
 
 function tryFailure() {
-    process.stdout.write(" ❌ \n")
+    process.stdout.write(chalk.red(" ✗ \n"))
 }
 
 export default {
