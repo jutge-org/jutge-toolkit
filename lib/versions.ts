@@ -2,6 +2,7 @@ import { execSync } from 'child_process'
 import { join } from 'path'
 import semver from 'semver'
 import { PackageJson } from 'zod-package-json'
+import { confirm } from '@inquirer/prompts'
 import tui from './tui'
 import { nothing, projectDir, readJson } from './utils'
 
@@ -44,7 +45,15 @@ export async function upgrade(): Promise<void> {
         execSync(`bun install --global ${packageJson.name}@latest`, { stdio: 'inherit' })
         tui.success(`Successfully upgraded to version ${latestPublishedVersion}`)
         tui.print()
-        tui.print('To update shell completions (Bash, Zsh, Fish, PowerShell), run:')
-        tui.print('  jtk completion install')
+        const installCompletions = await confirm({
+            message: 'Install shell completions (Bash, Zsh, Fish, PowerShell) now?',
+            default: true,
+        })
+        if (installCompletions) {
+            execSync('jtk completion install', { stdio: 'inherit' })
+        } else {
+            tui.print('To install or update shell completions later, run:')
+            tui.print('  jtk completion install')
+        }
     }
 }
