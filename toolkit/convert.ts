@@ -15,10 +15,10 @@ convertCmd
     .command('transform-at-signs')
     .description('Transform @ signs to lstinline')
 
-    .option('-d, --directories <directories...>', 'problem directories', ['.'])
+    .option('-d, --directory <directory>', 'problem directory', '.')
 
-    .action(async ({ directories }) => {
-        const realDirectories = await findRealDirectories(directories)
+    .action(async ({ directory }) => {
+        const realDirectories = await findRealDirectories([directory])
 
         for (const realDirectory of realDirectories) {
             await tui.section(`Processing ${realDirectory}`, async () => {
