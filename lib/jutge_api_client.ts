@@ -7,8 +7,7 @@
  * Description: Jutge API
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable */
 
 // Models
 
@@ -788,13 +787,13 @@ export type TagsDict = Record<string, string[]>
 export type ChatMessage =
     | { role: string; content: string }
     | {
-          role: string
-          content: string
-      }
+        role: string
+        content: string
+    }
     | {
-          role: string
-          content: string
-      }
+        role: string
+        content: string
+    }
 
 export type ChatPrompt = {
     model: string

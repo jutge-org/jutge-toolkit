@@ -25,6 +25,7 @@ import { convertCmd } from './convert'
 import { stageCmd } from './stage'
 import { lintCmd } from './lint'
 import { completeInternalCmd, completionCmd } from './completion'
+import { dummiesCmd } from './dummies'
 
 program.name(Object.keys(packageJson.bin as Record<string, string>)[0] as string)
 program.alias(Object.keys(packageJson.bin as Record<string, string>)[1] as string)
@@ -56,6 +57,7 @@ program.addCommand(completionCmd)
 program.addCommand(aboutCmd)
 program.addCommand(askCmd)
 program.addCommand(completeInternalCmd, { hidden: true })
+program.addCommand(dummiesCmd)
 
 try {
     await program.parseAsync()

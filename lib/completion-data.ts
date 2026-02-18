@@ -28,8 +28,11 @@ export const topLevelCommands = [
     'doctor',
     'config',
     'upgrade',
+    'completion',
     'about',
     'ask',
+    'for-dummies',
+    'interactive',
 ] as const
 
 /** make task names */

@@ -188,6 +188,17 @@ export async function complete(words: string[], curWordIndex: number): Promise<C
         }
         case 'ask':
             return { words: filterLongOptions(['--model', '--help'], curWord) }
+        case 'completion': {
+            if (curWordIndex === 2 && !curWord.startsWith('-')) {
+                const subs = ['bash', 'zsh', 'fish', 'powershell', 'install']
+                const list = subs.filter((s) => s.startsWith(curWord))
+                return { words: list }
+            }
+            return { words: filterLongOptions(['--help'], curWord) }
+        }
+        case 'for-dummies':
+        case 'interactive':
+            return { words: filterLongOptions(['--help'], curWord) }
         default:
             return { words: [] }
     }
