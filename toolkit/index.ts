@@ -11,6 +11,7 @@ import { cleanCmd } from './clean'
 import { compilersCmd } from './compilers'
 import { configCmd } from './config'
 import { cloneCmd } from './clone'
+import { downloadCmd } from './download'
 import { doctorCmd } from './doctor'
 import { generateCmd } from './generate'
 import { makeCmd } from './make'
@@ -37,6 +38,7 @@ program.addCommand(uploadCmd)
 program.addCommand(cmdShare)
 program.addCommand(cleanCmd)
 program.addCommand(cloneCmd)
+program.addCommand(downloadCmd)
 program.addCommand(generateCmd)
 program.addCommand(verifyCmd)
 program.addCommand(lintCmd)

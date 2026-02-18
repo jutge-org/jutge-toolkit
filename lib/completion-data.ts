@@ -18,6 +18,7 @@ export const topLevelCommands = [
     'share',
     'clean',
     'clone',
+    'download',
     'generate',
     'verify',
     'lint',
