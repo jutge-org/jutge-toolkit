@@ -170,6 +170,12 @@ This will run the solution against all test cases and compare outputs.
 
 ### Generating Additional Content
 
+**Generate a statement from a solution:**
+
+```bash
+jtk generate statement cc en "Add a cute story about Joan."
+```
+
 **Add statement translations:**
 
 ```bash

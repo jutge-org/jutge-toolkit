@@ -10,6 +10,65 @@ import { settings } from './settings'
 import tui from './tui'
 import { projectDir, readText, readTextInDir, stripLaTeX, writeTextInDir, writeYamlInDir } from './utils'
 
+export async function generateStatementFromSolution(
+    jutge: JutgeApiClient,
+    model: string,
+    problem: Problem,
+    proglang: string,
+    language: string,
+    userPrompt?: string,
+) {
+    if (!proglangKeys.includes(proglang)) {
+        throw new Error(`Programming language ${proglang} is not supported`)
+    }
+    if (!languageKeys.includes(language)) {
+        throw new Error(`Language ${language} is not supported`)
+    }
+    const solutionFile = `solution.${proglang}`
+    if (!problem.solutions.includes(solutionFile)) {
+        throw new Error(`Solution ${solutionFile} not found in problem`)
+    }
+
+    const solutionSource = await readTextInDir(problem.directory, solutionFile)
+    const latexExample = await readText(join(projectDir(), 'assets', 'prompts', 'examples', 'statement.tex'))
+    const statementCoda = await readText(join(projectDir(), 'assets', 'prompts', 'examples', 'statement-coda.tex'))
+    const userPromptTemplate = await readText(
+        join(projectDir(), 'assets', 'prompts', 'creators', 'create-statement-from-solution.tpl.txt'),
+    )
+
+    const langName = languageNames[language]
+    const proglangName = proglangNames[proglang]
+
+    const systemPrompt = `You write the statement of a programming problem in ${langName}.
+
+The statement must be written in LaTeX, using these predefined macros: \\Problem{title}, \\Statement, \\Input, \\Output, \\Observation, \\Sample.
+Use LaTeX math syntax for formulas and variables. Use dollars for inline maths and \\[ and \\] for display maths.
+Do not add input/output test cases in the statement. Separate paragraphs by a blank line and \\medskip macro.
+Write in the style of programming contests like the ACM ICPC or Jutge.org.
+Output only the LaTeX statement, no markdown code fence or explanation.
+
+Here is an example of the structure and macros to follow:
+
+${latexExample}`
+
+    const userPromptText = Handlebars.compile(userPromptTemplate)({
+        langName,
+        userPrompt: userPrompt ?? '',
+        proglangName,
+        solutionSource,
+    })
+
+    await tui.section(`Generating statement in ${langName} from ${solutionFile}`, async () => {
+        const answer = cleanMardownCodeString(
+            await complete(jutge, model, 'generate-statement-from-solution', systemPrompt, userPromptText),
+        )
+        const statement = answer + statementCoda
+        await writeTextInDir(problem.directory, `problem.${language}.tex`, statement)
+        tui.success(`Created problem.${language}.tex`)
+        tui.warning('Please review the generated statement')
+    })
+}
+
 export async function addStatementTranslation(jutge: JutgeApiClient, model: string, problem: Problem, language: string) {
     const original = problem.originalLanguage
 

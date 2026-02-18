@@ -8,6 +8,7 @@ import {
     addAlternativeSolution,
     addMainFile,
     addStatementTranslation,
+    generateStatementFromSolution,
     generateTestCasesGenerator,
 } from '../lib/generate'
 import { newProblem } from '../lib/problem'
@@ -51,8 +52,8 @@ The original statement will be used as the source text for translation.
 
 Provide one or more target language from the following list:
 ${Object.entries(languageNames)
-    .map(([key, name]) => `  - ${key}: ${name}`)
-    .join('\n')}
+            .map(([key, name]) => `  - ${key}: ${name}`)
+            .join('\n')}
 
 The added translations will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -72,6 +73,31 @@ The added translations will be saved in the problem directory overwrite possible
     })
 
 generateCmd
+    .command('statement')
+    .summary('Generate a statement from a solution using JutgeAI')
+    .description(
+        `Generate a problem statement from a solution using JutgeAI
+
+Use this command to create a statement file from an existing solution.
+The AI infers the problem (input/output, task) from the solution code and writes a problem statement.
+
+Provide the programming language of the solution to use and the target language for the statement.
+An optional prompt can guide the statement generation (e.g. "Focus on edge cases" or "Assume the problem is for beginners").
+
+The result is written to statement.<lang>.tex in the problem directory.`,
+    )
+    .addArgument(new Argument('<proglang>', 'solution to use (e.g. cc, py)').choices(proglangKeys))
+    .addArgument(new Argument('<language>', 'statement language').choices(languageKeys))
+    .option('-d, --directory <path>', 'problem directory', '.')
+    .option('-m, --model <model>', 'AI model to use', settings.defaultModel)
+    .argument('[prompt]', 'optional prompt to guide statement generation', '')
+    .action(async (proglang, language, prompt, { directory, model }) => {
+        const jutge = await getLoggedInJutgeClient()
+        const problem = await newProblem(directory)
+        await generateStatementFromSolution(jutge, model, problem, proglang, language, (prompt ?? '').trim() || undefined)
+    })
+
+generateCmd
     .command('solutions')
     .summary('Generate alternative solutions using JutgeAI')
     .description(
@@ -82,8 +108,8 @@ The golden solution will be used as a reference for generating the alternatives.
 
 Provide one or more target programming languages from the following list:
 ${Object.entries(languageNames)
-    .map(([key, name]) => `  - ${key}: ${name}`)
-    .join('\n')}
+            .map(([key, name]) => `  - ${key}: ${name}`)
+            .join('\n')}
 
 The added solutions will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -117,8 +143,8 @@ The main file for the golden solution will be used as a reference for generating
 
 Provide one or more target programming languages from the following list:
 ${Object.entries(languageNames)
-    .map(([key, name]) => `  - ${key}: ${name}`)
-    .join('\n')}
+            .map(([key, name]) => `  - ${key}: ${name}`)
+            .join('\n')}
 
 The added main files will be saved in the problem directory overwrite possible existing files.`,
     )

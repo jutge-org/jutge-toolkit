@@ -1,0 +1,9 @@
+The following program is a solution to the problem. Write a problem statement in {{langName}} that describes what the program must do (input/output, constraints, task). Use the same LaTeX macros and structure as in the example.
+
+{{#if userPrompt}}
+Additional instructions from the user: {{userPrompt}}
+
+{{/if}}
+Program in {{proglangName}}:
+
+{{solutionSource}}
