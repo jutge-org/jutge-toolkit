@@ -61,7 +61,7 @@ See https://platform.openai.com/docs/pricing for the pricing of the OpenAI model
 
 ### Recommendation
 
-Try to use `gpt-4.1-nano` or `gpt-4.1-mini` for the quickest results. If you need more reliable results, use `gpt-5-nano` or `gpt-5-mini`.
+Try to use `gpt-4.1-nano` or `gpt-4.1-mini` for the quickest results. If you need more reliable results, use `gpt-5-nano` or `gpt-5-mini`. As could be expected, the larger the model, the more reliable the results and the slower the generation.
 
 # Jutge<sup>AI</sup> costs
 
