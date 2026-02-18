@@ -47,19 +47,17 @@ export async function printLintResults(results: LintResult[], directories: strin
 export const lintCmd = new Command('lint')
     .summary('Lint a problem directory')
 
-    .argument('[directories...]', 'problem directories to lint (default: current directory)')
-    .option('-d, --directory <path>', 'problem directory when no arguments given', '.')
+    .argument('[directory]', 'problem directory to lint', '.')
 
-    .action(async (directories: string[], { directory }) => {
-        const dirs = directories.length > 0 ? directories : [directory]
-        const results = await lintDirectories(dirs)
+    .action(async (directory: string) => {
+        const results = await lintDirectories([directory])
 
         if (results.length === 0) {
             tui.warning('No problem directories found (looked for handler.yml in the given path(s)).')
             return
         }
 
-        const { hasError } = await printLintResults(results, dirs)
+        const { hasError } = await printLintResults(results, [directory])
         if (hasError) {
             process.exitCode = 1
         }
