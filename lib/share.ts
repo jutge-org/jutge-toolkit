@@ -39,6 +39,7 @@ export async function showSharingSettings(directory: string): Promise<void> {
     await tui.section('Current sharing settings:', async () => {
         await nothing()
         const settings = {
+            problem_nm: info.problem_nm,
             passcode: info.passcode,
             shared_testcases: info.shared_testcases,
             shared_solutions: info.shared_solutions,
