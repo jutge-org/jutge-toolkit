@@ -16,13 +16,13 @@ export const makeCmd = new Command('make')
     .description('Make problem')
 
     .argument('[tasks...]', 'tasks to make: all|info|exe|cor|pdf|txt|md|html', ['all'])
-    .option('-d, --directories <directories...>', 'problem directories', ['.'])
+    .option('-d, --directory <directory>', 'problem directory', '.')
     .option('-i, --ignore-errors', 'ignore errors on a directory and continue processing', false)
     .option('-e, --only-errors', 'only show errors at the final summary', false)
     .option('-p, --problem_nm <problem_nm>', 'problem nm', 'DRAFT')
     .option('-w, --watch', 'watch for changes and rebuild incrementally (under development)', false)
 
-    .action(async (tasks, { directories, ignoreErrors, onlyErrors, problem_nm, watch }) => {
+    .action(async (tasks, { directory, ignoreErrors, onlyErrors, problem_nm, watch }) => {
         if (watch) {
             tasks = ['all']
         }
@@ -41,7 +41,7 @@ export const makeCmd = new Command('make')
 
         const errors: Record<string, string> = {} // directory -> error message
 
-        const realDirectories = await findRealDirectories(directories)
+        const realDirectories = await findRealDirectories([directory])
 
         if (watch && realDirectories.length > 1) {
             tui.warning('With --watch only the first directory is watched')
