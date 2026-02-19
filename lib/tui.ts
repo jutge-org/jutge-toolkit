@@ -1,13 +1,18 @@
 import boxen from 'boxen'
 import chalk from 'chalk'
 import { highlight } from 'cli-highlight'
-import { marked } from 'marked'
+import { Marked, marked } from 'marked'
 import type { MarkedExtension } from 'marked'
 import { markedTerminal } from 'marked-terminal'
-import { resolve } from 'path'
+import { writeFile } from 'fs/promises'
+import open from 'open'
+import { tmpdir } from 'os'
+import { join, resolve } from 'path'
 import terminalLink from 'terminal-link'
 import YAML from 'yaml'
-import { nothing } from './utils'
+import { nanoid8, nothing } from './utils'
+
+const markedHtml = new Marked()
 
 // marked-terminal returns a renderer extension; @types/marked-terminal is outdated
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- markedTerminal() returns a valid MarkedExtension at runtime
@@ -121,9 +126,44 @@ function print(text: string = '', endline: boolean = true): void {
     }
 }
 
+const markdownHtmlTemplate = (body: string) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown</title>
+  <style>
+    :root { --bg: #fafafa; --fg: #1a1a1a; --muted: #6b7280; --accent: #2563eb; --green: #059669; --orange: #ea580c; --purple: #7c3aed; --red: #dc2626; --yellow: #b45309; }
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 72ch; margin: 0 auto; padding: 2rem; background: var(--bg); color: var(--fg); line-height: 1.6; }
+    h1, h2, h3 { color: var(--accent); margin-top: 1.5em; }
+    h1 { font-size: 1.75rem; border-bottom: 1px solid var(--muted); padding-bottom: 0.25em; }
+    h2 { font-size: 1.35rem; }
+    h3 { font-size: 1.15rem; }
+    a { color: var(--accent); }
+    code { background: #e5e7eb; color: var(--yellow); padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; }
+    pre { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; overflow-x: auto; }
+    pre code { background: none; padding: 0; color: var(--fg); }
+    blockquote { border-left: 4px solid var(--accent); margin: 0; padding-left: 1rem; color: var(--muted); }
+    ul, ol { padding-left: 1.5rem; }
+    strong { color: var(--green); }
+    hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.5rem 0; }
+  </style>
+</head>
+<body>
+${body}
+</body>
+</html>
+`
+
 async function markdown(content: string): Promise<void> {
-    await nothing()
     print(marked.parse(content) as string)
+
+    // open in browser
+    const body = (await markedHtml.parse(content)) as string
+    const html = markdownHtmlTemplate(body)
+    const path = join(tmpdir(), `jutge-markdown-${nanoid8()}.html`)
+    await writeFile(path, html, 'utf8')
+    await open(path)
 }
 
 function yaml(content: any): void {
