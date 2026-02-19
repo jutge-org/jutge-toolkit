@@ -1,10 +1,17 @@
 import boxen from 'boxen'
 import chalk from 'chalk'
 import { highlight } from 'cli-highlight'
+import { marked } from 'marked'
+import type { MarkedExtension } from 'marked'
+import { markedTerminal } from 'marked-terminal'
 import { resolve } from 'path'
 import terminalLink from 'terminal-link'
 import YAML from 'yaml'
 import { nothing } from './utils'
+
+// marked-terminal returns a renderer extension; @types/marked-terminal is outdated
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call -- markedTerminal() returns a valid MarkedExtension at runtime
+marked.use(markedTerminal() as unknown as MarkedExtension)
 
 const spacesPerLevel = process.env.JUTGE_INDENTATION_WIDTH ? parseInt(process.env.JUTGE_INDENTATION_WIDTH) : 4
 
@@ -116,7 +123,7 @@ function print(text: string = '', endline: boolean = true): void {
 
 async function markdown(content: string): Promise<void> {
     await nothing()
-    print(highlight(content, { language: 'markdown' }))
+    print(marked.parse(content) as string)
 }
 
 function yaml(content: any): void {
