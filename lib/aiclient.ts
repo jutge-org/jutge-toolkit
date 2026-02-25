@@ -54,7 +54,7 @@ export class ChatBot {
         }
         if (response === '') {
             tui.error(`Failed to get response after ${maxAttempts} attempts`)
-            response = 'Failed to get response'
+            return 'Failed to get response'
         }
 
         this.messages.push({ role: 'assistant', content: response })
@@ -78,18 +78,18 @@ export class ChatBot {
             addUsage: false,
         })
 
-        const request = await fetch(`${this.jutge.JUTGE_API_URL}/webstreams/${id}`, {
+        const resp = await fetch(`${this.jutge.JUTGE_API_URL}/webstreams/${id}`, {
             method: 'GET',
         })
-        if (!request.body) {
+        if (!resp.body) {
             throw new Error('No response body')
         }
-        if (request.status !== 200) {
-            tui.error(`Failed to get response: Status ${request.status}`)
+        if (resp.status !== 200) {
+            tui.error(`Failed to get response: Status ${resp.status}`)
             throw new Error('Failed to get response')
         }
 
-        const reader = request.body.getReader()
+        const reader = resp.body.getReader()
         while (true) {
             const { done, value } = await reader.read()
             if (done) break
@@ -109,7 +109,7 @@ export class ChatBot {
     }
 }
 
-export function cleanMardownCodeString(s: string): string {
+export function cleanMarkdownCodeString(s: string): string {
     const pattern = /^\n*```\w*\s*(.*?)\s*```\n*$/s
     const clean = s.replace(pattern, '$1')
     return clean
@@ -174,8 +174,8 @@ async function dolarsToEurosSlow(amount: number) {
         const rate = data.rates.USD
         return amount / rate
     } catch (error) {
-        tui.error(`Failed to convert dollars to euros`)
-        return amount / 0.85 // approximate rate for 2026-02-09
+        tui.error(`Failed to convert dolars to euros`)
+        return amount * 0.85 // approximate rate for 2026-02-09
     }
 }
 

@@ -6,7 +6,7 @@ import { join } from 'path'
 import tree from 'tree-node-cli'
 import YAML from 'yaml'
 import { z } from 'zod'
-import { ChatBot, cleanMardownCodeString, complete, llmEstimates } from './aiclient'
+import { ChatBot, cleanMarkdownCodeString, complete, llmEstimates } from './aiclient'
 import { languageNames, proglangNames } from './data'
 import { getTitleFromStatement, listify } from './helpers'
 import type { JutgeApiClient, LlmUsageEntry } from './jutge_api_client'
@@ -55,11 +55,6 @@ export async function createFuncsProblem(
     await generator.run()
 }
 
-
-// *******************************************************************************************************************
-// FuncsProblemGenerator
-// *******************************************************************************************************************
-
 function promptsPath(...segments: string[]): string {
     return join(projectDir(), 'assets', 'prompts', ...segments)
 }
@@ -87,26 +82,30 @@ const FuncsSpecification = z.object({
 type FuncsSpecification = z.infer<typeof FuncsSpecification>
 
 class FuncsProblemGenerator {
-    protected jutge: JutgeApiClient
-    protected model: string
-    protected dir: string
-    protected bot: ChatBot
-    protected label: string
-    protected inputPath: string | undefined
-    protected outputPath: string | undefined
-    protected doNotAsk: boolean
 
-    protected spec!: FuncsSpecification
-    protected proglang: string = ''
-    protected problemStatement: string = ''
-    protected problemMoreStatements: Record<string, string> = {}
-    protected problemReadme: string = ''
-    protected functions: string[] = []
-    protected problemSampleTests: string = ''
-    protected problemPrivateTests: Record<string, string> = {}
-    protected problemSampleDt: string = ''
-    protected solution: string = ''
-    protected scores: Scores | undefined = undefined
+    // inputs
+    jutge: JutgeApiClient
+    model: string
+    dir: string
+    bot: ChatBot
+    label: string
+    inputPath: string | undefined
+    outputPath: string | undefined
+    doNotAsk: boolean
+
+    // generated
+    proglang: string = ''
+    problemStatement: string = ''
+    problemMoreStatements: Record<string, string> = {}
+    problemReadme: string = ''
+    functions: string[] = []
+    problemSampleTests: string = ''
+    problemPrivateTests: Record<string, string> = {}
+    problemSampleDt: string = ''
+    solution: string = ''
+    scores: Scores | undefined = undefined
+
+    spec!: FuncsSpecification
 
     constructor(params: ProblemGeneratorParams) {
         this.jutge = params.jutge
@@ -194,8 +193,8 @@ class FuncsProblemGenerator {
                 }
                 this.doNotAsk = true
                 return {
-                    title: 'Your new problem title',
-                    description: 'Describe the the problem here. Do not describe the functions yet.',
+                    title: 'Your problem title',
+                    description: 'Describe the problem here. Do not describe the functions yet.',
                     specification: 'Specify the functions of the problem here.',
                     author: settings.name || 'Your Name',
                     email: settings.email || 'email@example.com',
@@ -250,14 +249,13 @@ class FuncsProblemGenerator {
     }
 
 
-
     async generateFunctions(): Promise<string[]> {
         return await tui.section('Extracting function names from specification', async () => {
             const prompt = `
                 Extract the function names from the following specification.
+                Only extract the function names, do not extract the function definitions, or signatures, or docstrings.
                 Each function name should be on a separate line.
-                Do not use markdown code blocks.
-                Do not use markdown code fences.
+                Do not use markdown code blocks or markdown code fences.
             `
             const result = await complete(this.jutge, this.model, this.label, prompt, this.spec.specification)
             const functions = result.split('\n').map((line) => line.trim()).filter((line) => line.length > 0)
@@ -265,6 +263,7 @@ class FuncsProblemGenerator {
             return functions
         })
     }
+
 
     async generateStatement(): Promise<string> {
         tui.print(`Chat label: ${this.label}`)
@@ -285,7 +284,7 @@ class FuncsProblemGenerator {
                     functions: this.spec.specification,
                 })
                 const answer = await this.bot.complete(funcsStatementPrompt)
-                return cleanMardownCodeString(answer) + statementCoda.replace('\\Sample', '')
+                return cleanMarkdownCodeString(answer) + statementCoda.replace('\\Sample', '')
             }
         )
     }
@@ -300,14 +299,13 @@ class FuncsProblemGenerator {
                     await tui.section(`Translating to ${languageNames[language]}`, async () => {
 
                         const prompt = `
-Translate the given problem statement to ${languageNames[language]}.
+                            Translate the given problem statement to ${languageNames[language]}.
 
-The translation must be accurate and use proper technical terminology.
-Maintain the LaTeX formatting and macros.
-The identifiers of functions and variables should not be translated.
-    `
-
-                        const translation = cleanMardownCodeString(await complete(this.jutge, this.model, this.label, prompt, this.problemStatement))
+                            The translation must be accurate and use proper technical terminology.
+                            Maintain the LaTeX formatting and macros.
+                            The identifiers of functions and variables should not be translated.
+                        `
+                        const translation = cleanMarkdownCodeString(await complete(this.jutge, this.model, this.label, prompt, this.problemStatement))
 
                         translations[language] = translation
                     })
@@ -328,9 +326,10 @@ The identifiers of functions and variables should not be translated.
                 proglang: this.proglang,
             })
             const answer = await this.bot.complete(sampleTestCasesPrompt)
-            return cleanMardownCodeString(answer)
+            return cleanMarkdownCodeString(answer)
         })
     }
+
 
     async generateSampleDt(): Promise<string> {
         return await tui.section('Generating sample.dt', async () => {
@@ -342,9 +341,10 @@ The identifiers of functions and variables should not be translated.
             })
             const answer = await this.bot.complete(sampleDtPrompt)
             this.bot.forgetLastInteraction()
-            return cleanMardownCodeString(answer)
+            return cleanMarkdownCodeString(answer)
         })
     }
+
 
     async generatePrivateTests(): Promise<Record<string, string>> {
         const privateTestCasesPromptTemplate = await readText(
@@ -359,16 +359,13 @@ The identifiers of functions and variables should not be translated.
                         proglang: this.proglang,
                     })
                     const answer = await this.bot.complete(privateTestCasesPrompt)
-                    tests[func] = cleanMardownCodeString(answer)
+                    tests[func] = cleanMarkdownCodeString(answer)
                 })
             }
             return tests
         })
     }
 
-    generateSolutions(): Promise<Record<string, string>> {
-        return Promise.reject(new Error('FuncsProblemGenerator.generateSolutions not implemented'))
-    }
 
     async generateSolution(): Promise<string> {
         const proglang = proglangNames[this.spec.golden_proglang]
@@ -384,19 +381,10 @@ The identifiers of functions and variables should not be translated.
             })
             const answer = await this.bot.complete(solutionPrompt)
             this.bot.forgetLastInteraction()
-            return cleanMardownCodeString(answer)
+            return cleanMarkdownCodeString(answer)
         })
     }
 
-
-
-    translateStatements(): Promise<Record<string, string>> {
-        return Promise.reject(new Error('FuncsProblemGenerator.translateStatements not implemented'))
-    }
-
-    generateGenerators(): Promise<Record<string, string>> {
-        return Promise.reject(new Error('FuncsProblemGenerator.generateGenerators not implemented'))
-    }
 
     async generateReadme(): Promise<string> {
         return tui.section('Generating README.md', async () => {
@@ -469,7 +457,7 @@ ${listify(this.spec.more_languages.map((language) => languageNames[language]))}
 ## Scores YAML
 
 \`\`\`yaml
-${YAML.stringify(this.scores, null, 4)}
+${YAML.stringify(this.scores || 'None', null, 4)}
 \`\`\`
 
 ## Problem specification YAML
@@ -491,7 +479,7 @@ Chat label: ${this.label}
 
 ## Estimated cost of LLM usage
 
-The following informations are **estimations** from token counts and used models.
+The following items are **estimations** from token counts and used models.
 
 - Total cost incl taxes:        ${total.priceEurTax.toFixed(6)} €
 - Water usage:                  ${total.waterLiters.toFixed(6)} l
@@ -505,6 +493,7 @@ The following informations are **estimations** from token counts and used models
             return readme
         })
     }
+
 
     async generateScores(): Promise<Scores | undefined> {
         if (this.functions.length <= 1) return undefined
@@ -527,10 +516,11 @@ The following informations are **estimations** from token counts and used models
         })
     }
 
+
     async save(path: string): Promise<void> {
         await tui.section(`Saving problem to ${path}`, async () => {
             await mkdir(path, { recursive: true })
-            await writeTextInDir(path, 'problem.en.tex', this.problemStatement)
+            await writeTextInDir(path, `problem.${this.spec.original_language}.tex`, this.problemStatement)
 
             const yml = {
                 title: this.spec.title,
@@ -538,7 +528,7 @@ The following informations are **estimations** from token counts and used models
                 email: this.spec.email,
                 model: this.model,
             }
-            await writeYamlInDir(path, 'problem.en.yml', yml)
+            await writeYamlInDir(path, `problem.${this.spec.original_language}.yml`, yml)
 
             for (const [lang, translation] of Object.entries(this.problemMoreStatements)) {
                 await writeTextInDir(path, `problem.${lang}.tex`, translation)
@@ -546,7 +536,7 @@ The following informations are **estimations** from token counts and used models
                     title: getTitleFromStatement(translation) || this.spec.title,
                     translator: this.spec.author,
                     translator_email: this.spec.email,
-                    original_language: 'en',
+                    original_language: this.spec.original_language,
                     model: this.model,
                 }
                 await writeYamlInDir(path, `problem.${lang}.yml`, yml)
