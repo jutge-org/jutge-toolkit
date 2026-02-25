@@ -58,3 +58,12 @@ export async function findRealDirectories(directories: string[]): Promise<string
     }
     return realDirectories.map((d) => normalize(d)).sort()
 }
+
+
+
+export function listify(items: (string | undefined)[]): string {
+    if (items.length === 0) {
+        return '<none>'
+    }
+    return items.map((item) => `- ${item}`).join('\n')
+}

@@ -3,13 +3,12 @@ import { exists, mkdir } from 'fs/promises'
 import Handlebars from 'handlebars'
 import checkboxPlus from 'inquirer-checkbox-plus-plus'
 import { join } from 'path'
-import * as radash from 'radash'
 import tree from 'tree-node-cli'
 import YAML from 'yaml'
 import { z } from 'zod'
 import { ChatBot, cleanMardownCodeString, complete, llmEstimates } from './aiclient'
 import { languageNames, proglangNames } from './data'
-import { getFuncsPromptForProglang, getIOPromptForProglang, getTitleFromStatement } from './helpers'
+import { getFuncsPromptForProglang, getIOPromptForProglang, getTitleFromStatement, listify } from './helpers'
 import type { JutgeApiClient, LlmUsageEntry } from './jutge_api_client'
 import { settings } from './settings'
 import tui from './tui'
@@ -54,33 +53,13 @@ export async function createIOProblem(
 }
 
 
-// *******************************************************************************************************************
-// internal Funcs
-// *******************************************************************************************************************
-
-function listify(items: (string | undefined)[]): string {
-    if (items.length === 0) {
-        return '<none>'
-    }
-    return items.map((item) => `- ${item}`).join('\n')
-}
 
 // *******************************************************************************************************************
 // problem generator for io problems
 // *******************************************************************************************************************
 
-interface Prompts {
-    ioLatexExample: string
-    funcsLatexExample: string
-    statementCoda: string
-    systemPrompt: string
-    ioStatementPromptTemplate: string
-    funcsStatementPromptTemplate: string
-    translationPromptTemplate: string
-    ioSolutionPromptTemplate: string
-    funcsSolutionPromptTemplate: string
-    sampleTestCasesPrompt: string
-    privateTestCasesPrompt: string
+function promptsPath(...segments: string[]): string {
+    return join(projectDir(), 'assets', 'prompts', ...segments)
 }
 
 interface ProblemGeneratorParams {
@@ -111,7 +90,6 @@ class IOProblemGenerator {
     protected jutge: JutgeApiClient
     protected model: string
     protected dir: string
-    protected prompts!: Prompts
     protected bot: ChatBot
     protected label: string
     protected inputPath: string | undefined
@@ -139,23 +117,6 @@ class IOProblemGenerator {
         this.inputPath = params.inputPath
         this.outputPath = params.outputPath
         this.doNotAsk = params.doNotAsk
-    }
-
-    async loadPrompts() {
-        const dir = join(projectDir(), 'assets', 'prompts')
-        this.prompts = await radash.all({
-            ioLatexExample: readText(join(dir, 'examples', 'io-statement.tex')),
-            funcsLatexExample: readText(join(dir, 'examples', 'funcs-statement.tex')),
-            statementCoda: readText(join(dir, 'examples', 'statement-coda.tex')),
-            systemPrompt: readText(join(dir, 'creators', 'system-prompt.txt')),
-            ioStatementPromptTemplate: readText(join(dir, 'creators', 'create-io-statement.tpl.txt')),
-            funcsStatementPromptTemplate: readText(join(dir, 'creators', 'create-funcs-statement.tpl.txt')),
-            translationPromptTemplate: readText(join(dir, 'creators', 'create-translation.tpl.txt')),
-            ioSolutionPromptTemplate: readText(join(dir, 'creators', 'create-io-solution.tpl.txt')),
-            funcsSolutionPromptTemplate: readText(join(dir, 'creators', 'create-funcs-solution.tpl.txt')),
-            sampleTestCasesPrompt: readText(join(dir, 'creators', 'sample-test-cases.txt')),
-            privateTestCasesPrompt: readText(join(dir, 'creators', 'private-test-cases.txt')),
-        })
     }
 
     protected async loadSpecificationCore<T>(options: {
@@ -192,7 +153,6 @@ class IOProblemGenerator {
     }
 
     async run() {
-        await this.loadPrompts()
         this.spec = await this.loadSpecification()
 
         await tui.section(`Generating problem with JutgeAI using ${this.model}`, async () => {
@@ -305,28 +265,35 @@ class IOProblemGenerator {
         return await tui.section(
             `Generating problem statement in ${languageNames[this.spec.original_language]}`,
             async () => {
-                const ioStatementPrompt = Handlebars.compile(this.prompts.ioStatementPromptTemplate)({
+                const [ioStatementPromptTemplate, ioLatexExample, statementCoda] = await Promise.all([
+                    readText(promptsPath('creators', 'create-io-statement.tpl.txt')),
+                    readText(promptsPath('examples', 'io-statement.tex')),
+                    readText(promptsPath('examples', 'statement-coda.tex')),
+                ])
+                const ioStatementPrompt = Handlebars.compile(ioStatementPromptTemplate)({
                     language: languageNames[this.spec.original_language],
-                    latexExample: this.prompts.ioLatexExample,
+                    latexExample: ioLatexExample,
                     title: this.spec.title,
                     description: this.spec.description,
                 })
                 const answer = await this.bot.complete(ioStatementPrompt)
-                return cleanMardownCodeString(answer) + this.prompts.statementCoda
+                return cleanMardownCodeString(answer) + statementCoda
             }
         )
     }
 
     async generateSampleTests(): Promise<string> {
         return await tui.section('Generating sample test cases', async () => {
-            const answer = await this.bot.complete(this.prompts.sampleTestCasesPrompt)
+            const sampleTestCasesPrompt = await readText(promptsPath('creators', 'sample-test-cases.txt'))
+            const answer = await this.bot.complete(sampleTestCasesPrompt)
             return cleanMardownCodeString(answer)
         })
     }
 
     async generatePrivateTests(): Promise<string> {
         return await tui.section('Generating private test cases', async () => {
-            const answer = await this.bot.complete(this.prompts.privateTestCasesPrompt)
+            const privateTestCasesPrompt = await readText(promptsPath('creators', 'private-test-cases.txt'))
+            const answer = await this.bot.complete(privateTestCasesPrompt)
             return cleanMardownCodeString(answer)
         })
     }
@@ -334,11 +301,12 @@ class IOProblemGenerator {
 
     async generateSolutions(): Promise<Record<string, string>> {
         return await tui.section('Generating solutions', async () => {
+            const ioSolutionPromptTemplate = await readText(promptsPath('creators', 'create-io-solution.tpl.txt'))
             const solutions: Record<string, string> = {}
             for (const proglang of this.spec.more_proglangs.concat([this.spec.golden_proglang]).reverse()) {
                 await tui.section(`Generating solution in ${proglangNames[proglang]}`, async () => {
                     const proglangPrompt = await getIOPromptForProglang(proglang)
-                    const solutionPrompt = Handlebars.compile(this.prompts.ioSolutionPromptTemplate)({
+                    const solutionPrompt = Handlebars.compile(ioSolutionPromptTemplate)({
                         proglang: proglangNames[proglang],
                         proglangPrompt,
                     })
@@ -353,14 +321,18 @@ class IOProblemGenerator {
 
     async translateStatements(): Promise<Record<string, string>> {
         return await tui.section('Translating problem statements', async () => {
+            const [translationPromptTemplate, statementCoda] = await Promise.all([
+                readText(promptsPath('creators', 'create-translation.tpl.txt')),
+                readText(promptsPath('examples', 'statement-coda.tex')),
+            ])
             const translations: Record<string, string> = {}
             for (const language of this.spec.more_languages.sort()) {
                 await tui.section(`Translating to ${languageNames[language]}`, async () => {
-                    const translationPrompt = Handlebars.compile(this.prompts.translationPromptTemplate)({
+                    const translationPrompt = Handlebars.compile(translationPromptTemplate)({
                         language: languageNames[language],
                     })
                     const answer = await this.bot.complete(translationPrompt)
-                    translations[language] = cleanMardownCodeString(answer) + this.prompts.statementCoda
+                    translations[language] = cleanMardownCodeString(answer) + statementCoda
                     this.bot.forgetLastInteraction()
                 })
             }
@@ -557,7 +529,6 @@ class FuncsProblemGenerator {
     protected jutge: JutgeApiClient
     protected model: string
     protected dir: string
-    protected prompts!: Prompts
     protected bot: ChatBot
     protected label: string
     protected inputPath: string | undefined
@@ -583,23 +554,6 @@ class FuncsProblemGenerator {
         this.inputPath = params.inputPath
         this.outputPath = params.outputPath
         this.doNotAsk = params.doNotAsk
-    }
-
-    async loadPrompts() {
-        const dir = join(projectDir(), 'assets', 'prompts')
-        this.prompts = await radash.all({
-            ioLatexExample: readText(join(dir, 'examples', 'io-statement.tex')),
-            funcsLatexExample: readText(join(dir, 'examples', 'funcs-statement.tex')),
-            statementCoda: readText(join(dir, 'examples', 'statement-coda.tex')),
-            systemPrompt: readText(join(dir, 'creators', 'system-prompt.txt')),
-            ioStatementPromptTemplate: readText(join(dir, 'creators', 'create-io-statement.tpl.txt')),
-            funcsStatementPromptTemplate: readText(join(dir, 'creators', 'create-funcs-statement.tpl.txt')),
-            translationPromptTemplate: readText(join(dir, 'creators', 'create-translation.tpl.txt')),
-            ioSolutionPromptTemplate: readText(join(dir, 'creators', 'create-io-solution.tpl.txt')),
-            funcsSolutionPromptTemplate: readText(join(dir, 'creators', 'create-funcs-solution.tpl.txt')),
-            sampleTestCasesPrompt: readText(join(dir, 'creators', 'sample-test-cases.txt')),
-            privateTestCasesPrompt: readText(join(dir, 'creators', 'private-test-cases.txt')),
-        })
     }
 
     protected async loadSpecificationCore<T>(options: {
@@ -636,7 +590,6 @@ class FuncsProblemGenerator {
     }
 
     async run() {
-        await this.loadPrompts()
         this.spec = await this.loadSpecification()
 
         await tui.section(`Generating problem with JutgeAI using ${this.model}`, async () => {
@@ -748,25 +701,31 @@ class FuncsProblemGenerator {
         return await tui.section(
             `Generating problem statement in ${languageNames[this.spec.original_language]}`,
             async () => {
-                const funcsStatementPrompt = Handlebars.compile(this.prompts.funcsStatementPromptTemplate)({
+                const [funcsStatementPromptTemplate, funcsLatexExample, statementCoda] = await Promise.all([
+                    readText(promptsPath('creators', 'create-funcs-statement.tpl.txt')),
+                    readText(promptsPath('examples', 'funcs-statement.tex')),
+                    readText(promptsPath('examples', 'statement-coda.tex')),
+                ])
+                const funcsStatementPrompt = Handlebars.compile(funcsStatementPromptTemplate)({
                     language: languageNames[this.spec.original_language],
-                    latexExample: this.prompts.funcsLatexExample,
+                    latexExample: funcsLatexExample,
                     title: this.spec.title,
                     theme: this.spec.description,
                     functions: this.spec.specification,
                 })
                 const answer = await this.bot.complete(funcsStatementPrompt)
-                return cleanMardownCodeString(answer) + this.prompts.statementCoda.replace('\\Sample', '')
+                return cleanMardownCodeString(answer) + statementCoda.replace('\\Sample', '')
             }
         )
     }
 
     async generateSampleTests(): Promise<Record<string, string>> {
+        const sampleTestCasesPrompt = await readText(promptsPath('creators', 'sample-test-cases.txt'))
         const tests: Record<string, string> = {}
         return await tui.section('Generating sample test cases', async () => {
             for (const func of this.functions) {
                 await tui.section(`Generating sample test case for ${func}`, async () => {
-                    const answer = await this.bot.complete(this.prompts.sampleTestCasesPrompt)
+                    const answer = await this.bot.complete(sampleTestCasesPrompt)
                     tests[func] = cleanMardownCodeString(answer)
                 })
             }
@@ -775,11 +734,12 @@ class FuncsProblemGenerator {
     }
 
     async generatePrivateTests(): Promise<Record<string, string>> {
+        const privateTestCasesPrompt = await readText(promptsPath('creators', 'private-test-cases.txt'))
         const tests: Record<string, string> = {}
         return await tui.section('Generating private test cases', async () => {
             for (const func of this.functions) {
                 await tui.section(`Generating private test case for ${func}`, async () => {
-                    const answer = await this.bot.complete(this.prompts.privateTestCasesPrompt)
+                    const answer = await this.bot.complete(privateTestCasesPrompt)
                     tests[func] = cleanMardownCodeString(answer)
                 })
             }
@@ -794,8 +754,11 @@ class FuncsProblemGenerator {
     async generateSolution(): Promise<string> {
         const proglang = proglangNames[this.spec.golden_proglang]
         return await tui.section(`Generating solution in ${proglang}`, async () => {
-            const proglangPrompt = await getFuncsPromptForProglang(this.spec.golden_proglang)
-            const solutionPrompt = Handlebars.compile(this.prompts.funcsSolutionPromptTemplate)({
+            const [funcsSolutionPromptTemplate, proglangPrompt] = await Promise.all([
+                readText(promptsPath('creators', 'create-funcs-solution.tpl.txt')),
+                getFuncsPromptForProglang(this.spec.golden_proglang),
+            ])
+            const solutionPrompt = Handlebars.compile(funcsSolutionPromptTemplate)({
                 proglang: proglang,
                 functions: this.functions.join(', '),
                 proglangPrompt,
