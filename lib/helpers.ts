@@ -3,6 +3,7 @@ import { projectDir, readText } from './utils'
 import { join } from 'path'
 import { normalize, relative, resolve } from 'node:path'
 import { languageNames } from './data'
+import tui from './tui'
 
 export function getTitleFromStatement(statement: string): string | null {
     const pattern = /\\Problem\{(.*?)\}/
@@ -13,11 +14,12 @@ export function getTitleFromStatement(statement: string): string | null {
     return null
 }
 
-export async function getPromptForProglang(proglang: string): Promise<string> {
-    const location = join(projectDir(), 'assets', 'prompts', `${proglang}.md`)
+export async function getIOPromptForProglang(proglang: string): Promise<string> {
+    const location = join(projectDir(), 'assets', 'prompts', 'io', 'proglangs', `io-${proglang}.md`)
     if (await exists(location)) {
         return await readText(location)
     } else {
+        tui.warning(`Prompt for ${proglang} not found at ${location}`)
         return ''
     }
 }
@@ -45,4 +47,13 @@ export async function findRealDirectories(directories: string[]): Promise<string
         }
     }
     return realDirectories.map((d) => normalize(d)).sort()
+}
+
+
+
+export function listify(items: (string | undefined)[]): string {
+    if (items.length === 0) {
+        return '<none>'
+    }
+    return items.map((item) => `- ${item}`).join('\n')
 }

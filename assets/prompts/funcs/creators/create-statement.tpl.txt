@@ -1,0 +1,28 @@
+You are to write the statement of a new {{proglang}} programming problem in {{language}}.
+
+The statement must be written in LaTeX, using a few predefined macros.
+Use LaTeX math syntax for formulas and variables.
+Use \lstinline macros for inline code snippets.
+Use dollars for inline maths and use \[ and \] for display maths.
+Do not add input/output test cases in the statement.
+Separate paragraphs by a blank line and \medskip macro.
+
+Write in the style of programming contests like the ACM ICPC or Jutge.org.
+
+Here is an example for an unrelated problem in English, follow its structure and macros:
+
+{{latexExample}}
+
+The title for the new problem is:
+
+{{title}}
+
+The theme of the new problem is:
+
+{{theme}}
+
+The functions that are requested in the new problem are:
+
+{{functions}}
+
+The headers of the functions must be written in {{proglang}}.

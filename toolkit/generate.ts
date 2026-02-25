@@ -1,8 +1,10 @@
-import { Argument, Command } from '@commander-js/extra-typings'
+import { Argument, Command, Option } from '@commander-js/extra-typings'
+import { exists } from 'fs/promises'
 import { join } from 'path'
 import sharp from 'sharp'
-import { createProblemWithJutgeAI } from '../lib/create-with-jutgeai'
 import { complete } from '../lib/aiclient'
+import { createFuncsProblem } from '../lib/create-funcs'
+import { createIOProblem } from '../lib/create-io'
 import { languageKeys, languageNames, proglangKeys, proglangNames } from '../lib/data'
 import {
     addAlternativeSolution,
@@ -11,11 +13,11 @@ import {
     generateStatementFromSolution,
     generateTestCasesGenerator,
 } from '../lib/generate'
+import { getLoggedInJutgeClient } from '../lib/login'
 import { newProblem } from '../lib/problem'
 import { settings } from '../lib/settings'
 import tui from '../lib/tui'
 import { writeText } from '../lib/utils'
-import { getLoggedInJutgeClient } from '../lib/login'
 
 export const generateCmd = new Command('generate')
     .description('Generate problem elements using JutgeAI')
@@ -28,16 +30,80 @@ generateCmd
     .command('problem')
     .description('Generate a problem with JutgeAI')
 
+    .summary(`Generate a problem with JutgeAI
+
+Use this command to generate a problem with JutgeAI from a specification.
+
+There are currently two types of problems that can be generated:
+
+- io: The problem consists of reading input from standard input and writing output to standard output.
+
+    Current implementation supports C, C++, Python, Haskell, Java, Rust, R and Clojure programming languages.
+    
+    The following items will be generated:
+        - problem statement in original language
+        - sample test cases
+        - private test cases
+        - golden solution 
+        - translations of the problem statement into other languages
+        - alternative solutions in other programming languages
+        - test cases generators
+        - a README.md file describing the problem and LLM usage
+
+- funcs: The problem consists of implementing one or more functions.
+
+    Current implementation supports Python, Haskell and Clojure programming languages (through RunPython, RunHaskell and RunClojure compilers).
+
+    The following items will be generated:
+        - problem statement in original language
+        - translations of the problem statement into other languages
+        - generate sample.dt for Python
+        - sample test cases
+        - private test cases for each function
+        - golden solution
+        - alternative solutions in other programming languages
+        - scores.yml file with the scores for each function (if there is more than one function)
+        - a README.md file describing the problem and LLM usage
+
+Problem generation needs a problem specification:
+    - If --input is provided, the system will read the given input specification file.
+    - If --output is provided, the system will write the problem specification to the given output specification file.
+    - The system will ask interactively for the problem specification (using the values in the --input specification file if provided as defaults)
+    - unless the --do-not-ask flag is given.
+
+Treat the generated problem as a starting draft. You should edit the problem directory manually after the generation.
+`)
+
+    .addOption(
+        new Option
+            ('-k, --kind <kind>', 'problem kind')
+            .default('io')
+            .choices(['io', 'funcs'])
+    )
     .option('-d, --directory <path>', 'output directory', 'new-problem.pbm')
     .option('-i, --input <path>', 'input specification file')
     .option('-o, --output <path>', 'output specification file')
     .option('-n, --do-not-ask', 'do not ask interactively if --input given', false)
     .option('-m, --model <model>', 'AI model to use', settings.defaultModel)
 
-    .action(async ({ input, output, directory, model, doNotAsk }) => {
+    .action(async ({ input, output, directory, model, doNotAsk, kind }) => {
         const jutge = await getLoggedInJutgeClient()
-        await tui.section('Generating problem with JutgeAI', async () => {
-            await createProblemWithJutgeAI(jutge, model, directory, input, output, doNotAsk)
+        await tui.section(`Generating ${kind} problem with JutgeAI`, async () => {
+
+            if (await exists(directory)) {
+                throw new Error(`Directory ${directory} already exists`)
+            }
+            if (!directory.endsWith('.pbm')) {
+                throw new Error('The output directory must end with .pbm')
+            }
+
+            if (kind === 'io') {
+                await createIOProblem(jutge, model, directory, input, output, doNotAsk)
+            } else if (kind === 'funcs') {
+                await createFuncsProblem(jutge, model, directory, input, output, doNotAsk)
+            } else {
+                throw new Error(`Invalid problem kind: ${kind as string}`)
+            }
         })
     })
 
@@ -211,7 +277,7 @@ The new image will be saved as award.png in the problem directory, overriding an
     .action(async (prompt, { directory, model }) => {
         const jutge = await getLoggedInJutgeClient()
         const output = join(directory, 'award.png')
-        const problem = await newProblem(directory)
+        await newProblem(directory)
         let imagePrompt = prompt.trim()
         if (imagePrompt === '') {
             imagePrompt = 'A colorful award on a white background'

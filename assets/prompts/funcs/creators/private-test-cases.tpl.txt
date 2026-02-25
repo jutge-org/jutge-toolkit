@@ -1,0 +1,12 @@
+Now, write a {{proglang}} program that serves to check the correctness and the efficiency of function {{function}}.
+
+This program should be a sequence of print statements that call {{function}} with some inputs.
+
+Some inputs should cover edge cases and some other inputs should be used to check the efficiency.
+
+Do not include comments now.
+
+Do not use loops.
+
+Do not add any formatting, markdown or code fences.
+
