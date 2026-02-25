@@ -74,10 +74,15 @@ echo "📤 Ready to publish version $NEW_VERSION to npm"
 echo ""
 read -p "Are you sure you want to publish? (Y/n): " confirm
 
-if [[ ! "$confirm" =~ ^([Yy]|)$ ]]; then    
-    echo "❌ Publication cancelled"
-    exit 1
-fi
+case "$confirm" in
+    ""|Y|y)
+        echo "✅ Publication confirmed"
+        ;;
+    *)
+        echo "❌ Publication cancelled"
+        exit 1
+        ;;
+esac
 
 # Publish to npm
 echo "📤 Publishing version $NEW_VERSION to npm..."
@@ -89,12 +94,16 @@ echo ""
 # Ask whether to push to git
 read -p "Do you want to push changes and tags to git? (Y/n): " push_confirm
 
-if [[ ! "$push_confirm" =~ ^([Yy]|)$ ]]; then
-    echo ""
-    echo "📤 Pushing to git..."
-    git push && git push --tags
-    echo "✅ Successfully pushed to git!"
-else
-    echo "⚠️  Skipping git push. Don't forget to push later:"
-    echo "  git push && git push --tags"
-fi
+case "$push_confirm" in
+    ""|Y|y)
+        echo ""
+        echo "📤 Pushing to git..."
+        git push && git push --tags
+        echo "✅ Successfully pushed to git!"
+        ;;
+    *)
+        echo "⚠️  Skipping git push. Don't forget to push later:"
+        echo "  git push && git push --tags"
+        ;;
+esac
+
