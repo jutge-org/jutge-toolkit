@@ -14,8 +14,6 @@ import { nanoid8, nothing } from './utils'
 
 const markedHtml = new Marked()
 
-// marked-terminal returns a renderer extension; @types/marked-terminal is outdated
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call -- markedTerminal() returns a valid MarkedExtension at runtime
 marked.use(markedTerminal() as unknown as MarkedExtension)
 
 const spacesPerLevel = process.env.JUTGE_INDENTATION_WIDTH ? parseInt(process.env.JUTGE_INDENTATION_WIDTH) : 4

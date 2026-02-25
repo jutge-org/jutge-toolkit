@@ -191,7 +191,7 @@ export class Maker {
                     }
                     tui.success(`Compiled ${newProgram} to ${outputPath}`)
                 } catch (error) {
-                    throw new Error(`Compilation failed ${error as any}`)
+                    throw new Error(`Compilation failed`, { cause: error })
                 }
             },
         )
@@ -727,7 +727,7 @@ export class Maker {
                             }
                             tui.success(`Compiled ${newProgram} to ${outputPath}`)
                         } catch (error) {
-                            throw new Error(`Compilation failed: ${error as any}`)
+                            throw new Error(`Compilation failed`, { cause: error })
                         }
                     },
                 )
