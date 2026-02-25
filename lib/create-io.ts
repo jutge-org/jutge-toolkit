@@ -1,0 +1,964 @@
+import * as prompts from '@inquirer/prompts'
+import { exists, mkdir } from 'fs/promises'
+import Handlebars from 'handlebars'
+import checkboxPlus from 'inquirer-checkbox-plus-plus'
+import { join } from 'path'
+import * as radash from 'radash'
+import tree from 'tree-node-cli'
+import YAML from 'yaml'
+import { z } from 'zod'
+import { ChatBot, cleanMardownCodeString, complete, llmEstimates } from './aiclient'
+import { languageNames, proglangNames } from './data'
+import { getFuncsPromptForProglang, getIOPromptForProglang, getTitleFromStatement } from './helpers'
+import type { JutgeApiClient, LlmUsageEntry } from './jutge_api_client'
+import { settings } from './settings'
+import tui from './tui'
+import {
+    createGitIgnoreFile,
+    nanoid12,
+    projectDir,
+    readText,
+    readTextInDir,
+    readYaml,
+    writeTextInDir,
+    writeYaml,
+    writeYamlInDir,
+} from './utils'
+
+import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+
+dayjs.extend(duration)
+
+// *******************************************************************************************************************
+// exported main function
+// *******************************************************************************************************************
+
+export async function createIOProblem(
+    jutge: JutgeApiClient,
+    model: string,
+    directory: string,
+    inputPath: string | undefined,
+    outputPath: string | undefined,
+    doNotAsk: boolean,
+) {
+    const generator = new IOProblemGenerator({
+        jutge,
+        model,
+        directory,
+        inputPath,
+        outputPath,
+        doNotAsk,
+    })
+    await generator.run()
+}
+
+
+// *******************************************************************************************************************
+// internal Funcs
+// *******************************************************************************************************************
+
+function listify(items: (string | undefined)[]): string {
+    if (items.length === 0) {
+        return '<none>'
+    }
+    return items.map((item) => `- ${item}`).join('\n')
+}
+
+// *******************************************************************************************************************
+// problem generator for io problems
+// *******************************************************************************************************************
+
+interface Prompts {
+    ioLatexExample: string
+    funcsLatexExample: string
+    statementCoda: string
+    systemPrompt: string
+    ioStatementPromptTemplate: string
+    funcsStatementPromptTemplate: string
+    translationPromptTemplate: string
+    ioSolutionPromptTemplate: string
+    funcsSolutionPromptTemplate: string
+    sampleTestCasesPrompt: string
+    privateTestCasesPrompt: string
+}
+
+interface ProblemGeneratorParams {
+    jutge: JutgeApiClient
+    model: string
+    directory: string
+    inputPath: string | undefined
+    outputPath: string | undefined
+    doNotAsk: boolean
+}
+
+const IOSpecification = z.object({
+    title: z.string(),
+    description: z.string(),
+    author: z.string().default('Unknown'),
+    email: z.string().default('unknown'),
+    golden_proglang: z.string(),
+    more_proglangs: z.array(z.string()),
+    original_language: z.string(),
+    more_languages: z.array(z.string()),
+    generators: z.array(z.string()),
+})
+
+type IOSpecification = z.infer<typeof IOSpecification>
+
+
+class IOProblemGenerator {
+    protected jutge: JutgeApiClient
+    protected model: string
+    protected dir: string
+    protected prompts!: Prompts
+    protected bot: ChatBot
+    protected label: string
+    protected inputPath: string | undefined
+    protected outputPath: string | undefined
+    protected doNotAsk: boolean
+
+    protected problemStatement: string = ''
+    protected problemMoreStatements: Record<string, string> = {}
+    protected problemMoreSolutions: Record<string, string> = {}
+    protected problemGenerators: Record<string, string> = {}
+    protected problemSampleTests1: string = ''
+    protected problemSampleTests2: string = ''
+    protected problemPrivateTests1: string = ''
+    protected problemPrivateTests2: string = ''
+    protected problemReadme: string = ''
+
+    protected spec!: IOSpecification
+
+    constructor(params: ProblemGeneratorParams) {
+        this.jutge = params.jutge
+        this.model = params.model
+        this.dir = params.directory
+        this.label = `create-problem-${nanoid12()}`
+        this.bot = new ChatBot(this.jutge, this.model, this.label, '')
+        this.inputPath = params.inputPath
+        this.outputPath = params.outputPath
+        this.doNotAsk = params.doNotAsk
+    }
+
+    async loadPrompts() {
+        const dir = join(projectDir(), 'assets', 'prompts')
+        this.prompts = await radash.all({
+            ioLatexExample: readText(join(dir, 'examples', 'io-statement.tex')),
+            funcsLatexExample: readText(join(dir, 'examples', 'funcs-statement.tex')),
+            statementCoda: readText(join(dir, 'examples', 'statement-coda.tex')),
+            systemPrompt: readText(join(dir, 'creators', 'system-prompt.txt')),
+            ioStatementPromptTemplate: readText(join(dir, 'creators', 'create-io-statement.tpl.txt')),
+            funcsStatementPromptTemplate: readText(join(dir, 'creators', 'create-funcs-statement.tpl.txt')),
+            translationPromptTemplate: readText(join(dir, 'creators', 'create-translation.tpl.txt')),
+            ioSolutionPromptTemplate: readText(join(dir, 'creators', 'create-io-solution.tpl.txt')),
+            funcsSolutionPromptTemplate: readText(join(dir, 'creators', 'create-funcs-solution.tpl.txt')),
+            sampleTestCasesPrompt: readText(join(dir, 'creators', 'sample-test-cases.txt')),
+            privateTestCasesPrompt: readText(join(dir, 'creators', 'private-test-cases.txt')),
+        })
+    }
+
+    protected async loadSpecificationCore<T>(options: {
+        loadOrCreateDefault: () => Promise<T>
+        editSpec: (spec: T) => Promise<void>
+    }): Promise<T> {
+        const spec = await options.loadOrCreateDefault()
+        if (this.inputPath && this.doNotAsk) return spec
+        while (true) {
+            await options.editSpec(spec)
+            const action = await prompts.select({
+                message: 'Choose an action:',
+                choices: [
+                    {
+                        value: 'confirm',
+                        name: 'Confirm',
+                        description: 'Confirm specification and proceed to problem creation',
+                    },
+                    { value: 'edit', name: 'Edit', description: 'Edit the specification' },
+                    { value: 'cancel', name: 'Cancel', description: 'Cancel problem creation' },
+                ],
+            })
+            if (action === 'confirm') break
+            if (action === 'cancel') {
+                tui.print('Problem creation cancelled')
+                process.exit(0)
+            }
+        }
+        if (this.outputPath) {
+            await writeYaml(this.outputPath, spec)
+            tui.success(`Specification file written at ${tui.hyperlink(this.outputPath)}`)
+        }
+        return spec
+    }
+
+    async run() {
+        await this.loadPrompts()
+        this.spec = await this.loadSpecification()
+
+        await tui.section(`Generating problem with JutgeAI using ${this.model}`, async () => {
+            this.problemStatement = await this.generateStatement()
+            await tui.section(`Generating testcases`, async () => {
+                this.problemSampleTests1 = await this.generateSampleTests()
+                this.bot.forgetLastInteraction() // forget first sample tests
+                this.problemSampleTests2 = await this.generateSampleTests()
+                this.problemPrivateTests1 = await this.generatePrivateTests()
+                this.bot.forgetLastInteraction() // forget first private tests
+                this.problemPrivateTests2 = await this.generatePrivateTests()
+            })
+            this.problemMoreSolutions = await this.generateSolutions() // these are forgotten inside
+            this.bot.forgetLastInteraction() // forget private tests
+            this.bot.forgetLastInteraction() // forget sample tests
+            this.problemMoreStatements = await this.translateStatements()
+            this.bot.forgetLastInteraction() // forget translations
+            this.problemGenerators = await this.generateGenerators() // these are forgotten inside
+            this.problemReadme = await this.generateReadme()
+        })
+        await this.save(this.dir)
+        await createGitIgnoreFile(this.dir)
+        const readme = await readTextInDir(this.dir, 'README.md')
+        await tui.markdown(readme)
+        const treeFiles = tree(this.dir, { allFiles: true, dirsFirst: false })
+        tui.print(treeFiles)
+        tui.success(`Created problem ${tui.hyperlink(this.dir)}`)
+    }
+
+    async loadSpecification(): Promise<IOSpecification> {
+        return this.loadSpecificationCore<IOSpecification>({
+            loadOrCreateDefault: async () => {
+                if (this.inputPath) {
+                    const spec = await tui.section(
+                        `Reading specification from ${this.inputPath}`,
+                        async () => IOSpecification.parse(await readYaml(this.inputPath!))
+                    )
+                    tui.yaml(spec)
+                    return spec
+                }
+                this.doNotAsk = true
+                return {
+                    title: 'Your new problem title',
+                    description: 'Describe the task of the problem here.',
+                    author: settings.name || 'Your Name',
+                    email: settings.email || 'email@example.com',
+                    golden_proglang: 'cc',
+                    more_proglangs: ['py'],
+                    original_language: 'en',
+                    more_languages: ['ca', 'es'],
+                    generators: ['hard', 'random', 'efficiency'],
+                }
+            },
+            editSpec: async (spec) => {
+                spec.title = await prompts.input({ message: 'Title:', default: spec.title, prefill: 'editable' })
+                spec.description = await prompts.editor({
+                    message: 'Description:',
+                    default: spec.description,
+                    postfix: '.md',
+                    waitForUserInput: false,
+                })
+                spec.author = await prompts.input({ message: 'Author:', default: spec.author, prefill: 'editable' })
+                spec.email = await prompts.input({ message: 'Email:', default: spec.email, prefill: 'editable' })
+                spec.original_language = await prompts.select({
+                    message: `Language for original version:`,
+                    choices: Object.entries(languageNames).map(([value, name]) => ({ value, name })),
+                    default: spec.original_language,
+                })
+                spec.more_languages = await checkboxPlus({
+                    message: `Other languages:`,
+                    searchable: false,
+                    // eslint-disable-next-line @typescript-eslint/require-await
+                    source: async (answers, input) =>
+                        Object.entries(languageNames)
+                            .filter(([value]) => value !== spec.original_language)
+                            .map(([value, name]) => ({ value, name })),
+                    default: spec.more_languages,
+                    loop: false,
+                })
+                spec.golden_proglang = await prompts.select({
+                    message: `Programming language for golden solution:`,
+                    choices: Object.entries(proglangNames).map(([value, name]) => ({ value, name })),
+                    default: spec.golden_proglang,
+                })
+                spec.more_proglangs = await checkboxPlus({
+                    message: `Other programming languages for solutions:`,
+                    // eslint-disable-next-line @typescript-eslint/require-await
+                    source: async (answers, input) =>
+                        Object.entries(proglangNames)
+                            .filter(([value]) => value !== spec.golden_proglang)
+                            .map(([value, name]) => ({ value, name })),
+                    default: spec.more_proglangs,
+                })
+                spec.generators = await checkboxPlus({
+                    message: `Test case generators:`,
+                    // eslint-disable-next-line @typescript-eslint/require-await
+                    source: async (answers, input) => [
+                        { value: 'random', name: 'Random' },
+                        { value: 'hard', name: 'Hard' },
+                        { value: 'efficiency', name: 'Efficiency' },
+                    ],
+                    default: spec.generators,
+                })
+            },
+        })
+    }
+
+    async generateStatement(): Promise<string> {
+        tui.print(`Chat label: ${this.label}`)
+        return await tui.section(
+            `Generating problem statement in ${languageNames[this.spec.original_language]}`,
+            async () => {
+                const ioStatementPrompt = Handlebars.compile(this.prompts.ioStatementPromptTemplate)({
+                    language: languageNames[this.spec.original_language],
+                    latexExample: this.prompts.ioLatexExample,
+                    title: this.spec.title,
+                    description: this.spec.description,
+                })
+                const answer = await this.bot.complete(ioStatementPrompt)
+                return cleanMardownCodeString(answer) + this.prompts.statementCoda
+            }
+        )
+    }
+
+    async generateSampleTests(): Promise<string> {
+        return await tui.section('Generating sample test cases', async () => {
+            const answer = await this.bot.complete(this.prompts.sampleTestCasesPrompt)
+            return cleanMardownCodeString(answer)
+        })
+    }
+
+    async generatePrivateTests(): Promise<string> {
+        return await tui.section('Generating private test cases', async () => {
+            const answer = await this.bot.complete(this.prompts.privateTestCasesPrompt)
+            return cleanMardownCodeString(answer)
+        })
+    }
+
+
+    async generateSolutions(): Promise<Record<string, string>> {
+        return await tui.section('Generating solutions', async () => {
+            const solutions: Record<string, string> = {}
+            for (const proglang of this.spec.more_proglangs.concat([this.spec.golden_proglang]).reverse()) {
+                await tui.section(`Generating solution in ${proglangNames[proglang]}`, async () => {
+                    const proglangPrompt = await getIOPromptForProglang(proglang)
+                    const solutionPrompt = Handlebars.compile(this.prompts.ioSolutionPromptTemplate)({
+                        proglang: proglangNames[proglang],
+                        proglangPrompt,
+                    })
+                    const answer = await this.bot.complete(solutionPrompt)
+                    solutions[proglang] = cleanMardownCodeString(answer)
+                    this.bot.forgetLastInteraction()
+                })
+            }
+            return solutions
+        })
+    }
+
+    async translateStatements(): Promise<Record<string, string>> {
+        return await tui.section('Translating problem statements', async () => {
+            const translations: Record<string, string> = {}
+            for (const language of this.spec.more_languages.sort()) {
+                await tui.section(`Translating to ${languageNames[language]}`, async () => {
+                    const translationPrompt = Handlebars.compile(this.prompts.translationPromptTemplate)({
+                        language: languageNames[language],
+                    })
+                    const answer = await this.bot.complete(translationPrompt)
+                    translations[language] = cleanMardownCodeString(answer) + this.prompts.statementCoda
+                    this.bot.forgetLastInteraction()
+                })
+            }
+            return translations
+        })
+    }
+
+    async generateGenerators(): Promise<Record<string, string>> {
+        return await tui.section('Generating test cases generators', async () => {
+            const generators: Record<string, string> = {}
+            for (const type of this.spec.generators) {
+                await tui.section(`Generating ${type} test cases generator`, async () => {
+                    const statement = this.problemStatement
+                    const promptPath = join(projectDir(), 'assets', 'prompts', 'generators', `${type}.md`)
+                    const promptTemplate = await readText(promptPath)
+                    const prompt = Handlebars.compile(promptTemplate)({ statement })
+                    const answer = cleanMardownCodeString(await this.bot.complete(prompt))
+                    generators[type] = answer
+                    this.bot.forgetLastInteraction()
+                })
+            }
+            return generators
+        })
+    }
+
+    async generateReadme(): Promise<string> {
+        return tui.section('Generating README.md', async () => {
+            const llmEntries: LlmUsageEntry[] = await this.jutge.instructor.jutgeai.getLlmUsage()
+
+            const total = {
+                inputTokens: 0,
+                outputTokens: 0,
+                duration: 0,
+                priceEurTax: 0,
+                wattHours: 0,
+                co2Grams: 0,
+                trees: 0,
+                brainHours: 0,
+                carKm: 0,
+                waterLiters: 0,
+            }
+            for (const entry of llmEntries) {
+                if (entry.label === this.label) {
+                    const estimation = await llmEstimates(entry.input_tokens, entry.output_tokens, entry.model)
+                    total.inputTokens += entry.input_tokens
+                    total.outputTokens += entry.output_tokens
+                    total.duration += entry.duration
+                    total.priceEurTax += estimation.priceEurTax
+                    total.wattHours += estimation.wattHours
+                    total.co2Grams += estimation.co2Grams
+                    total.trees += estimation.trees
+                    total.brainHours += estimation.brainHours
+                    total.carKm += estimation.carKm
+                    total.waterLiters += estimation.waterLiters
+                }
+            }
+
+            const readme = `
+# Problem information
+
+This programming problem for Jutge.org was generated by Jutge<sup>AI</sup> through the Jutge.org API using ${this.model} and a prompt by ${this.spec.author}.
+
+**Warning**: This problem may contain inaccuracies or errors. Review the problem statements, test cases, and solutions carefully before using them in a real setting. Output tests and statement PDFs have not been generated, use \`jutge-make-problem\` to generate them.
+
+## Author
+
+${this.spec.author}
+
+## Problem title
+
+${this.spec.title}
+
+## Problem description
+
+${this.spec.description}
+
+## Generated solutions
+
+- ${proglangNames[this.spec.golden_proglang]} (golden solution)
+${listify(this.spec.more_proglangs.map((proglang) => proglangNames[proglang]))}
+
+## Generated languages
+
+- ${languageNames[this.spec.original_language]} (original)
+${listify(this.spec.more_languages.map((language) => languageNames[language]))}
+
+## Generated test case generators
+
+${listify(this.spec.generators)}
+
+## Problem specification
+
+\`\`\`yaml
+${YAML.stringify(this.spec, null, 4)}
+\`\`\`
+
+## Audit information
+
+Chat label: ${this.label}
+
+## Cost of LLM usage
+
+- Total duration:               ${dayjs.duration(total.duration * 1000).format('HH:mm:ss')} 
+- Total input tokens:           ${total.inputTokens}
+- Total output tokens:          ${total.outputTokens}
+- Model:                        ${this.model}
+
+## Estimated cost of LLM usage
+
+The following informations are **estimations** from token counts and used models.
+
+- Total cost incl taxes:        ${total.priceEurTax.toFixed(6)} €
+- Water usage:                  ${total.waterLiters.toFixed(6)} l
+- Energ consumption:            ${total.wattHours.toFixed(6)} Wh
+- CO₂ emissions:                ${total.co2Grams.toFixed(6)} g CO₂
+- Equivalent trees:             ${total.trees.toFixed(6)} trees
+- Equivalent human brain time:  ${dayjs.duration(total.brainHours * 1000 * 3600).format('HH:mm:ss')} 
+- Equivalent car distance:      ${total.carKm.toFixed(6)} km
+
+`
+            return readme
+        })
+    }
+
+    async save(path: string): Promise<void> {
+        await tui.section(`Saving problem to ${path}`, async () => {
+            await mkdir(path, { recursive: true })
+            await writeTextInDir(path, 'problem.en.tex', this.problemStatement)
+
+            const yml = {
+                title: this.spec.title,
+                author: this.spec.author,
+                email: this.spec.email,
+                model: this.model,
+            }
+            await writeYamlInDir(path, 'problem.en.yml', yml)
+
+            for (const [lang, translation] of Object.entries(this.problemMoreStatements)) {
+                await writeTextInDir(path, `problem.${lang}.tex`, translation)
+                const yml = {
+                    title: getTitleFromStatement(translation) || this.spec.title,
+                    translator: this.spec.author,
+                    translator_email: this.spec.email,
+                    original_language: 'en',
+                    model: this.model,
+                }
+                await writeYamlInDir(path, `problem.${lang}.yml`, yml)
+            }
+
+            await writeTextInDir(path, 'sample-1.inp', this.problemSampleTests1)
+            await writeTextInDir(path, 'sample-2.inp', this.problemSampleTests2)
+
+            await writeTextInDir(path, 'test-1.inp', this.problemPrivateTests1)
+            await writeTextInDir(path, 'test-2.inp', this.problemPrivateTests2)
+
+            for (const [proglang, solution] of Object.entries(this.problemMoreSolutions)) {
+                const ext = proglang
+                await writeTextInDir(path, `solution.${ext}`, solution)
+            }
+
+            for (const [type, code] of Object.entries(this.problemGenerators)) {
+                await writeTextInDir(path, `generate-${type}.py`, code)
+            }
+
+            const handlerYml: any = {
+                handler: 'std',
+                solution: proglangNames[this.spec.golden_proglang],
+            }
+            await writeYamlInDir(path, 'handler.yml', handlerYml)
+
+            await writeTextInDir(path, 'README.md', this.problemReadme)
+        })
+    }
+}
+
+// *******************************************************************************************************************
+// problem generator for Funcs problems
+// *******************************************************************************************************************
+
+const FuncsSpecification = z.object({
+    title: z.string(),
+    description: z.string(),
+    specification: z.string(),
+    author: z.string().default('Unknown'),
+    email: z.string().default('unknown'),
+    golden_proglang: z.string(),
+    original_language: z.string(),
+    more_languages: z.array(z.string()),
+})
+
+type FuncsSpecification = z.infer<typeof FuncsSpecification>
+
+class FuncsProblemGenerator {
+    protected jutge: JutgeApiClient
+    protected model: string
+    protected dir: string
+    protected prompts!: Prompts
+    protected bot: ChatBot
+    protected label: string
+    protected inputPath: string | undefined
+    protected outputPath: string | undefined
+    protected doNotAsk: boolean
+
+    protected problemStatement: string = ''
+    protected problemMoreStatements: Record<string, string> = {}
+    protected problemReadme: string = ''
+
+    protected spec!: FuncsSpecification
+    protected functions: string[] = []
+    protected problemSampleTests: Record<string, string> = {}
+    protected problemPrivateTests: Record<string, string> = {}
+    protected solution: string = ''
+
+    constructor(params: ProblemGeneratorParams) {
+        this.jutge = params.jutge
+        this.model = params.model
+        this.dir = params.directory
+        this.label = `create-problem-${nanoid12()}`
+        this.bot = new ChatBot(this.jutge, this.model, this.label, '')
+        this.inputPath = params.inputPath
+        this.outputPath = params.outputPath
+        this.doNotAsk = params.doNotAsk
+    }
+
+    async loadPrompts() {
+        const dir = join(projectDir(), 'assets', 'prompts')
+        this.prompts = await radash.all({
+            ioLatexExample: readText(join(dir, 'examples', 'io-statement.tex')),
+            funcsLatexExample: readText(join(dir, 'examples', 'funcs-statement.tex')),
+            statementCoda: readText(join(dir, 'examples', 'statement-coda.tex')),
+            systemPrompt: readText(join(dir, 'creators', 'system-prompt.txt')),
+            ioStatementPromptTemplate: readText(join(dir, 'creators', 'create-io-statement.tpl.txt')),
+            funcsStatementPromptTemplate: readText(join(dir, 'creators', 'create-funcs-statement.tpl.txt')),
+            translationPromptTemplate: readText(join(dir, 'creators', 'create-translation.tpl.txt')),
+            ioSolutionPromptTemplate: readText(join(dir, 'creators', 'create-io-solution.tpl.txt')),
+            funcsSolutionPromptTemplate: readText(join(dir, 'creators', 'create-funcs-solution.tpl.txt')),
+            sampleTestCasesPrompt: readText(join(dir, 'creators', 'sample-test-cases.txt')),
+            privateTestCasesPrompt: readText(join(dir, 'creators', 'private-test-cases.txt')),
+        })
+    }
+
+    protected async loadSpecificationCore<T>(options: {
+        loadOrCreateDefault: () => Promise<T>
+        editSpec: (spec: T) => Promise<void>
+    }): Promise<T> {
+        const spec = await options.loadOrCreateDefault()
+        if (this.inputPath && this.doNotAsk) return spec
+        while (true) {
+            await options.editSpec(spec)
+            const action = await prompts.select({
+                message: 'Choose an action:',
+                choices: [
+                    {
+                        value: 'confirm',
+                        name: 'Confirm',
+                        description: 'Confirm specification and proceed to problem creation',
+                    },
+                    { value: 'edit', name: 'Edit', description: 'Edit the specification' },
+                    { value: 'cancel', name: 'Cancel', description: 'Cancel problem creation' },
+                ],
+            })
+            if (action === 'confirm') break
+            if (action === 'cancel') {
+                tui.print('Problem creation cancelled')
+                process.exit(0)
+            }
+        }
+        if (this.outputPath) {
+            await writeYaml(this.outputPath, spec)
+            tui.success(`Specification file written at ${tui.hyperlink(this.outputPath)}`)
+        }
+        return spec
+    }
+
+    async run() {
+        await this.loadPrompts()
+        this.spec = await this.loadSpecification()
+
+        await tui.section(`Generating problem with JutgeAI using ${this.model}`, async () => {
+            this.functions = await this.generateFunctions()
+            this.problemStatement = await this.generateStatement()
+            await tui.section(`Generating testcases`, async () => {
+                this.problemSampleTests = await this.generateSampleTests()
+                this.problemPrivateTests = await this.generatePrivateTests()
+            })
+            this.solution = await this.generateSolution() // forgotten inside
+            this.problemReadme = await this.generateReadme()
+        })
+        await this.save(this.dir)
+        await createGitIgnoreFile(this.dir)
+        const readme = await readTextInDir(this.dir, 'README.md')
+        await tui.markdown(readme)
+        const treeFiles = tree(this.dir, { allFiles: true, dirsFirst: false })
+        tui.print(treeFiles)
+        tui.success(`Created problem ${tui.hyperlink(this.dir)}`)
+    }
+
+    async loadSpecification(): Promise<FuncsSpecification> {
+        return this.loadSpecificationCore<FuncsSpecification>({
+            loadOrCreateDefault: async () => {
+                if (this.inputPath) {
+                    const spec = await tui.section(
+                        `Reading specification from ${this.inputPath}`,
+                        async () => FuncsSpecification.parse(await readYaml(this.inputPath!))
+                    )
+                    tui.yaml(spec)
+                    return spec
+                }
+                this.doNotAsk = true
+                return {
+                    title: 'Your new problem title',
+                    description: 'Describe the the problem here. Do not describe the functions yet.',
+                    specification: 'Specify the functions of the problem here.',
+                    author: settings.name || 'Your Name',
+                    email: settings.email || 'email@example.com',
+                    golden_proglang: 'py',
+                    original_language: 'en',
+                    more_languages: ['ca', 'es'],
+                }
+            },
+            editSpec: async (spec) => {
+                spec.title = await prompts.input({ message: 'Title:', default: spec.title, prefill: 'editable' })
+                spec.description = await prompts.editor({
+                    message: 'Theme:',
+                    default: spec.description,
+                    postfix: '.md',
+                    waitForUserInput: false,
+                })
+                spec.specification = await prompts.editor({
+                    message: 'Functions:',
+                    default: spec.specification,
+                    postfix: '.md',
+                    waitForUserInput: false,
+                })
+                spec.author = await prompts.input({ message: 'Author:', default: spec.author, prefill: 'editable' })
+                spec.email = await prompts.input({ message: 'Email:', default: spec.email, prefill: 'editable' })
+                spec.original_language = await prompts.select({
+                    message: `Language for original version:`,
+                    choices: Object.entries(languageNames).map(([value, name]) => ({ value, name })),
+                    default: spec.original_language,
+                })
+                spec.more_languages = await checkboxPlus({
+                    message: `Other languages:`,
+                    searchable: false,
+                    // eslint-disable-next-line @typescript-eslint/require-await
+                    source: async (answers, input) =>
+                        Object.entries(languageNames)
+                            .filter(([value]) => value !== spec.original_language)
+                            .map(([value, name]) => ({ value, name })),
+                    default: spec.more_languages,
+                    loop: false,
+                })
+                spec.golden_proglang = await prompts.select({
+                    message: `Programming language:`,
+                    choices: [
+                        { value: 'py', name: 'Python' },
+                        { value: 'hs', name: 'Haskell' },
+                        { value: 'clj', name: 'Clojure' },
+                    ],
+                    default: spec.golden_proglang,
+                })
+            },
+        })
+    }
+
+
+
+    async generateFunctions(): Promise<string[]> {
+        return await tui.section('Extracting function names from specification', async () => {
+            const prompt = `
+                Extract the function names from the following specification.
+                Each function name should be on a separate line.
+                Do not use markdown code blocks.
+                Do not use markdown code fences.
+            `
+            const result = await complete(this.jutge, this.model, this.label, prompt, this.spec.specification)
+            const functions = result.split('\n').map((line) => line.trim()).filter((line) => line.length > 0)
+            tui.yaml(functions)
+            return functions
+        })
+    }
+
+    async generateStatement(): Promise<string> {
+        tui.print(`Chat label: ${this.label}`)
+        return await tui.section(
+            `Generating problem statement in ${languageNames[this.spec.original_language]}`,
+            async () => {
+                const funcsStatementPrompt = Handlebars.compile(this.prompts.funcsStatementPromptTemplate)({
+                    language: languageNames[this.spec.original_language],
+                    latexExample: this.prompts.funcsLatexExample,
+                    title: this.spec.title,
+                    theme: this.spec.description,
+                    functions: this.spec.specification,
+                })
+                const answer = await this.bot.complete(funcsStatementPrompt)
+                return cleanMardownCodeString(answer) + this.prompts.statementCoda.replace('\\Sample', '')
+            }
+        )
+    }
+
+    async generateSampleTests(): Promise<Record<string, string>> {
+        const tests: Record<string, string> = {}
+        return await tui.section('Generating sample test cases', async () => {
+            for (const func of this.functions) {
+                await tui.section(`Generating sample test case for ${func}`, async () => {
+                    const answer = await this.bot.complete(this.prompts.sampleTestCasesPrompt)
+                    tests[func] = cleanMardownCodeString(answer)
+                })
+            }
+            return tests
+        })
+    }
+
+    async generatePrivateTests(): Promise<Record<string, string>> {
+        const tests: Record<string, string> = {}
+        return await tui.section('Generating private test cases', async () => {
+            for (const func of this.functions) {
+                await tui.section(`Generating private test case for ${func}`, async () => {
+                    const answer = await this.bot.complete(this.prompts.privateTestCasesPrompt)
+                    tests[func] = cleanMardownCodeString(answer)
+                })
+            }
+            return tests
+        })
+    }
+
+    generateSolutions(): Promise<Record<string, string>> {
+        return Promise.reject(new Error('FuncsProblemGenerator.generateSolutions not implemented'))
+    }
+
+    async generateSolution(): Promise<string> {
+        const proglang = proglangNames[this.spec.golden_proglang]
+        return await tui.section(`Generating solution in ${proglang}`, async () => {
+            const proglangPrompt = await getFuncsPromptForProglang(this.spec.golden_proglang)
+            const solutionPrompt = Handlebars.compile(this.prompts.funcsSolutionPromptTemplate)({
+                proglang: proglang,
+                functions: this.functions.join(', '),
+                proglangPrompt,
+            })
+            const answer = await this.bot.complete(solutionPrompt)
+            this.bot.forgetLastInteraction()
+            return cleanMardownCodeString(answer)
+        })
+    }
+
+
+
+    translateStatements(): Promise<Record<string, string>> {
+        return Promise.reject(new Error('FuncsProblemGenerator.translateStatements not implemented'))
+    }
+
+    generateGenerators(): Promise<Record<string, string>> {
+        return Promise.reject(new Error('FuncsProblemGenerator.generateGenerators not implemented'))
+    }
+
+    async generateReadme(): Promise<string> {
+        return tui.section('Generating README.md', async () => {
+            const llmEntries: LlmUsageEntry[] = await this.jutge.instructor.jutgeai.getLlmUsage()
+
+            const total = {
+                inputTokens: 0,
+                outputTokens: 0,
+                duration: 0,
+                priceEurTax: 0,
+                wattHours: 0,
+                co2Grams: 0,
+                trees: 0,
+                brainHours: 0,
+                carKm: 0,
+                waterLiters: 0,
+            }
+            for (const entry of llmEntries) {
+                if (entry.label === this.label) {
+                    const estimation = await llmEstimates(entry.input_tokens, entry.output_tokens, entry.model)
+                    total.inputTokens += entry.input_tokens
+                    total.outputTokens += entry.output_tokens
+                    total.duration += entry.duration
+                    total.priceEurTax += estimation.priceEurTax
+                    total.wattHours += estimation.wattHours
+                    total.co2Grams += estimation.co2Grams
+                    total.trees += estimation.trees
+                    total.brainHours += estimation.brainHours
+                    total.carKm += estimation.carKm
+                    total.waterLiters += estimation.waterLiters
+                }
+            }
+
+            const readme = `
+# Problem information
+
+This programming problem for Jutge.org was generated by Jutge<sup>AI</sup> through the Jutge.org API using ${this.model} and a prompt by ${this.spec.author}.
+
+**Warning**: This problem may contain inaccuracies or errors. Review the problem statements, test cases, and solutions carefully before using them in a real setting. Output tests and statement PDFs have not been generated, use \`jutge-make-problem\` to generate them.
+
+## Author
+
+${this.spec.author}
+
+## Problem title
+
+${this.spec.title}
+
+## Problem description
+
+${this.spec.description}
+
+## Problem specification
+
+${this.spec.specification}
+
+## Functions
+
+${listify(this.functions)}
+
+## Generated solutions
+
+- ${proglangNames[this.spec.golden_proglang]} (golden solution)
+
+## Generated languages
+
+- ${languageNames[this.spec.original_language]} (original)
+${listify(this.spec.more_languages.map((language) => languageNames[language]))}
+
+## Problem specification YAML
+
+\`\`\`yaml
+${YAML.stringify(this.spec, null, 4)}
+\`\`\`
+
+## Audit information
+
+Chat label: ${this.label}
+
+## Cost of LLM usage
+
+- Total duration:               ${dayjs.duration(total.duration * 1000).format('HH:mm:ss')} 
+- Total input tokens:           ${total.inputTokens}
+- Total output tokens:          ${total.outputTokens}
+- Model:                        ${this.model}
+
+## Estimated cost of LLM usage
+
+The following informations are **estimations** from token counts and used models.
+
+- Total cost incl taxes:        ${total.priceEurTax.toFixed(6)} €
+- Water usage:                  ${total.waterLiters.toFixed(6)} l
+- Energy consumption:           ${total.wattHours.toFixed(6)} Wh
+- CO₂ emissions:                ${total.co2Grams.toFixed(6)} g CO₂
+- Equivalent trees:             ${total.trees.toFixed(6)} trees
+- Equivalent human brain time:  ${dayjs.duration(total.brainHours * 1000 * 3600).format('HH:mm:ss')} 
+- Equivalent car distance:      ${total.carKm.toFixed(6)} km
+
+`
+            return readme
+        })
+    }
+
+    async save(path: string): Promise<void> {
+        await tui.section(`Saving problem to ${path}`, async () => {
+            await mkdir(path, { recursive: true })
+            await writeTextInDir(path, 'problem.en.tex', this.problemStatement)
+
+            const yml = {
+                title: this.spec.title,
+                author: this.spec.author,
+                email: this.spec.email,
+                model: this.model,
+            }
+            await writeYamlInDir(path, 'problem.en.yml', yml)
+
+            for (const [lang, translation] of Object.entries(this.problemMoreStatements)) {
+                await writeTextInDir(path, `problem.${lang}.tex`, translation)
+                const yml = {
+                    title: getTitleFromStatement(translation) || this.spec.title,
+                    translator: this.spec.author,
+                    translator_email: this.spec.email,
+                    original_language: 'en',
+                    model: this.model,
+                }
+                await writeYamlInDir(path, `problem.${lang}.yml`, yml)
+            }
+
+            await writeTextInDir(path, `solution.${this.spec.golden_proglang}`, this.solution)
+
+            const compilers: Record<string, string> = {
+                py: 'RunPython',
+                hs: 'RunHaskell',
+                clj: 'RunClojure',
+            }
+
+            const handlerYml: any = {
+                handler: 'std',
+                compilers: compilers[this.spec.golden_proglang],
+            }
+            await writeYamlInDir(path, 'handler.yml', handlerYml)
+
+            await writeTextInDir(path, 'README.md', this.problemReadme)
+        })
+    }
+
+}

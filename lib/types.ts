@@ -40,22 +40,6 @@ export const Scores = z.array(
 
 export type Scores = z.infer<typeof Scores>
 
-// 
-
-export const Specification = z.object({
-    title: z.string(),
-    description: z.string(),
-    author: z.string().default('Unknown'),
-    email: z.string().default('unknown'),
-    golden_proglang: z.string(),
-    more_proglangs: z.array(z.string()),
-    original_language: z.string(),
-    more_languages: z.array(z.string()),
-    generators: z.array(z.string()),
-})
-
-export type Specification = z.infer<typeof Specification>
-
 // problem.yml file
 
 export const ProblemInfo = z.object({

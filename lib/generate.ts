@@ -3,7 +3,7 @@ import Handlebars from 'handlebars'
 import { join } from 'path'
 import { cleanMardownCodeString, complete } from './aiclient'
 import { languageKeys, languageNames, proglangExtensions, proglangKeys, proglangNames } from './data'
-import { getPromptForProglang, getTitleFromStatement } from './helpers'
+import { getIOPromptForProglang, getTitleFromStatement } from './helpers'
 import type { JutgeApiClient } from './jutge_api_client'
 import type { Problem } from './problem'
 import { settings } from './settings'
@@ -136,7 +136,7 @@ export async function addAlternativeSolution(jutge: JutgeApiClient, model: strin
 
     const goldenSource = await readTextInDir(problem.directory, problem.goldenSolution)
 
-    const proglangPrompt = await getPromptForProglang(proglang)
+    const proglangPrompt = await getIOPromptForProglang(proglang)
 
     const prompt = `
 Convert the given program in ${originalProglang} to ${proglang}.
@@ -174,7 +174,7 @@ export async function addMainFile(jutge: JutgeApiClient, model: string, problem:
     const goldenSource = await readTextInDir(problem.directory, `main.${originalExtension}`)
 
     await tui.section(`Converting main.${originalExtension} to ${proglang}`, async () => {
-        const proglangPrompt = await getPromptForProglang(proglang)
+        const proglangPrompt = await getIOPromptForProglang(proglang)
 
         const prompt = `
 Convert the given program in ${originalProglang} to ${proglang}.

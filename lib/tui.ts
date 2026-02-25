@@ -161,7 +161,7 @@ async function markdown(content: string): Promise<void> {
     const html = markdownHtmlTemplate(body)
     const path = join(tmpdir(), `jutge-markdown-${nanoid8()}.html`)
     await writeFile(path, html, 'utf8')
-    await open(path)
+    // await open(path)
 }
 
 function yaml(content: any): void {

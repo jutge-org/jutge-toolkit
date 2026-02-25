@@ -1,0 +1,16 @@
+Now, write a {{proglang}} program that serves as sample test cases of the {{functions}} functions.
+
+This program should be a sequence of print statements that call each of the required functions
+with some sample inputs.
+
+Sample test cases must be written in {{proglang}} and follow the specification of the functions.
+
+Sample test cases should be relatively small but cover interesting cases but not all edge cases.
+
+If the problem statement features some examples, include them as part of the sample test cases.
+
+Do not include comments now.
+
+Separate the tests for each function with an empty line.
+
+Do not add any formatting, markdown or code fences.
