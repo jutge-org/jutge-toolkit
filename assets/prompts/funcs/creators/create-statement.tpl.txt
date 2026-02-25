@@ -13,8 +13,6 @@ Here is an example for an unrelated problem in English, follow its structure and
 
 {{latexExample}}
 
-Replace the \UsePython by \Use{{proglang}}.
-
 The title for the new problem is:
 
 {{title}}

@@ -15,17 +15,7 @@ export function getTitleFromStatement(statement: string): string | null {
 }
 
 export async function getIOPromptForProglang(proglang: string): Promise<string> {
-    const location = join(projectDir(), 'assets', 'prompts', 'proglangs', `io-${proglang}.md`)
-    if (await exists(location)) {
-        return await readText(location)
-    } else {
-        tui.warning(`Prompt for ${proglang} not found at ${location}`)
-        return ''
-    }
-}
-
-export async function getFuncsPromptForProglang(proglang: string): Promise<string> {
-    const location = join(projectDir(), 'assets', 'prompts', 'proglangs', `funcs-${proglang}.md`)
+    const location = join(projectDir(), 'assets', 'prompts', 'io', 'proglangs', `io-${proglang}.md`)
     if (await exists(location)) {
         return await readText(location)
     } else {

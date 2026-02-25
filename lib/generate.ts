@@ -31,7 +31,7 @@ export async function generateStatementFromSolution(
 
     const solutionSource = await readTextInDir(problem.directory, solutionFile)
     const latexExample = await readText(join(projectDir(), 'assets', 'prompts', 'examples', 'statement.tex'))
-    const statementCoda = await readText(join(projectDir(), 'assets', 'prompts', 'examples', 'statement-coda.tex'))
+    const statementCoda = await readText(join(projectDir(), 'assets', 'prompts', 'io', 'examples', 'io-statement-coda.tex'))
     const userPromptTemplate = await readText(
         join(projectDir(), 'assets', 'prompts', 'creators', 'create-statement-from-solution.tpl.txt'),
     )

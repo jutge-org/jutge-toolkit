@@ -36,9 +36,10 @@ Use this command to generate a problem with JutgeAI from a specification.
 
 There are currently two types of problems that can be generated:
 
-- io: 
-    The problem consists of reading input from standard input and writing output to standard output.
+- io: The problem consists of reading input from standard input and writing output to standard output.
+
     Current implementation supports C, C++, Python, Haskell, Java, Rust, R and Clojure programming languages.
+    
     The following items will be generated:
         - problem statement in original language
         - sample test cases
@@ -49,13 +50,26 @@ There are currently two types of problems that can be generated:
         - test cases generators
         - a README.md file describing the problem and LLM usage
 
-- funcs: the problem consists of implementing one or more functions.
+- funcs: The problem consists of implementing one or more functions.
 
-Problem generation needs a problem specification.
-If --input is provided, the system will read the given input specification file.
-If --output is provided, the system will write the problem specification to the given output specification file.
-The system will ask interactively for the problem specification (using the --input specification file if provided as defaults)
-unless the --do-not-ask flag is given.
+    Current implementation supports Python, Haskell and Clojure programming languages (through RunPython, RunHaskell and RunClojure compilers).
+
+    The following items will be generated:
+        - problem statement in original language
+        - translations of the problem statement into other languages
+        - generate sample.dt for Python
+        - sample test cases
+        - private test cases for each function
+        - golden solution
+        - alternative solutions in other programming languages
+        - scores.yml file with the scores for each function (if there is more than one function)
+        - a README.md file describing the problem and LLM usage
+
+Problem generation needs a problem specification:
+    - If --input is provided, the system will read the given input specification file.
+    - If --output is provided, the system will write the problem specification to the given output specification file.
+    - The system will ask interactively for the problem specification (using the values in the --input specification file if provided as defaults)
+    - unless the --do-not-ask flag is given.
 
 Treat the generated problem as a starting draft. You should edit the problem directory manually after the generation.
 `)

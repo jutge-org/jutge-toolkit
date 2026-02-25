@@ -1,0 +1,15 @@
+Now, write a Python doctest with the same inputs as in this test cases:
+
+{{sampleTests}}
+
+Do not include comments now.
+
+Separate the tests for each function with an empty line.
+
+Do not add any formatting, markdown or code fences. Do not output empty lines.
+
+Output should follow the format of Python doctests. For instance:
+>>> factorial(5)
+120
+>>> factorial(0)
+1
