@@ -73,7 +73,6 @@ echo ""
 echo "📤 Ready to publish version $NEW_VERSION to npm"
 echo ""
 read -p "Are you sure you want to publish? (y/n): " confirm
-confirm=${confirm:-Y}
 
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
     echo "❌ Publication cancelled"
@@ -89,7 +88,6 @@ echo ""
 
 # Ask whether to push to git
 read -p "Do you want to push changes and tags to git? (y/n): " push_confirm
-push_confirm=${push_confirm:-Y}
 
 if [[ $push_confirm =~ ^[Yy]$ ]]; then
     echo ""
