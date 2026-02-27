@@ -4,13 +4,13 @@ This document describes the anatomy of a **quiz problem** in [Jutge.org](https:/
 
 ## Terminology
 
-A **quiz** is a problem whose handler is set to `quiz`. It is made of a **quiz root** and a list of **questions**. The quiz root is defined in `quiz.yml` and holds the quiz title, statement, whether questions are shuffled, and the list of questions with their scores. Each **question** is defined in a separate YAML file (e.g. `single-choice.yml`) and has a **type**: SingleChoice, MultipleChoice, FillIn, Ordering, Matching, or OpenQuestion.
+A **quiz** is a problem whose handler is set to `quiz`. It is made of a **quiz root** and a list of **questions**. The quiz root is defined in `quiz.yml` and holds the quiz title, statement, whether questions are shuffled, and the list of questions with their scores. Each **question** is defined in a separate YAML file (e.g. `single-choice.yml`) and has a `type`: SingleChoice, MultipleChoice, FillIn, Ordering, Matching, or OpenQuestion.
 
 Quiz content can be **localized**: the same quiz can have different `quiz.yml` and question files per language (e.g. under `en/` and `ca/`). The toolkit runs or lints the quiz for a given directory, so you typically run it from a language-specific subdirectory. Each language should live inside its own folder.
 
-**Variable substitution** allows question text and options to depend on values generated at run time. If a question file is named `example.yml`, the toolkit looks for `example.py` in the same directory. When present, it runs the Python script with a random **seed** and collects the script’s global variables. Those variables can be referenced in the question YAML with `$name` or `${name}`. This makes it possible to have different numbers, strings, or options for each run while keeping the same correct answer logic (e.g. “What is $a + $b?” with `a` and `b` random).
+**Variable substitution** allows question text and options to depend on values generated at run time. If a question file is named `example.yml`, the toolkit looks for `example.py` in the same directory. When present, it runs the Python script with a random `seed` and collects the script’s global variables. Those variables can be referenced in the question YAML with `$name` or `${name}`. This makes it possible to have different numbers, strings, or options for each run while keeping the same correct answer logic (e.g. “What is $a + $b?” with `a` and `b` random).
 
-**Scoring**: Each question has a **score** between 0–100, and the total of all question scores listed in `quiz.yml` must add up to 100. Users earn points for each question.
+**Scoring**: Each question has a `score` between 0–100, and the total of all question scores listed in `quiz.yml` must add up to 100. Users earn points for each question.
 
 ## Quiz structure
 
@@ -45,13 +45,13 @@ Many items are written in Markdown. See [Markdown documentation](https://www.mar
 
 The file `quiz.yml` defines the quiz root.
 
-- **title**: Title of the quiz.
-- **statement**: Short description or instructions shown for the quiz (Markdown).
-- **questions**: List of question entries. Each entry has:
-    - **title**: Title of the question (e.g. for display in a table of contents).
-    - **file**: Base name of the question file, without the `.yml` extension (e.g. `question` for `question.yml`).
-    - **score**: Integer from 0 to 100. The sum of all `score` values in the list must be 100.
-- **shuffle** (optional): Whether to shuffle the order of questions when running the quiz. Defaults to `false`.
+- `title`: Title of the quiz.
+- `statement`: Short description or instructions shown for the quiz (Markdown).
+- `questions`: List of question entries. Each entry has:
+    - `title`: Title of the question (e.g. for display in a table of contents).
+    - `file`: Base name of the question file, without the `.yml` extension (e.g. `question` for `question.yml`).
+    - `score`: Integer from 0 to 100. The sum of all `score` values in the list must be 100.
+- `shuffle` (optional): Whether to shuffle the order of questions when running the quiz. Defaults to `false`.
 
 ### Example
 
@@ -86,24 +86,24 @@ questions:
 
 ## Question types
 
-Each question is stored in a YAML file whose name matches the `file` field in `quiz.yml` (e.g. `question.yml`). The file must contain a **type** field that identifies the kind of question. Variable substitution applies to text fields and options when a corresponding `.py` file exists. All question types support an optional **hide_score** (default `false`) and an optional **partial_answer** (default `false`).
+Each question is stored in a YAML file whose name matches the `file` field in `quiz.yml` (e.g. `question.yml`). The file must contain a `type` field that identifies the kind of question. Variable substitution applies to text fields and options when a corresponding `.py` file exists. All question types support an optional `hide_score` (default `false`) and an optional `partial_answer` (default `false`).
 
-The **partial_answer** option is set per question in the question YAML:
+The `partial_answer` option is set per question in the question YAML:
 
 - If `partial_answer` is set to `false` (default), users get full points for that question only when their answer is completely correct; any mistake gives zero points for that question.
 
 - If `partial_answer` is set to `true`, users can receive partial points for that question when the answer is partially correct (e.g. proportional to how many parts are right), and the response may still be marked as "correct" if at least one part is right.
 
-The **hide_score** option is set per question in the question YAML. If set to `true`, the question score is not shown to the user.
+The `hide_score` option is set per question in the question YAML. If set to `true`, the question score is not shown to the user.
 
 ### SingleChoice
 
-One correct option among several. Exactly one choice must have `correct: true`. Choices can be shuffled (optional **shuffle**, default `true`). Each choice can have an optional **hint**. Duplicate choice text is not allowed.
+One correct option among several. Exactly one choice must have `correct: true`. Choices can be shuffled (optional `shuffle`, default `true`). Each choice can have an optional `hint`. Duplicate choice text is not allowed.
 
-- **text**: Question text (supports `$var` and `${var}`).
-- **choices**: List of `{ text, correct?, hint? }`. One and only one choice must have `correct: true`.
-- **shuffle** (optional): Whether to shuffle choices. Defaults to `true`.
-- **partial_answer** (optional): Whether to award partial credit for this question. Defaults to `false`.
+- `text`: Question text (supports `$var` and `${var}`).
+- `choices`: List of `{ text, correct?, hint? }`. One and only one choice must have `correct: true`.
+- `shuffle` (optional): Whether to shuffle choices. Defaults to `true`.
+- `partial_answer` (optional): Whether to award partial credit for this question. Defaults to `false`.
 
 Example:
 
@@ -125,12 +125,12 @@ Variables `a`, `b`, `s1`, `s2`, `s3` would be produced by a `single-choice.py` s
 
 ### MultipleChoice
 
-Zero or more correct options. Multiple choices can have `correct: true`. Choices can be shuffled (optional **shuffle**, default `true`).
+Zero or more correct options. Multiple choices can have `correct: true`. Choices can be shuffled (optional `shuffle`, default `true`).
 
-- **text**: Question text (supports variables).
-- **choices**: List of `{ text, correct?, hint? }`.
-- **shuffle** (optional): Whether to shuffle choices. Defaults to `true`.
-- **partial_answer** (optional): Whether to award partial credit for this question. Defaults to `false`.
+- `text`: Question text (supports variables).
+- `choices`: List of `{ text, correct?, hint? }`.
+- `shuffle` (optional): Whether to shuffle choices. Defaults to `true`.
+- `partial_answer` (optional): Whether to award partial credit for this question. Defaults to `false`.
 
 Example:
 
@@ -150,19 +150,19 @@ choices:
 
 ### FillIn
 
-One or more blanks in a text or code block. Each blank is identified by a placeholder (e.g. `S1`, `XXXX`) and has a correct answer and optional options (dropdown). If **options** are given, the correct answer must be one of them.
+One or more blanks in a text or code block. Each blank is identified by a placeholder (e.g. `S1`, `XXXX`) and has a correct answer and optional options (dropdown). If `options` are given, the correct answer must be one of them.
 
-- **text**: Question or instructions (supports variables).
-- **context**: Text containing placeholders (e.g. `S1`, `S2`, `XXXX`). Placeholders are the keys in **items**.
-- **items**: Map from placeholder name to an item object:
-    - **correct**: Correct answer (string).
-    - **options** (optional): List of strings; if present, the blank is shown as a dropdown and **correct** must be in this list.
-    - **maxlength** (optional): Max length for the answer. Defaults to 100.
-    - **placeholder** (optional): Placeholder text in the input (e.g. `"?"`).
-    - **ignorecase** (optional): Whether to ignore case when checking. Defaults to `true`.
-    - **trim** (optional): Whether to trim spaces. Defaults to `true`.
-    - **partial_answer** (optional): Whether this blank contributes to partial credit for the question. Defaults to `false`.
-- **partial_answer** (optional, at question level): Whether to award partial credit for this question. Defaults to `false`.
+- `text`: Question or instructions (supports variables).
+- `context`: Text containing placeholders (e.g. `S1`, `S2`, `XXXX`). Placeholders are the keys in `items`.
+- `items`: Map from placeholder name to an item object:
+    - `correct`: Correct answer (string).
+    - `options` (optional): List of strings; if present, the blank is shown as a dropdown and `correct` must be in this list.
+    - `maxlength` (optional): Max length for the answer. Defaults to 100.
+    - `placeholder` (optional): Placeholder text in the input (e.g. `"?"`).
+    - `ignorecase` (optional): Whether to ignore case when checking. Defaults to `true`.
+    - `trim` (optional): Whether to trim spaces. Defaults to `true`.
+    - `partial_answer` (optional): Whether this blank contributes to partial credit for the question. Defaults to `false`.
+- `partial_answer` (optional, at question level): Whether to award partial credit for this question. Defaults to `false`.
 
 Example with dropdowns:
 
@@ -221,13 +221,13 @@ items:
 
 ### Ordering
 
-User must order a list of items (e.g. chronological order). Items can be shown in shuffled order (optional **shuffle**, default `true`).
+User must order a list of items (e.g. chronological order). Items can be shown in shuffled order (optional `shuffle`, default `true`).
 
-- **text**: Question text (supports variables).
-- **label**: Label for the list (e.g. “Programming language”).
-- **items**: List of strings in the **correct** order.
-- **shuffle** (optional): Whether to show items in random order. Defaults to `true`.
-- **partial_answer** (optional): Whether to award partial credit for this question. Defaults to `false`.
+- `text`: Question text (supports variables).
+- `label`: Label for the list (e.g. “Programming language”).
+- `items`: List of strings in the correct order.
+- `shuffle` (optional): Whether to show items in random order. Defaults to `true`.
+- `partial_answer` (optional): Whether to award partial credit for this question. Defaults to `false`.
 
 Example:
 
@@ -249,14 +249,14 @@ items:
 
 ### Matching
 
-Two columns: user matches each left item with one right item. Left and right lists can be shuffled (optional **shuffle**, default `true`).
+Two columns: user matches each left item with one right item. Left and right lists can be shuffled (optional `shuffle`, default `true`).
 
-- **text**: Question text (supports variables).
-- **labels**: Two strings, e.g. `["Countries", "Capitals"]`.
-- **left**: List of strings (e.g. countries).
-- **right**: List of strings (e.g. capitals), in the same order as **left** (left[i] matches right[i]).
-- **shuffle** (optional): Whether to shuffle left and right columns. Defaults to `true`.
-- **partial_answer** (optional): Whether to award partial credit for this question. Defaults to `false`.
+- `text`: Question text (supports variables).
+- `labels`: Two strings, e.g. `["Countries", "Capitals"]`.
+- `left`: List of strings (e.g. countries).
+- `right`: List of strings (e.g. capitals), in the same order as `left` (left[i] matches right[i]).
+- `shuffle` (optional): Whether to shuffle left and right columns. Defaults to `true`.
+- `partial_answer` (optional): Whether to award partial credit for this question. Defaults to `false`.
 
 Example:
 
@@ -288,9 +288,9 @@ right:
 
 Free-text answer with no automatic correction. Useful for open-ended or reflective answers.
 
-- **text**: Question text (supports variables).
-- **placeholder** (optional): Placeholder for the text area. Defaults to `""`. Supports variables.
-- **partial_answer** (optional): Whether to award partial credit for this question. Defaults to `false`.
+- `text`: Question text (supports variables).
+- `placeholder` (optional): Placeholder for the text area. Defaults to `""`. Supports variables.
+- `partial_answer` (optional): Whether to award partial credit for this question. Defaults to `false`.
 
 Example:
 
@@ -308,7 +308,7 @@ The variable `name` can be set by an optional `open-ended.py` (or the same base 
 
 If a question file is named `example.yml`, the toolkit looks for `example.py` in the same directory. When present:
 
-1. The Python script is run with a given **seed** (passed as an argument by the toolkit) so that the run is reproducible.
+1. The Python script is run with a given `seed` (passed as an argument by the toolkit) so that the run is reproducible.
 2. The script’s global variables (that are JSON-serializable and whose names do not start with `__`) are collected.
 3. In the question YAML, any string field that supports substitution can use `$name` or `${name}` to be replaced by the value of `name`.
 
@@ -345,7 +345,7 @@ Other handler options (e.g. `std`, `graphic`) are for non-quiz problems. See [Pr
 
 From the toolkit CLI:
 
-- **Lint** a quiz (validate `quiz.yml` and all referenced question YAML files):
+- `jtk quiz lint` — lint a quiz (validate `quiz.yml` and all referenced question YAML files):
 
     ```bash
     jtk quiz lint -d <directory>
@@ -353,7 +353,7 @@ From the toolkit CLI:
 
     Use the directory that contains `quiz.yml` (e.g. the `en` subdirectory).
 
-- **Run** a quiz (build questions, apply variables, output JSON or YAML):
+- `jtk quiz run` — run a quiz (build questions, apply variables, output JSON or YAML):
     ```bash
     jtk quiz run -d <directory> [-s <seed>] [-f json|yaml]
     ```
@@ -366,6 +366,6 @@ From the toolkit CLI:
 - Ensure every `file` in `quiz.yml` has a corresponding `file.yml` in the same directory.
 - Ensure question scores in `quiz.yml` sum to 100.
 - For SingleChoice, set exactly one choice with `correct: true`.
-- For FillIn with **options**, ensure **correct** is in the **options** list.
-- For Matching, ensure **left** and **right** have the same length and are in matching order.
+- For FillIn with `options`, ensure `correct` is in the `options` list.
+- For Matching, ensure `left` and `right` have the same length and are in matching order.
 - Use variable names in `$name` / `${name}` that are produced by the optional `file.py` script; the script is run with the toolkit’s seed for reproducibility.
