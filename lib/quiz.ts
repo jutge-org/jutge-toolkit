@@ -43,7 +43,7 @@ async function lintYamlInDir<T>(
 ): Promise<T | null> {
     try {
         const data = await readYamlInDir(directory, filename)
-        const parsed = schema.parse(data) as T
+        const parsed = schema.parse(data)
         tui.success(`${filename} seems valid`)
         return parsed
     } catch (error) {
@@ -67,15 +67,14 @@ export async function lintQuiz(directory: string): Promise<void> {
     let quizRoot: QuizRoot | null = null
     await tui.section(`Linting ${tui.hyperlink(directory, 'quiz.yml')}`, async () => {
         quizRoot = await lintYamlInDir(directory, 'quiz.yml', QuizRoot)
-    })
-    if (!quizRoot?.questions) return
 
-    for (const question of quizRoot.questions) {
-        const file = `${question.file}.yml`
-        await tui.section(`Linting ${tui.hyperlink(directory, file)}`, async () => {
-            await lintYamlInDir(directory, file, QuizzQuestion)
-        })
-    }
+        for (const question of quizRoot?.questions ?? []) {
+            const file = `${question.file}.yml`
+            await tui.section(`Linting ${tui.hyperlink(directory, file)}`, async () => {
+                await lintYamlInDir(directory, file, QuizzQuestion)
+            })
+        }
+    })
 }
 
 /**
