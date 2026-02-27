@@ -341,7 +341,7 @@ handler: quiz
 
 Other handler options (e.g. `std`, `graphic`) are for non-quiz problems. See [Problem anatomy — handler.yml](problem-anatomy.md#the-handleryml-file) for the full list of handler and option descriptions.
 
-## Running and linting quizzes
+## Linting, running and playing quizzes
 
 From the toolkit CLI:
 
@@ -354,10 +354,18 @@ From the toolkit CLI:
     Use the directory that contains `quiz.yml` (e.g. the `en` subdirectory).
 
 - `jtk quiz run` — run a quiz (build questions, apply variables, output JSON or YAML):
+
     ```bash
     jtk quiz run -d <directory> [-s <seed>] [-f json|yaml]
     ```
+
     If no seed is provided, a random one is used. Running the quiz applies variable substitution and, if `shuffle` is true, shuffles question order (and, per question, choices or ordering/matching items when their `shuffle` is true).
+
+- `jtk quiz play` — play a quiz in the terminal:
+    ```bash
+    jtk quiz play -d <directory> [-i <input>] [-o <output>] [-s <seed>]
+    ```
+    If no seed is provided, a random one is used. Playing the quiz applies variable substitution and, if `shuffle` is true, shuffles question order (and, per question, choices or ordering/matching items when their `shuffle` is true).
 
 ## Quick checklist
 
