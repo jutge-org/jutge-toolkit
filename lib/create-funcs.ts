@@ -82,7 +82,6 @@ const FuncsSpecification = z.object({
 type FuncsSpecification = z.infer<typeof FuncsSpecification>
 
 class FuncsProblemGenerator {
-
     // inputs
     jutge: JutgeApiClient
     model: string
@@ -154,7 +153,7 @@ class FuncsProblemGenerator {
     async run() {
         this.spec = await this.loadSpecification()
         this.proglang = proglangNames[this.spec.golden_proglang]!
-        if (this.proglang === "GHC") this.proglang = "Haskell" // hack
+        if (this.proglang === 'GHC') this.proglang = 'Haskell' // hack
 
         await tui.section(`Generating problem with JutgeAI using ${this.model}`, async () => {
             this.functions = await this.generateFunctions()
@@ -184,9 +183,8 @@ class FuncsProblemGenerator {
         return this.loadSpecificationCore<FuncsSpecification>({
             loadOrCreateDefault: async () => {
                 if (this.inputPath) {
-                    const spec = await tui.section(
-                        `Reading specification from ${this.inputPath}`,
-                        async () => FuncsSpecification.parse(await readYaml(this.inputPath!))
+                    const spec = await tui.section(`Reading specification from ${this.inputPath}`, async () =>
+                        FuncsSpecification.parse(await readYaml(this.inputPath!)),
                     )
                     tui.yaml(spec)
                     return spec
@@ -248,7 +246,6 @@ class FuncsProblemGenerator {
         })
     }
 
-
     async generateFunctions(): Promise<string[]> {
         return await tui.section('Extracting function names from specification', async () => {
             const prompt = `
@@ -258,12 +255,14 @@ class FuncsProblemGenerator {
                 Do not use markdown code blocks or markdown code fences.
             `
             const result = await complete(this.jutge, this.model, this.label, prompt, this.spec.specification)
-            const functions = result.split('\n').map((line) => line.trim()).filter((line) => line.length > 0)
+            const functions = result
+                .split('\n')
+                .map((line) => line.trim())
+                .filter((line) => line.length > 0)
             tui.yaml(functions)
             return functions
         })
     }
-
 
     async generateStatement(): Promise<string> {
         tui.print(`Chat label: ${this.label}`)
@@ -285,41 +284,37 @@ class FuncsProblemGenerator {
                 })
                 const answer = await this.bot.complete(funcsStatementPrompt)
                 return cleanMarkdownCodeString(answer) + statementCoda.replace('\\Sample', '')
-            }
+            },
         )
     }
 
-
     async generateTranslations(): Promise<Record<string, string>> {
-        return await tui.section(
-            `Translating statements`,
-            async () => {
-                const translations: Record<string, string> = {}
-                for (const language of this.spec.more_languages.sort()) {
-                    await tui.section(`Translating to ${languageNames[language]}`, async () => {
-
-                        const prompt = `
+        return await tui.section(`Translating statements`, async () => {
+            const translations: Record<string, string> = {}
+            for (const language of this.spec.more_languages.sort()) {
+                await tui.section(`Translating to ${languageNames[language]}`, async () => {
+                    const prompt = `
                             Translate the given problem statement to ${languageNames[language]}.
 
                             The translation must be accurate and use proper technical terminology.
                             Maintain the LaTeX formatting and macros.
                             The identifiers of functions and variables should not be translated.
                         `
-                        const translation = cleanMarkdownCodeString(await complete(this.jutge, this.model, this.label, prompt, this.problemStatement))
+                    const translation = cleanMarkdownCodeString(
+                        await complete(this.jutge, this.model, this.label, prompt, this.problemStatement),
+                    )
 
-                        translations[language] = translation
-                    })
-                }
-                return translations
+                    translations[language] = translation
+                })
             }
-        )
+            return translations
+        })
     }
-
 
     async generateSampleTests(): Promise<string> {
         return await tui.section('Generating sample test cases', async () => {
             const sampleTestCasesPromptTemplate = await readText(
-                promptsPath('funcs', 'creators', 'sample-test-cases.tpl.txt')
+                promptsPath('funcs', 'creators', 'sample-test-cases.tpl.txt'),
             )
             const sampleTestCasesPrompt = Handlebars.compile(sampleTestCasesPromptTemplate)({
                 functions: this.functions.join(', '),
@@ -330,12 +325,9 @@ class FuncsProblemGenerator {
         })
     }
 
-
     async generateSampleDt(): Promise<string> {
         return await tui.section('Generating sample.dt', async () => {
-            const sampleDtPromptTemplate = await readText(
-                promptsPath('funcs', 'creators', 'sample.dt.tpl.txt')
-            )
+            const sampleDtPromptTemplate = await readText(promptsPath('funcs', 'creators', 'sample.dt.tpl.txt'))
             const sampleDtPrompt = Handlebars.compile(sampleDtPromptTemplate)({
                 sampleTests: this.problemSampleTests,
             })
@@ -345,10 +337,9 @@ class FuncsProblemGenerator {
         })
     }
 
-
     async generatePrivateTests(): Promise<Record<string, string>> {
         const privateTestCasesPromptTemplate = await readText(
-            promptsPath('funcs', 'creators', 'private-test-cases.tpl.txt')
+            promptsPath('funcs', 'creators', 'private-test-cases.tpl.txt'),
         )
         const tests: Record<string, string> = {}
         return await tui.section('Generating private test cases', async () => {
@@ -365,7 +356,6 @@ class FuncsProblemGenerator {
             return tests
         })
     }
-
 
     async generateSolution(): Promise<string> {
         const proglang = proglangNames[this.spec.golden_proglang]
@@ -384,7 +374,6 @@ class FuncsProblemGenerator {
             return cleanMarkdownCodeString(answer)
         })
     }
-
 
     async generateReadme(): Promise<string> {
         return tui.section('Generating README.md', async () => {
@@ -494,7 +483,6 @@ The following items are **estimations** from token counts and used models.
         })
     }
 
-
     async generateScores(): Promise<Scores | undefined> {
         if (this.functions.length <= 1) return undefined
         return await tui.section('Generating scores', async () => {
@@ -515,7 +503,6 @@ The following items are **estimations** from token counts and used models.
             return scores
         })
     }
-
 
     async save(path: string): Promise<void> {
         await tui.section(`Saving problem to ${path}`, async () => {
@@ -573,12 +560,7 @@ The following items are **estimations** from token counts and used models.
             await writeTextInDir(path, 'README.md', this.problemReadme)
         })
     }
-
 }
-
-
-
-
 
 async function getPromptForProglang(proglang: string): Promise<string> {
     const location = join(projectDir(), 'assets', 'prompts', 'funcs', 'proglangs', `${proglang}.md`)

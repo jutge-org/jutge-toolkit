@@ -41,7 +41,7 @@ function getExtension(filename: string): string {
 }
 
 function isSubmissionPending(submission: Submission): boolean {
-    return submission.veredict === "Pending"
+    return submission.veredict === 'Pending'
 }
 
 type SubmissionEntry = { sourceFile: string; submission_id: string }
@@ -86,27 +86,29 @@ async function submitOneFile(
     openBrowser: boolean,
 ): Promise<SubmissionEntry> {
     const fullPath = resolve(dir, sourceFile)
-    const compiler_id = forcedCompilerId ?? (() => {
-        const ext = getExtension(basename(sourceFile))
-        const compiler = getCompilerByExtension(ext)
-        return compilerIdForJutge(compiler.id())
-    })()
+    const compiler_id =
+        forcedCompilerId ??
+        (() => {
+            const ext = getExtension(basename(sourceFile))
+            const compiler = getCompilerByExtension(ext)
+            return compilerIdForJutge(compiler.id())
+        })()
 
     const sourceFileUrl = tui.hyperlink(sourceFile)
     const problem_id_url = tui.weblink(`https://jutge.org/problems/${problem_id}`, problem_id)
     const compiler_id_url = tui.weblink(`https://jutge.org/documentation/compilers/${compiler_id}`, compiler_id)
     let entry: SubmissionEntry
-    await tui.section(`Submitting ${sourceFileUrl} to problem ${problem_id_url} with compiler ${compiler_id_url} and annotation ${annotation}`, async () => {
-        const file = await createFileFromPath(fullPath, 'text/plain')
-        const out = await jutge.student.submissions.submitFull(
-            { problem_id, compiler_id, annotation },
-            file,
-        )
-        entry = { sourceFile, submission_id: out.submission_id }
-        const url = `https://jutge.org/problems/${problem_id}/submissions/${out.submission_id}`
-        tui.url(url)
-        if (openBrowser) await open(url)
-    })
+    await tui.section(
+        `Submitting ${sourceFileUrl} to problem ${problem_id_url} with compiler ${compiler_id_url} and annotation ${annotation}`,
+        async () => {
+            const file = await createFileFromPath(fullPath, 'text/plain')
+            const out = await jutge.student.submissions.submitFull({ problem_id, compiler_id, annotation }, file)
+            entry = { sourceFile, submission_id: out.submission_id }
+            const url = `https://jutge.org/problems/${problem_id}/submissions/${out.submission_id}`
+            tui.url(url)
+            if (openBrowser) await open(url)
+        },
+    )
     return entry!
 }
 
@@ -118,7 +120,6 @@ async function waitForVerdicts(
 ): Promise<void> {
     await tui.section('Waiting for verdicts', async () => {
         const allVerdicts = await jutge.tables.getVerdicts()
-
 
         const pending = new Map(submissions.map((s) => [s.submission_id, s]))
         const pollIntervalMs = 1000
@@ -133,8 +134,8 @@ async function waitForVerdicts(
                     })
                     if (!isSubmissionPending(submission)) {
                         pending.delete(submission_id)
-                        const verdict = submission.veredict ?? "Pending"
-                        tui.print(entry.sourceFile.padEnd(20) + " " + showVerdict(allVerdicts, verdict))
+                        const verdict = submission.veredict ?? 'Pending'
+                        tui.print(entry.sourceFile.padEnd(20) + ' ' + showVerdict(allVerdicts, verdict))
                     }
                 } catch {
                     // keep in pending, retry next round
@@ -157,9 +158,7 @@ export async function submitInDirectory(
     const dir = resolve(directory)
     const info = await ensureProblemYml(dir)
     if (!info.problem_nm) {
-        throw new Error(
-            'Problem not uploaded to Jutge.org. Upload it first with jtk upload',
-        )
+        throw new Error('Problem not uploaded to Jutge.org. Upload it first with jtk upload')
     }
 
     const jutge = await getLoggedInJutgeClient()
@@ -170,9 +169,7 @@ export async function submitInDirectory(
         const compilers = await jutge.tables.getCompilers()
         if (!(compilerOption in compilers)) {
             const valid = Object.keys(compilers).sort().join(', ')
-            throw new Error(
-                `Unknown compiler '${compilerOption}'. Valid compilers from Jutge.org: ${valid}`,
-            )
+            throw new Error(`Unknown compiler '${compilerOption}'. Valid compilers from Jutge.org: ${valid}`)
         }
         forcedCompilerId = compilerOption
     }
@@ -182,7 +179,9 @@ export async function submitInDirectory(
     const submissions: SubmissionEntry[] = []
     await tui.section('Submitting solutions', async () => {
         for (const sourceFile of sourceFiles) {
-            submissions.push(await submitOneFile(jutge, dir, problem_id, sourceFile, forcedCompilerId, annotation, openBrowser))
+            submissions.push(
+                await submitOneFile(jutge, dir, problem_id, sourceFile, forcedCompilerId, annotation, openBrowser),
+            )
         }
     })
 

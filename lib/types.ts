@@ -230,7 +230,6 @@ function getDefinedCompilerIds(): string[] {
     ]
 }
 
-
 // type of the credentials.json file of jutge-cli
 
 export const Credential = z.object({
@@ -240,10 +239,10 @@ export const Credential = z.object({
     expiration: z.iso.datetime().optional(),
     savedPassword: z.string().optional(),
     active: z.boolean().optional(),
-});
+})
 
-export type Credential = z.infer<typeof Credential>;
+export type Credential = z.infer<typeof Credential>
 
-export const Credentials = z.record(z.string(), Credential);
+export const Credentials = z.record(z.string(), Credential)
 
-export type Credentials = z.infer<typeof Credentials>;
+export type Credentials = z.infer<typeof Credentials>

@@ -259,7 +259,10 @@ export class Problem {
                     throw new Error(`Didn't find "solution.hh" or "solution.cc" for PRO2!`)
                 }
             } else if (this.handler.compilers === 'MakePRO2') {
-                if (await existsInDir(this.directory, `solution`) || await existsInDir(this.directory, `solution.tar`)) {
+                if (
+                    (await existsInDir(this.directory, `solution`)) ||
+                    (await existsInDir(this.directory, `solution.tar`))
+                ) {
                     this.goldenSolution = 'solution.tar'
                 } else {
                     throw new Error(`Didn't find "solution" or "solution.tar" for MakePRO2!`)
@@ -308,9 +311,7 @@ export class Problem {
             this.solutions = (await existsInDir(this.directory, 'solution')) ? ['solution.tar'] : []
         } else {
             const comaSeparatedExtensions = Object.keys(proglangNames).join(',')
-            const files = await Array.fromAsync(
-                glob(`solution.{${comaSeparatedExtensions}}`, { cwd: this.directory }),
-            )
+            const files = await Array.fromAsync(glob(`solution.{${comaSeparatedExtensions}}`, { cwd: this.directory }))
             this.solutions = files.sort()
         }
         if (this.solutions.length === 0) return

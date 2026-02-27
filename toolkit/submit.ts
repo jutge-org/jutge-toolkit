@@ -10,7 +10,10 @@ export const submitCmd = new Command('submit')
     .option('-c, --compiler <id>', 'compiler to use (default: auto-detect from file extension)', 'auto')
     .option('-l, --language <code>', 'language code (ca, es, en, ...)', 'en')
     .option('-n, --no-wait', 'do not wait for submissions to be judged')
-    .option('--no-browser', 'do not open the submission URL in the browser (only print URL and/or wait for verdict in terminal)')
+    .option(
+        '--no-browser',
+        'do not open the submission URL in the browser (only print URL and/or wait for verdict in terminal)',
+    )
     .option('-a, --annotation <annotation>', "annotation for the submission (default: 'jtk-submit-<nanoid16>')")
 
     .action(async (programs, { directory, compiler, language, wait, browser, annotation }) => {

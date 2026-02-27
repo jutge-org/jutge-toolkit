@@ -7,16 +7,16 @@ import { toolkitPrefix } from './utils'
 export async function cleanDirectory(force: boolean, all: boolean, directory: string): Promise<void> {
     const patterns = [
         `^${toolkitPrefix()}-`, // toolkit prefixed files
-        '\\.exe$',   // executables
-        '\\.dSYM$',  // debug symbols
-        '\\.out$',   // output files
-        '\\.pyc$',   // Python bytecode
-        '\\.tar$',   // tar files
+        '\\.exe$', // executables
+        '\\.dSYM$', // debug symbols
+        '\\.out$', // output files
+        '\\.pyc$', // Python bytecode
+        '\\.tar$', // tar files
         '\\.class$', // Java class files
-        '\\.o$',     // object files
-        '\\.hi$',    // Haskell object files
-        '\\.bak$',   // backup files
-        '~$',        // backup files
+        '\\.o$', // object files
+        '\\.hi$', // Haskell object files
+        '\\.bak$', // backup files
+        '~$', // backup files
         '^a\\.out$', // a.out files
         '^__pycache__$', // Python cache files
     ]

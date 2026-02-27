@@ -78,7 +78,9 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
     })
 
     if (langYmlFiles.length === 0) {
-        issues.push(err('NO_LANGUAGES', 'At least one problem.<lang>.yml is required (e.g. problem.en.yml, problem.ca.yml)'))
+        issues.push(
+            err('NO_LANGUAGES', 'At least one problem.<lang>.yml is required (e.g. problem.en.yml, problem.ca.yml)'),
+        )
     }
 
     let hasOriginalLanguage = false
@@ -103,11 +105,7 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
             }
         } catch (e) {
             issues.push(
-                err(
-                    'LANG_YML_SCHEMA',
-                    `${file} schema error: ${e instanceof Error ? e.message : String(e)}`,
-                    file,
-                ),
+                err('LANG_YML_SCHEMA', `${file} schema error: ${e instanceof Error ? e.message : String(e)}`, file),
             )
         }
 
@@ -195,9 +193,7 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
                 )
             }
             if (!inpBases.has(base)) {
-                issues.push(
-                    warn('ORPHAN_COR', `No .inp for .cor file; consider removing the .cor file`, `${base}.cor`),
-                )
+                issues.push(warn('ORPHAN_COR', `No .inp for .cor file; consider removing the .cor file`, `${base}.cor`))
             }
         }
 

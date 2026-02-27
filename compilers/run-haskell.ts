@@ -105,7 +105,7 @@ export class RunHaskell_Compiler extends Compiler {
         mergedScript += '\n\n\nmain = do\n'
         for (const line of script2.trim().split('\n')) {
             if (line.trim() === '') {
-                mergedScript += '    print ()\n'   // The "()" is because the drive does so
+                mergedScript += '    print ()\n' // The "()" is because the drive does so
             } else if (line.startsWith('let')) {
                 mergedScript += `    ${line}\n`
             } else {

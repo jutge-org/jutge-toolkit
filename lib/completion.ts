@@ -140,7 +140,15 @@ export async function complete(words: string[], curWordIndex: number): Promise<C
             return { words: filterLongOptions(genOpts, curWord) }
         }
         case 'submit': {
-            const opts = ['--directory', '--compiler', '--language', '--no-wait', '--no-browser', '--annotation', '--help']
+            const opts = [
+                '--directory',
+                '--compiler',
+                '--language',
+                '--no-wait',
+                '--no-browser',
+                '--annotation',
+                '--help',
+            ]
             return { words: filterLongOptions(opts, curWord) }
         }
         case 'config': {

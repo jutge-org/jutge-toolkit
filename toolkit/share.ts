@@ -2,11 +2,11 @@ import { password } from '@inquirer/prompts'
 import { Command } from '@commander-js/extra-typings'
 import { updateSharingSettings } from '../lib/share'
 
-
 export const cmdShare = new Command('share')
     .summary('Update and show sharing settings')
 
-    .description(`Update and show sharing settings
+    .description(
+        `Update and show sharing settings
 
 First, this command updates the sharing settings in problem.yml file with the ones on Jutge.org to ensure they are consistent.
 
@@ -18,7 +18,8 @@ Then, it updates the sharing settings in Jutge.org with the requested changes. T
     --solutions Share solutions
     --no-solutions Stop sharing solutions
 
-Finally, it updates problem.yml file with the current sharing settings and shows them.`)
+Finally, it updates problem.yml file with the current sharing settings and shows them.`,
+    )
 
     .option('-d, --directory <directory>', 'problem directory', '.')
     .option('--passcode [code]', 'Set a passcode (prompted if omitted)')

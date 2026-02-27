@@ -19,7 +19,7 @@ import {
     projectDir,
     readText,
     toolkitPrefix,
-    writeText
+    writeText,
 } from '../lib/utils'
 import { languageNames } from './data'
 import * as doctor from './doctor'
@@ -27,7 +27,7 @@ import { newProblem, Problem } from './problem'
 
 const latexDir = join(projectDir(), 'assets', 'latex')
 
-export async function newMaker(directory: string, problem_nm: string = "DRAFT"): Promise<Maker> {
+export async function newMaker(directory: string, problem_nm: string = 'DRAFT'): Promise<Maker> {
     const problem = await newProblem(directory)
     return new Maker(problem, problem_nm)
 }
@@ -320,11 +320,7 @@ export class Maker {
         const compiler = this.selectCompiler()
         await tui.section(`Making correct output for ${testcase}`, async () => {
             await tui.section(`Using ${compiler.name()}`, async () => {
-                const result = await this.makeCorrectOutput(
-                    testcase,
-                    compiler,
-                    this.problem.goldenSolution!,
-                )
+                const result = await this.makeCorrectOutput(testcase, compiler, this.problem.goldenSolution!)
                 const time = prettyMs(result.time)
                 const inputSize = prettyBytes(result.inputSize).replace(' ', '')
                 const outputSize = prettyBytes(result.outputSize).replace(' ', '')
@@ -374,10 +370,10 @@ export class Maker {
         const samples1col: string[] = []
         const samples2col: string[] = []
 
-        let samples = 0;
+        let samples = 0
         for (const testcase of this.problem.testcases) {
             if (testcase.includes('sample')) {
-                samples++;
+                samples++
             }
         }
 
@@ -393,8 +389,7 @@ export class Maker {
                 if (samples > 1) {
                     samples1col.push(`\n\\SampleOneColInputOutput[${size}]{${testcase}}{${index}}\n`)
                     samples2col.push(`\n\\SampleTwoColInputOutput[${size}]{${testcase}}{${index}}\n`)
-                }
-                else {
+                } else {
                     samples1col.push(`\n\\SampleOneColInputOutput[${size}]{${testcase}}{}\n`)
                     samples2col.push(`\n\\SampleTwoColInputOutput[${size}]{${testcase}}{}\n`)
                 }
@@ -754,11 +749,11 @@ export class Maker {
                     const status = result.error
                         ? 'EE'
                         : (await filesAreEqual(
-                            join(this.problem.directory, `${result.testcase}.cor`),
-                            join(this.problem.directory, `${toolkitPrefix()}-${result.testcase}.${extension}.out`),
-                        ))
-                            ? 'OK'
-                            : 'WA'
+                                join(this.problem.directory, `${result.testcase}.cor`),
+                                join(this.problem.directory, `${toolkitPrefix()}-${result.testcase}.${extension}.out`),
+                            ))
+                          ? 'OK'
+                          : 'WA'
                     const time = prettyMs(result.time)
                     tui.print(
                         (status !== 'OK' ? chalk.red : chalk.green)(
@@ -777,7 +772,6 @@ export class Maker {
             })
         })
     }
-
 
     public async makeTarFiles() {
         const { handler, directory } = this.problem

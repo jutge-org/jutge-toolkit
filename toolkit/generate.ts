@@ -30,7 +30,8 @@ generateCmd
     .command('problem')
     .description('Generate a problem with JutgeAI')
 
-    .summary(`Generate a problem with JutgeAI
+    .summary(
+        `Generate a problem with JutgeAI
 
 Use this command to generate a problem with JutgeAI from a specification.
 
@@ -72,14 +73,10 @@ Problem generation needs a problem specification:
     - unless the --do-not-ask flag is given.
 
 Treat the generated problem as a starting draft. You should edit the problem directory manually after the generation.
-`)
-
-    .addOption(
-        new Option
-            ('-k, --kind <kind>', 'problem kind')
-            .default('io')
-            .choices(['io', 'funcs'])
+`,
     )
+
+    .addOption(new Option('-k, --kind <kind>', 'problem kind').default('io').choices(['io', 'funcs']))
     .option('-d, --directory <path>', 'output directory', 'new-problem.pbm')
     .option('-i, --input <path>', 'input specification file')
     .option('-o, --output <path>', 'output specification file')
@@ -89,7 +86,6 @@ Treat the generated problem as a starting draft. You should edit the problem dir
     .action(async ({ input, output, directory, model, doNotAsk, kind }) => {
         const jutge = await getLoggedInJutgeClient()
         await tui.section(`Generating ${kind} problem with JutgeAI`, async () => {
-
             if (await exists(directory)) {
                 throw new Error(`Directory ${directory} already exists`)
             }
@@ -118,8 +114,8 @@ The original statement will be used as the source text for translation.
 
 Provide one or more target language from the following list:
 ${Object.entries(languageNames)
-            .map(([key, name]) => `  - ${key}: ${name}`)
-            .join('\n')}
+    .map(([key, name]) => `  - ${key}: ${name}`)
+    .join('\n')}
 
 The added translations will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -160,7 +156,14 @@ The result is written to statement.<lang>.tex in the problem directory.`,
     .action(async (proglang, language, prompt, { directory, model }) => {
         const jutge = await getLoggedInJutgeClient()
         const problem = await newProblem(directory)
-        await generateStatementFromSolution(jutge, model, problem, proglang, language, (prompt ?? '').trim() || undefined)
+        await generateStatementFromSolution(
+            jutge,
+            model,
+            problem,
+            proglang,
+            language,
+            (prompt ?? '').trim() || undefined,
+        )
     })
 
 generateCmd
@@ -174,8 +177,8 @@ The golden solution will be used as a reference for generating the alternatives.
 
 Provide one or more target programming languages from the following list:
 ${Object.entries(languageNames)
-            .map(([key, name]) => `  - ${key}: ${name}`)
-            .join('\n')}
+    .map(([key, name]) => `  - ${key}: ${name}`)
+    .join('\n')}
 
 The added solutions will be saved in the problem directory overwrite possible existing files.`,
     )
@@ -209,8 +212,8 @@ The main file for the golden solution will be used as a reference for generating
 
 Provide one or more target programming languages from the following list:
 ${Object.entries(languageNames)
-            .map(([key, name]) => `  - ${key}: ${name}`)
-            .join('\n')}
+    .map(([key, name]) => `  - ${key}: ${name}`)
+    .join('\n')}
 
 The added main files will be saved in the problem directory overwrite possible existing files.`,
     )

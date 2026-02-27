@@ -48,11 +48,9 @@ export async function createIOProblem(
     await generator.run()
 }
 
-
 function promptsPath(...segments: string[]): string {
     return join(projectDir(), 'assets', 'prompts', ...segments)
 }
-
 
 interface ProblemGeneratorParams {
     jutge: JutgeApiClient
@@ -62,7 +60,6 @@ interface ProblemGeneratorParams {
     outputPath: string | undefined
     doNotAsk: boolean
 }
-
 
 const IOSpecification = z.object({
     title: z.string(),
@@ -76,12 +73,9 @@ const IOSpecification = z.object({
     generators: z.array(z.string()),
 })
 
-
 type IOSpecification = z.infer<typeof IOSpecification>
 
-
 class IOProblemGenerator {
-
     // inputs
     jutge: JutgeApiClient
     model: string
@@ -149,7 +143,6 @@ class IOProblemGenerator {
         return spec
     }
 
-
     async run() {
         this.spec = await this.loadSpecification()
 
@@ -180,14 +173,12 @@ class IOProblemGenerator {
         tui.success(`Created problem ${tui.hyperlink(this.dir)}`)
     }
 
-
     async loadSpecification(): Promise<IOSpecification> {
         return this.loadSpecificationCore<IOSpecification>({
             loadOrCreateDefault: async () => {
                 if (this.inputPath) {
-                    const spec = await tui.section(
-                        `Reading specification from ${this.inputPath}`,
-                        async () => IOSpecification.parse(await readYaml(this.inputPath!))
+                    const spec = await tui.section(`Reading specification from ${this.inputPath}`, async () =>
+                        IOSpecification.parse(await readYaml(this.inputPath!)),
                     )
                     tui.yaml(spec)
                     return spec
@@ -259,7 +250,6 @@ class IOProblemGenerator {
         })
     }
 
-
     async generateStatement(): Promise<string> {
         tui.print(`Chat label: ${this.label}`)
         return await tui.section(
@@ -278,10 +268,9 @@ class IOProblemGenerator {
                 })
                 const answer = await this.bot.complete(ioStatementPrompt)
                 return cleanMarkdownCodeString(answer) + statementCoda
-            }
+            },
         )
     }
-
 
     async generateSampleTests(): Promise<string> {
         return await tui.section('Generating sample test cases', async () => {
@@ -291,7 +280,6 @@ class IOProblemGenerator {
         })
     }
 
-
     async generatePrivateTests(): Promise<string> {
         return await tui.section('Generating private test cases', async () => {
             const privateTestCasesPrompt = await readText(promptsPath('io', 'creators', 'private-test-cases.txt'))
@@ -299,8 +287,6 @@ class IOProblemGenerator {
             return cleanMarkdownCodeString(answer)
         })
     }
-
-
 
     async generateSolutions(): Promise<Record<string, string>> {
         return await tui.section('Generating solutions', async () => {
@@ -321,7 +307,6 @@ class IOProblemGenerator {
             return solutions
         })
     }
-
 
     async translateStatements(): Promise<Record<string, string>> {
         return await tui.section('Translating problem statements', async () => {
@@ -344,7 +329,6 @@ class IOProblemGenerator {
         })
     }
 
-
     async generateGenerators(): Promise<Record<string, string>> {
         return await tui.section('Generating test cases generators', async () => {
             const generators: Record<string, string> = {}
@@ -362,7 +346,6 @@ class IOProblemGenerator {
             return generators
         })
     }
-
 
     async generateReadme(): Promise<string> {
         return tui.section('Generating README.md', async () => {
@@ -463,7 +446,6 @@ The following items are **estimations** from token counts and used models.
         })
     }
 
-
     async save(path: string): Promise<void> {
         await tui.section(`Saving problem to ${path}`, async () => {
             await mkdir(path, { recursive: true })
@@ -514,7 +496,6 @@ The following items are **estimations** from token counts and used models.
         })
     }
 }
-
 
 async function getPromptForProglang(proglang: string): Promise<string> {
     const location = join(projectDir(), 'assets', 'prompts', 'io', 'proglangs', `${proglang}.md`)

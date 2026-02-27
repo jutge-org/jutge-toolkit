@@ -16,7 +16,8 @@ export async function printLintResults(results: LintResult[], directories: strin
         const errors = result.issues.filter((i) => i.severity === 'error')
         if (errors.length > 0) hasError = true
 
-        const dirLabel = result.directory === directories[0] && results.length === 1 ? result.directory : result.directory
+        const dirLabel =
+            result.directory === directories[0] && results.length === 1 ? result.directory : result.directory
         if (result.issues.length === 0) {
             tui.print(chalk.green('✓') + ' ' + dirLabel + ' ' + chalk.gray('— no issues'))
         } else {
@@ -35,9 +36,7 @@ export async function printLintResults(results: LintResult[], directories: strin
         const totalErrors = results.reduce((s, r) => s + r.issues.filter((i) => i.severity === 'error').length, 0)
         const totalWarnings = results.reduce((s, r) => s + r.issues.filter((i) => i.severity === 'warning').length, 0)
         if (totalErrors > 0 || totalWarnings > 0) {
-            tui.gray(
-                `Total: ${totalErrors} error(s), ${totalWarnings} warning(s) across ${results.length} problem(s)`,
-            )
+            tui.gray(`Total: ${totalErrors} error(s), ${totalWarnings} warning(s) across ${results.length} problem(s)`)
         }
     }
 

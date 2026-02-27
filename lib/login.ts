@@ -17,7 +17,6 @@ If no valid token is available, the program will ask for (or use) email and pass
 
 */
 
-
 import { input, password as input_password, select } from '@inquirer/prompts'
 import envPaths from 'env-paths'
 import { exists } from 'fs/promises'
@@ -105,7 +104,9 @@ async function askEmail(): Promise<string | undefined> {
     const credentials = await getCredentialsFromFile()
     if (!credentials || Object.values(credentials).length === 0) return getEmailFromPrompt()
 
-    const choices = Object.values(credentials).map((c) => ({ name: c.email, value: c.email })).sort()
+    const choices = Object.values(credentials)
+        .map((c) => ({ name: c.email, value: c.email }))
+        .sort()
     choices.push({ name: 'Other', value: 'other' })
     const answer = await select({ message: 'Select email:', choices })
     if (answer === 'other') return getEmailFromPrompt()
@@ -198,4 +199,3 @@ export async function getLoggedInJutgeClient(): Promise<JutgeApiClient> {
         return jutge
     })
 }
-

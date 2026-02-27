@@ -156,8 +156,8 @@ ${body}
 async function markdown(content: string): Promise<void> {
     print(marked.parse(content) as string)
 
-    // open in browser    
-    const body = (await markedHtml.parse(content))
+    // open in browser
+    const body = await markedHtml.parse(content)
     const html = markdownHtmlTemplate(body)
     const path = join(tmpdir(), `jutge-markdown-${nanoid8()}.html`)
     await writeFile(path, html, 'utf8')
@@ -203,11 +203,11 @@ function tryTo(text: string) {
 }
 
 function trySuccess() {
-    process.stdout.write(chalk.green(" ✓ \n"))
+    process.stdout.write(chalk.green(' ✓ \n'))
 }
 
 function tryFailure() {
-    process.stdout.write(chalk.red(" ✗ \n"))
+    process.stdout.write(chalk.red(' ✗ \n'))
 }
 
 export default {

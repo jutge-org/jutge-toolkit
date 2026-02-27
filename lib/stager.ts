@@ -181,7 +181,10 @@ export class Stager {
                 const files = await Array.fromAsync(glob(`*`, { cwd: this.directory }))
                 for (const file of files) {
                     if (this.doNotCopy(file, language)) continue
-                    await cp(join(this.directory, file), join(langDir, file), { recursive: true, preserveTimestamps: true })
+                    await cp(join(this.directory, file), join(langDir, file), {
+                        recursive: true,
+                        preserveTimestamps: true,
+                    })
                 }
             }
             tui.success(`Found languages: ${languages.join(', ')}`)
@@ -202,7 +205,10 @@ export class Stager {
                 const files = await Array.fromAsync(glob(`*`, { cwd: incommingPbmDirWithLang }))
                 for (const file of files) {
                     if (this.doNotCopy(file, language)) continue
-                    await cp(join(incommingPbmDirWithLang, file), join(langDir, file), { recursive: true, preserveTimestamps: true })
+                    await cp(join(incommingPbmDirWithLang, file), join(langDir, file), {
+                        recursive: true,
+                        preserveTimestamps: true,
+                    })
                 }
             }
             tui.success(`Found languages: ${languages.join(', ')}`)
@@ -259,7 +265,12 @@ export class Stager {
                 goldenSolution = 'solution.v'
             } else if (compilers === 'RunPython') {
                 goldenSolution = 'solution.py'
-            } else if (compilers === 'RunHaskell' || compilers === 'GHC' || solution === 'Haskell' || solution === 'GHC') {
+            } else if (
+                compilers === 'RunHaskell' ||
+                compilers === 'GHC' ||
+                solution === 'Haskell' ||
+                solution === 'GHC'
+            ) {
                 goldenSolution = 'solution.hs'
             } else if (compilers === 'RunClojure' || compilers === 'Clojure') {
                 goldenSolution = 'solution.clj'
@@ -297,20 +308,12 @@ export class Stager {
             tui.success(`Golden solution: ${goldenSolution}`)
             return goldenSolution
         })
-
     }
 
-    private formatTimeMismatch(
-        olderName: string,
-        olderMs: number,
-        newerName: string,
-        newerMs: number,
-    ): string[] {
+    private formatTimeMismatch(olderName: string, olderMs: number, newerName: string, newerMs: number): string[] {
         const diffMs = newerMs - olderMs
         const humanDiff = dayjs.duration(diffMs).humanize()
-        return [
-            `- ${newerName} is ${humanDiff} newer than ${olderName}`,
-        ]
+        return [`- ${newerName} is ${humanDiff} newer than ${olderName}`]
     }
 
     private async checkMTimes_Std(language: string) {
@@ -369,7 +372,9 @@ export class Stager {
             }
 
             if (errors.length > 0) {
-                tui.error('Check failed: each .inp must have a .cor, and .cor files must be generated after their .inp and the golden solution.')
+                tui.error(
+                    'Check failed: each .inp must have a .cor, and .cor files must be generated after their .inp and the golden solution.',
+                )
                 for (const line of errors) {
                     tui.error(line)
                 }
@@ -622,11 +627,16 @@ export class Stager {
                 if (filename === `main.${extension}`) return true
                 if (filename === `code.${extension}`) return true
             }
-            if ((filename.includes('sample') || filename.startsWith('public') || filename.startsWith('hint') || filename.startsWith('distilled'))
-                && ((filename.endsWith('.inp') || filename.endsWith('.cor')))) {
+            if (
+                (filename.includes('sample') ||
+                    filename.startsWith('public') ||
+                    filename.startsWith('hint') ||
+                    filename.startsWith('distilled')) &&
+                (filename.endsWith('.inp') || filename.endsWith('.cor'))
+            ) {
                 return true
             }
-            if (filename === "sample.dt") return true
+            if (filename === 'sample.dt') return true
 
             return false
         }

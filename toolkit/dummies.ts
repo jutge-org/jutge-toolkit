@@ -50,7 +50,6 @@ async function chooseCommand(
         return chooseCommand(program, path.slice(0, -1))
     }
 
-
     const newPath = [...path, chosen]
     const nextCmd = resolveCommand(program, newPath)!
     const nextSubs = getVisibleSubcommands(nextCmd)
@@ -91,10 +90,12 @@ async function promptForArgument(arg: Argument, existing: string[]): Promise<str
 
     const defaultStr =
         defaultVal != null
-            ? (Array.isArray(defaultVal) ? defaultVal.join(' ') : String(defaultVal))
+            ? Array.isArray(defaultVal)
+                ? defaultVal.join(' ')
+                : String(defaultVal)
             : required
-                ? undefined
-                : ''
+              ? undefined
+              : ''
 
     const raw = await input({
         message,

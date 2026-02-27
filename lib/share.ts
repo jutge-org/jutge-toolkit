@@ -11,7 +11,6 @@ function checkPasscodeStrength(passcode: string) {
     return passcode.length >= 8 && passcode.match(/^[0-9a-zA-Z]+$/)
 }
 
-
 async function ensureProblemYml(dir: string): Promise<ProblemInfo> {
     const ymlPath = join(dir, 'problem.yml')
     if (!(await exists(ymlPath))) {
@@ -70,7 +69,6 @@ export async function updateSharingSettings(directory: string, options: UpdateSh
     const jutge = await getLoggedInJutgeClient()
 
     await tui.section('Getting current sharing settings', async () => {
-
         const current = await jutge.instructor.problems.getSharingSettings(info.problem_nm)
         tui.success('Current settings retrieved')
 
@@ -115,4 +113,3 @@ export async function updateSharingSettings(directory: string, options: UpdateSh
         })
     })
 }
-

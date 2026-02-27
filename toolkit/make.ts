@@ -243,27 +243,27 @@ async function runWatch(maker: Maker): Promise<void> {
         tui.print('╭───╮ ╭───╮ ╭───╮ ╭───╮ ')
         tui.print(
             '│ ' +
-            chalk.bold('A') +
-            ' │ │ ' +
-            chalk.bold('L') +
-            ' │ │ ' +
-            chalk.bold('H') +
-            ' │ │ ' +
-            chalk.bold('Q') +
-            ' │ ',
+                chalk.bold('A') +
+                ' │ │ ' +
+                chalk.bold('L') +
+                ' │ │ ' +
+                chalk.bold('H') +
+                ' │ │ ' +
+                chalk.bold('Q') +
+                ' │ ',
         )
         tui.print('╰───╯ ╰───╯ ╰───╯ ╰───╯ ')
         tui.print('  ♻️     🔍    ❓    🚫')
         tui.print(
             ' ' +
-            chalk.blue('All') +
-            '  ' +
-            chalk.blue('Lint') +
-            '   ' +
-            chalk.blue('Help') +
-            '  ' +
-            chalk.blue('Quit') +
-            ' ',
+                chalk.blue('All') +
+                '  ' +
+                chalk.blue('Lint') +
+                '   ' +
+                chalk.blue('Help') +
+                '  ' +
+                chalk.blue('Quit') +
+                ' ',
         )
         tui.print(chalk.gray('Waiting for changes or keypress...'))
     }
@@ -291,11 +291,7 @@ async function runWatch(maker: Maker): Promise<void> {
             }
         } else if (/^problem\.\w+\.tex$/.test(name)) {
             pending.statementTex = true
-        } else if (
-            name === 'handler.yml' ||
-            name === 'problem.yml' ||
-            /^problem\.\w+\.yml$/.test(name)
-        ) {
+        } else if (name === 'handler.yml' || name === 'problem.yml' || /^problem\.\w+\.yml$/.test(name)) {
             pending.ymlSchema = true
         }
         scheduleRun()
@@ -309,7 +305,9 @@ async function runWatch(maker: Maker): Promise<void> {
     await new Promise<void>((resolveExit, rejectExit) => {
         function printHelp() {
             tui.print()
-            tui.print('Under watch mode, the toolkit automatically rebuilds the necessary files in the problem directory when you make changes to your files.')
+            tui.print(
+                'Under watch mode, the toolkit automatically rebuilds the necessary files in the problem directory when you make changes to your files.',
+            )
             tui.print(
                 [
                     'Key bindings:',
@@ -320,7 +318,6 @@ async function runWatch(maker: Maker): Promise<void> {
                     '  Q     Quit watch mode',
                     '',
                 ].join('\n'),
-
             )
             tui.print('The watch mode is under development. Please report any issues to the developers.')
             printIdleMessage()
