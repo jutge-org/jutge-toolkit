@@ -117,7 +117,6 @@ export const QuizzFillIn = z
         context: z.coerce.string(),
         items: z.record(z.coerce.string().nonempty(), QuizFillInItem),
         partial_answer: z.coerce.boolean().default(false),
-
     })
     .refine(
         // make sure that for dropdown items, the correct answer is in the options list
