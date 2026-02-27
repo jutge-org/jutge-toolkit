@@ -4,6 +4,9 @@
  */
 
 import { checkbox, confirm, input, select } from '@inquirer/prompts'
+import chalk from 'chalk'
+import Table from 'cli-table3'
+import { orderPrompt } from './order-prompt'
 import { readFile, writeFile } from 'fs/promises'
 import { random } from 'radash'
 import type { QuizQuestionOutput, QuizRunOutput } from './quiz'
@@ -179,21 +182,16 @@ async function promptForAnswer(
         case 'Ordering': {
             const ord = question as QuizzOrdering & { items_rand?: string[] }
             const list = ord.items_rand ?? ord.items
-            const def = (defaults as string[] | undefined) ?? []
-            const ordered: string[] = []
-            const remaining = [...list]
-            for (let i = 0; i < list.length; i++) {
-                const defaultVal = def[i] ?? remaining[0] ?? ''
-                const choices = remaining.map((s) => ({ name: s, value: s }))
-                const chosen = await select({
-                    message: `Position ${i + 1}:`,
-                    choices,
-                    default: defaultVal,
-                })
-                ordered.push(chosen)
-                remaining.splice(remaining.indexOf(chosen), 1)
-            }
-            return ordered
+            const def = (defaults as string[] | undefined)
+            const orderForChoices =
+                def && def.length === list.length && def.every((s) => list.includes(s))
+                    ? def
+                    : list
+            const ordered = await orderPrompt({
+                message: 'Reorder the items (u/k: move up, d/j: move down, Enter: confirm):',
+                items: orderForChoices,
+            })
+            return ordered as QuizAnswer
         }
         case 'Matching': {
             const m = question as QuizzMatching & { left_rand?: string[]; right_rand?: string[] }
@@ -421,7 +419,8 @@ export async function playQuiz(input: QuizRunOutput): Promise<QuizTestOutput> {
 
     await collectAnswers()
 
-    await tui.section('Review your answers', async () => {
+    tui.print("")
+    await tui.section('End of quiz', async () => {
         let wantReview = await confirm({
             message: 'Do you want to review your answers?',
             default: false,
@@ -452,6 +451,7 @@ export async function playQuiz(input: QuizRunOutput): Promise<QuizTestOutput> {
         }
     }
 
+    tui.print("")
     await tui.section('Results', () => {
         for (const q of input.questions) {
             const r = results[q.file]
@@ -471,6 +471,26 @@ export async function playQuiz(input: QuizRunOutput): Promise<QuizTestOutput> {
             totalScore,
             maxScore,
         })
+
+        // Table: # | question key | emoji | score (score right-aligned)
+        const scoreCell = (value: string | number) => ({ content: String(value), hAlign: 'right' as const })
+        const table = new Table({
+            head: ['#', 'question key', 'emoji', 'score'],
+        })
+        input.questions.forEach((q, i) => {
+            const r = results[q.file]
+            if (!r) return
+            table.push([i + 1, q.file, r.emoji, scoreCell(r.score)])
+        })
+        table.push([
+            chalk.bold('Total'),
+            chalk.bold(''),
+            chalk.bold(''),
+            { content: chalk.bold(String(totalScore)), hAlign: 'right' as const },
+        ])
+        tui.print('')
+        tui.print(table.toString())
+
         return Promise.resolve()
     })
 

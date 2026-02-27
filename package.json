@@ -72,6 +72,7 @@
         "chalk": "^5.6.2",
         "chokidar": "^5.0.0",
         "cli-highlight": "^2.1.11",
+        "cli-table3": "^0.6.5",
         "commander": "^14.0.3",
         "dayjs": "^1.11.19",
         "env-paths": "^4.0.0",
