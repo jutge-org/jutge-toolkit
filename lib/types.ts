@@ -73,7 +73,7 @@ export type Settings = z.infer<typeof Settings>
 export const QuizRootQuestion = z.object({
     title: z.string().nonempty(),
     file: z.string().nonempty(),
-    score: z.int().min(0),
+    score: z.int().min(0).max(100),
 })
 
 export type QuizRootQuestion = z.infer<typeof QuizRootQuestion>
@@ -83,80 +83,110 @@ export const QuizRoot = z.object({
     statement: z.string(),
     shuffle: z.boolean().default(false),
     questions: z.array(QuizRootQuestion),
-})
+}).refine(
+    // make sure the scores sum to 100
+    (data) => data.questions.reduce((sum, q) => sum + q.score, 0) === 100,
+    { message: 'Question scores must sum to 100', path: ['questions'] }
+)
 
 export type QuizRoot = z.infer<typeof QuizRoot>
 
-export const QuizzFillIn = z.object({
-    type: z.literal('FillIn'),
-    text: z.string(),
-    context: z.string(),
-    items: z.record(
-        z.string().nonempty(),
-        z.object({
-            maxlength: z.int(),
-            placeholder: z.string().optional(),
-            correct: z.union([z.string(), z.number()]),
-            ignorecase: z.boolean().default(false),
-            trim: z.boolean().default(true),
-        }),
-    ),
+export const QuizFillInItem = z.object({
+    maxlength: z.int().default(100),
+    placeholder: z.coerce.string().optional(),
+    correct: z.coerce.string(),
+    ignorecase: z.boolean().default(true),
+    trim: z.boolean().default(true),
+    options: z.array(z.coerce.string().nonempty()).optional(),
 })
+
+export type QuizFillInItem = z.infer<typeof QuizFillInItem>
+
+export const QuizzFillIn = z
+    .object({
+        type: z.literal('FillIn'),
+        text: z.coerce.string(),
+        context: z.coerce.string(),
+        items: z.record(z.coerce.string().nonempty(), QuizFillInItem),
+    })
+    .refine(
+        // make sure that for dropdown items, the correct answer is in the options list
+        (data) => {
+            for (const item of Object.values(data.items)) {
+                if (item.options !== undefined && item.options.length > 0) {
+                    if (!item.options.includes(item.correct)) return false
+                }
+            }
+            return true
+        },
+        { message: 'For dropdown items, the correct answer must be in the options list', path: ['items'] },
+    )
 
 export type QuizzFillIn = z.infer<typeof QuizzFillIn>
 
 export const QuizzOrdering = z.object({
     type: z.literal('Ordering'),
-    text: z.string(),
+    text: z.coerce.string(),
     label: z.string().nonempty(),
-    items: z.array(z.string().nonempty()),
-    nota: z.string().optional(),
+    items: z.array(z.coerce.string().nonempty()),
+    shuffle: z.boolean().default(true),
 })
 
 export type QuizzOrdering = z.infer<typeof QuizzOrdering>
 
 export const QuizzMatching = z.object({
     type: z.literal('Matching'),
-    text: z.string(),
+    text: z.coerce.string(),
     labels: z.array(z.string().nonempty()),
-    left: z.array(z.string().nonempty()),
-    right: z.array(z.string().nonempty()),
+    left: z.array(z.coerce.string().nonempty()),
+    right: z.array(z.coerce.string().nonempty()),
+    shuffle: z.boolean().default(true),
 })
 
 export type QuizzMatching = z.infer<typeof QuizzMatching>
 
 export const QuizzSingleChoice = z.object({
     type: z.literal('SingleChoice'),
-    text: z.string(),
+    text: z.coerce.string(),
     choices: z.array(
         z.object({
-            text: z.string(),
+            text: z.coerce.string(),
             correct: z.boolean().optional().default(false),
             hint: z.string().optional(),
         }),
     ),
-})
+    shuffle: z.boolean().default(true),
+}).refine(
+    // make sure that at most one correct answer is provided
+    (data) => data.choices.filter((c) => c.correct).length === 1,
+    { message: 'SingleChoice questions must have exactly one correct answer', path: ['choices'] },
+).refine(
+    // make sure there are no repeated text choices
+    (data) => data.choices.map((c) => c.text).filter((t, index, self) => self.indexOf(t) === index).length === data.choices.length,
+    { message: 'SingleChoice questions must have no repeated text choices', path: ['choices'] },
+)
 
 export type QuizzSingleChoice = z.infer<typeof QuizzSingleChoice>
 
 export const QuizzMultipleChoice = z.object({
     type: z.literal('MultipleChoice'),
-    text: z.string(),
+    text: z.coerce.string(),
     choices: z.array(
         z.object({
-            text: z.string(),
+            text: z.coerce.string(),
             correct: z.boolean().optional().default(false),
             hint: z.string().optional(),
         }),
     ),
+    shuffle: z.boolean().default(true),
 })
 
 export type QuizzMultipleChoice = z.infer<typeof QuizzMultipleChoice>
 
 export const QuizzOpenQuestion = z.object({
     type: z.literal('OpenQuestion'),
-    text: z.string(),
-    placeholder: z.string().default(''),
+    text: z.coerce.string(),
+    placeholder: z.coerce.string().default(''),
 })
 
 export type QuizzOpenQuestion = z.infer<typeof QuizzOpenQuestion>

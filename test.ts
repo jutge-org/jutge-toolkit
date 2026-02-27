@@ -1,3 +1,10 @@
-import { getLoggedInJutgeClient } from './lib/login'
+import {
+    execPythonCode
+} from './lib/quiz'
 
-const jutge = await getLoggedInJutgeClient()
+const v = await execPythonCode(`
+import random
+r = random.randint(0, 1000)
+`, 421)
+
+console.log(v)
