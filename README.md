@@ -110,6 +110,7 @@ For a complete walkthrough, see the [Getting Started Guide](docs/getting-started
 
 - **[Getting Started Guide](docs/getting-started-guide.md)** - Complete guide to using the toolkit
 - **[Problem Anatomy](docs/problem-anatomy.md)** - Understanding problem structure and files
+- **[Quiz Anatomy](docs/quiz-anatomy.md)** - Understanding quiz problems and question types
 - **[JutgeAI Features](docs/jutge-ai.md)** - Using AI to generate content
 
 ### Installation Guides

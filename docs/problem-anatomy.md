@@ -34,7 +34,7 @@ There are four types of problems in Jutge.org:
 
 - **Games**: Problems where users must implement an AI to play a game against other users or predefined strategies. These problems often involve turn-based gameplay and require users to implement specific functions to decide their moves. These are not covered in this document.
 
-- **Quizzes**: Problems where users must answer multiple-choice questions. These are not covered in this document.
+- **Quizzes**: Problems where users must answer multiple-choice, fill-in, ordering, matching, or open-ended questions. See [Quiz anatomy](quiz-anatomy.md) for details.
 
 ## Problem structure
 

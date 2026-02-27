@@ -1,6 +1,6 @@
 # Jutge Toolkit - Getting Started Guide
 
-Welcome to the New Jutge Toolkit! This guide will help you start using the toolkit to create, manage, and upload programming problems to Jutge.org. Information about problem formats will be provided in a separate document.
+Welcome to the New Jutge Toolkit! This guide will help you start using the toolkit to create, manage, and upload programming problems to Jutge.org. For general problem structure and file formats, see [Problem anatomy](problem-anatomy.md); for quiz problems, see [Quiz anatomy](quiz-anatomy.md).
 
 ## What is Jutge Toolkit?
 

@@ -78,12 +78,16 @@ export const QuizRootQuestion = z.object({
 
 export type QuizRootQuestion = z.infer<typeof QuizRootQuestion>
 
+/*
+partial_answer means “use partial credit” for that question: proportional score and “correct” when at least one part is right. When it’s false, the question is all-or-nothing (full credit only when everything is correct). 
+*/
+
 export const QuizRoot = z
     .object({
         title: z.string().default('Untitled Quiz'),
         statement: z.string(),
-        shuffle: z.boolean().default(false),
         questions: z.array(QuizRootQuestion),
+        shuffle: z.coerce.boolean().default(false),
     })
     .refine(
         // make sure the scores sum to 100
@@ -100,6 +104,7 @@ export const QuizFillInItem = z.object({
     ignorecase: z.boolean().default(true),
     trim: z.boolean().default(true),
     options: z.array(z.coerce.string().nonempty()).optional(),
+    partial_answer: z.coerce.boolean().default(false),
 })
 
 export type QuizFillInItem = z.infer<typeof QuizFillInItem>
@@ -107,9 +112,12 @@ export type QuizFillInItem = z.infer<typeof QuizFillInItem>
 export const QuizzFillIn = z
     .object({
         type: z.literal('FillIn'),
+        hide_score: z.coerce.boolean().default(false),
         text: z.coerce.string(),
         context: z.coerce.string(),
         items: z.record(z.coerce.string().nonempty(), QuizFillInItem),
+        partial_answer: z.coerce.boolean().default(false),
+
     })
     .refine(
         // make sure that for dropdown items, the correct answer is in the options list
@@ -128,21 +136,25 @@ export type QuizzFillIn = z.infer<typeof QuizzFillIn>
 
 export const QuizzOrdering = z.object({
     type: z.literal('Ordering'),
+    hide_score: z.coerce.boolean().default(false),
     text: z.coerce.string(),
     label: z.string().nonempty(),
     items: z.array(z.coerce.string().nonempty()),
-    shuffle: z.boolean().default(true),
+    shuffle: z.coerce.boolean().default(true),
+    partial_answer: z.coerce.boolean().default(false),
 })
 
 export type QuizzOrdering = z.infer<typeof QuizzOrdering>
 
 export const QuizzMatching = z.object({
     type: z.literal('Matching'),
+    hide_score: z.coerce.boolean().default(false),
     text: z.coerce.string(),
     labels: z.array(z.string().nonempty()),
     left: z.array(z.coerce.string().nonempty()),
     right: z.array(z.coerce.string().nonempty()),
-    shuffle: z.boolean().default(true),
+    shuffle: z.coerce.boolean().default(true),
+    partial_answer: z.coerce.boolean().default(false),
 })
 
 export type QuizzMatching = z.infer<typeof QuizzMatching>
@@ -150,6 +162,7 @@ export type QuizzMatching = z.infer<typeof QuizzMatching>
 export const QuizzSingleChoice = z
     .object({
         type: z.literal('SingleChoice'),
+        hide_score: z.coerce.boolean().default(false),
         text: z.coerce.string(),
         choices: z.array(
             z.object({
@@ -158,7 +171,8 @@ export const QuizzSingleChoice = z
                 hint: z.string().optional(),
             }),
         ),
-        shuffle: z.boolean().default(true),
+        shuffle: z.coerce.boolean().default(true),
+        partial_answer: z.coerce.boolean().default(false),
     })
     .refine(
         // make sure that at most one correct answer is provided
@@ -177,6 +191,7 @@ export type QuizzSingleChoice = z.infer<typeof QuizzSingleChoice>
 
 export const QuizzMultipleChoice = z.object({
     type: z.literal('MultipleChoice'),
+    hide_score: z.coerce.boolean().default(false),
     text: z.coerce.string(),
     choices: z.array(
         z.object({
@@ -185,15 +200,18 @@ export const QuizzMultipleChoice = z.object({
             hint: z.string().optional(),
         }),
     ),
-    shuffle: z.boolean().default(true),
+    shuffle: z.coerce.boolean().default(true),
+    partial_answer: z.coerce.boolean().default(false),
 })
 
 export type QuizzMultipleChoice = z.infer<typeof QuizzMultipleChoice>
 
 export const QuizzOpenQuestion = z.object({
     type: z.literal('OpenQuestion'),
+    hide_score: z.coerce.boolean().default(false),
     text: z.coerce.string(),
     placeholder: z.coerce.string().default(''),
+    partial_answer: z.coerce.boolean().default(false),
 })
 
 export type QuizzOpenQuestion = z.infer<typeof QuizzOpenQuestion>

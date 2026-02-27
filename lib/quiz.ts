@@ -48,40 +48,36 @@ function assertNever(value: never): never {
  * Reports validation errors via tui and does not throw.
  */
 async function lintYamlInDir<T>(directory: string, filename: string, schema: z.ZodType<T>): Promise<T | null> {
-    try {
-        const data = await readYamlInDir(directory, filename)
-        const parsed = schema.parse(data)
-        tui.success(`${filename} seems valid`)
-        return parsed
-    } catch (error) {
-        if (error instanceof Error) {
-            if (error instanceof ZodError) {
-                tui.error(fromError(error).toString())
+    return await tui.section(`Linting ${tui.hyperlink(directory, filename)}`, async () => {
+        try {
+            const data = await readYamlInDir(directory, filename)
+            const parsed = schema.parse(data)
+            tui.success(`${filename} seems valid`)
+            return parsed
+        } catch (error) {
+            if (error instanceof Error) {
+                if (error instanceof ZodError) {
+                    tui.error(fromError(error).toString())
+                } else {
+                    tui.error(error.message)
+                }
             } else {
-                tui.error(error.message)
+                tui.error(String(error))
             }
-        } else {
-            tui.error(String(error))
+            return null
         }
-        return null
-    }
+    })
 }
 
 /**
  * Lints the quiz root (quiz.yml) and all question YAML files in the given directory.
  */
 export async function lintQuiz(directory: string): Promise<void> {
-    let quizRoot: QuizRoot | null = null
-    await tui.section(`Linting ${tui.hyperlink(directory, 'quiz.yml')}`, async () => {
-        quizRoot = await lintYamlInDir(directory, 'quiz.yml', QuizRoot)
-
-        for (const question of quizRoot?.questions ?? []) {
-            const file = `${question.file}.yml`
-            await tui.section(`Linting ${tui.hyperlink(directory, file)}`, async () => {
-                await lintYamlInDir(directory, file, QuizzQuestion)
-            })
-        }
-    })
+    const quizRoot = await lintYamlInDir(directory, 'quiz.yml', QuizRoot)
+    if (quizRoot === null) return
+    for (const question of quizRoot.questions) {
+        await lintYamlInDir(directory, `${question.file}.yml`, QuizzQuestion)
+    }
 }
 
 /**
