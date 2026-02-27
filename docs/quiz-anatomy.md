@@ -10,11 +10,7 @@ Quiz content can be **localized**: the same quiz can have different `quiz.yml` a
 
 **Variable substitution** allows question text and options to depend on values generated at run time. If a question file is named `example.yml`, the toolkit looks for `example.py` in the same directory. When present, it runs the Python script with a random **seed** and collects the script’s global variables. Those variables can be referenced in the question YAML with `$name` or `${name}`. This makes it possible to have different numbers, strings, or options for each run while keeping the same correct answer logic (e.g. “What is $a + $b?” with `a` and `b` random).
 
-**Scoring**: Each question has a **score** between 0–100, and the total of all question scores listed in `quiz.yml` must add up to 100. Users earn points for each question based on question type and that question’s **partial_answer** setting. The **partial_answer** option is set per question in the question YAML (not in `quiz.yml`):
-
-- If `partial_answer` is set to `false` (default), users get full points for that question only when their answer is completely correct; any mistake gives zero points for that question.
-
-- If `partial_answer` is set to `true`, users can receive partial points for that question when the answer is partially correct (e.g. proportional to how many parts are right), and the response may still be marked as "correct" if at least one part is right.
+**Scoring**: Each question has a **score** between 0–100, and the total of all question scores listed in `quiz.yml` must add up to 100. Users earn points for each question.
 
 ## Quiz structure
 
@@ -90,7 +86,15 @@ questions:
 
 ## Question types
 
-Each question is stored in a YAML file whose name matches the `file` field in `quiz.yml` (e.g. `question.yml`). The file must contain a **type** field that identifies the kind of question. All question types support an optional **hide_score** (default `false`) and an optional **partial_answer** (default `false`); see [Scoring](#terminology) above. Variable substitution applies to text fields and options when a corresponding `.py` file exists.
+Each question is stored in a YAML file whose name matches the `file` field in `quiz.yml` (e.g. `question.yml`). The file must contain a **type** field that identifies the kind of question. Variable substitution applies to text fields and options when a corresponding `.py` file exists. All question types support an optional **hide_score** (default `false`) and an optional **partial_answer** (default `false`).
+
+The **partial_answer** option is set per question in the question YAML:
+
+- If `partial_answer` is set to `false` (default), users get full points for that question only when their answer is completely correct; any mistake gives zero points for that question.
+
+- If `partial_answer` is set to `true`, users can receive partial points for that question when the answer is partially correct (e.g. proportional to how many parts are right), and the response may still be marked as "correct" if at least one part is right.
+
+The **hide_score** option is set per question in the question YAML. If set to `true`, the question score is not shown to the user.
 
 ### SingleChoice
 
