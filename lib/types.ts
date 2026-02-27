@@ -78,16 +78,18 @@ export const QuizRootQuestion = z.object({
 
 export type QuizRootQuestion = z.infer<typeof QuizRootQuestion>
 
-export const QuizRoot = z.object({
-    title: z.string().default('Untitled Quiz'),
-    statement: z.string(),
-    shuffle: z.boolean().default(false),
-    questions: z.array(QuizRootQuestion),
-}).refine(
-    // make sure the scores sum to 100
-    (data) => data.questions.reduce((sum, q) => sum + q.score, 0) === 100,
-    { message: 'Question scores must sum to 100', path: ['questions'] }
-)
+export const QuizRoot = z
+    .object({
+        title: z.string().default('Untitled Quiz'),
+        statement: z.string(),
+        shuffle: z.boolean().default(false),
+        questions: z.array(QuizRootQuestion),
+    })
+    .refine(
+        // make sure the scores sum to 100
+        (data) => data.questions.reduce((sum, q) => sum + q.score, 0) === 100,
+        { message: 'Question scores must sum to 100', path: ['questions'] },
+    )
 
 export type QuizRoot = z.infer<typeof QuizRoot>
 
@@ -145,26 +147,31 @@ export const QuizzMatching = z.object({
 
 export type QuizzMatching = z.infer<typeof QuizzMatching>
 
-export const QuizzSingleChoice = z.object({
-    type: z.literal('SingleChoice'),
-    text: z.coerce.string(),
-    choices: z.array(
-        z.object({
-            text: z.coerce.string(),
-            correct: z.boolean().optional().default(false),
-            hint: z.string().optional(),
-        }),
-    ),
-    shuffle: z.boolean().default(true),
-}).refine(
-    // make sure that at most one correct answer is provided
-    (data) => data.choices.filter((c) => c.correct).length === 1,
-    { message: 'SingleChoice questions must have exactly one correct answer', path: ['choices'] },
-).refine(
-    // make sure there are no repeated text choices
-    (data) => data.choices.map((c) => c.text).filter((t, index, self) => self.indexOf(t) === index).length === data.choices.length,
-    { message: 'SingleChoice questions must have no repeated text choices', path: ['choices'] },
-)
+export const QuizzSingleChoice = z
+    .object({
+        type: z.literal('SingleChoice'),
+        text: z.coerce.string(),
+        choices: z.array(
+            z.object({
+                text: z.coerce.string(),
+                correct: z.boolean().optional().default(false),
+                hint: z.string().optional(),
+            }),
+        ),
+        shuffle: z.boolean().default(true),
+    })
+    .refine(
+        // make sure that at most one correct answer is provided
+        (data) => data.choices.filter((c) => c.correct).length === 1,
+        { message: 'SingleChoice questions must have exactly one correct answer', path: ['choices'] },
+    )
+    .refine(
+        // make sure there are no repeated text choices
+        (data) =>
+            data.choices.map((c) => c.text).filter((t, index, self) => self.indexOf(t) === index).length ===
+            data.choices.length,
+        { message: 'SingleChoice questions must have no repeated text choices', path: ['choices'] },
+    )
 
 export type QuizzSingleChoice = z.infer<typeof QuizzSingleChoice>
 

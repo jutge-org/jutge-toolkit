@@ -29,11 +29,13 @@ quizCmd
 quizCmd
     .command('run')
     .summary('Run a quiz problem')
-    .description(`Run a quiz problem. This command is work-in-progress and may not work as expected yet.
+    .description(
+        `Run a quiz problem. This command is work-in-progress and may not work as expected yet.
 
 This command will run the quiz problem and print the resulting object to stdout.
 A random seed will be generated if not provided.
-`)
+`,
+    )
 
     .option('-d, --directory <directory>', 'problem directory', '.')
     .option('-s, --seed <seed>', 'random seed')

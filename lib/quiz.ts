@@ -5,7 +5,18 @@ import type { z } from 'zod'
 import { ZodError } from 'zod'
 import { fromError } from 'zod-validation-error'
 import tui from './tui'
-import { QuizFillInItem, QuizRoot, QuizRootQuestion, QuizzFillIn, QuizzMatching, QuizzMultipleChoice, QuizzOpenQuestion, QuizzOrdering, QuizzQuestion, QuizzSingleChoice } from './types'
+import {
+    QuizFillInItem,
+    QuizRoot,
+    QuizRootQuestion,
+    QuizzFillIn,
+    QuizzMatching,
+    QuizzMultipleChoice,
+    QuizzOpenQuestion,
+    QuizzOrdering,
+    QuizzQuestion,
+    QuizzSingleChoice,
+} from './types'
 import { existsInDir, projectDir, readTextInDir, readYamlInDir } from './utils'
 
 /** Output shape for a single question in a quiz run. */
@@ -36,11 +47,7 @@ function assertNever(value: never): never {
  * Lints a YAML file in the given directory with the given Zod schema.
  * Reports validation errors via tui and does not throw.
  */
-async function lintYamlInDir<T>(
-    directory: string,
-    filename: string,
-    schema: z.ZodType<T>,
-): Promise<T | null> {
+async function lintYamlInDir<T>(directory: string, filename: string, schema: z.ZodType<T>): Promise<T | null> {
     try {
         const data = await readYamlInDir(directory, filename)
         const parsed = schema.parse(data)
@@ -130,7 +137,7 @@ async function buildQuestionOutput(
     let variables: Record<string, unknown> = {}
     if (await existsInDir(directory, `${item.file}.py`)) {
         const code = await readTextInDir(directory, `${item.file}.py`)
-        variables = (await execPythonCode(code, seed)) as Record<string, unknown>
+        variables = await execPythonCode(code, seed)
     }
 
     return {
@@ -143,10 +150,7 @@ async function buildQuestionOutput(
     }
 }
 
-function applyVariablesToQuestion(
-    question: QuizzQuestion,
-    variables: Record<string, unknown>,
-): QuizzQuestion {
+function applyVariablesToQuestion(question: QuizzQuestion, variables: Record<string, unknown>): QuizzQuestion {
     switch (question.type) {
         case 'FillIn':
             return makeFillInQuestionData(question, variables)
@@ -181,7 +185,10 @@ function makeFillInQuestionData(question: QuizzFillIn, variables: Record<string,
     }
 }
 
-function makeOrderingQuestionData(question: QuizzOrdering, variables: Record<string, unknown>): QuizzQuestion & { items_rand: string[] } {
+function makeOrderingQuestionData(
+    question: QuizzOrdering,
+    variables: Record<string, unknown>,
+): QuizzQuestion & { items_rand: string[] } {
     const items = question.items.map((item: string) => substitute(item, variables))
     const items_rand = question.shuffle ? shuffle([...items]) : [...items]
     return {
@@ -192,7 +199,10 @@ function makeOrderingQuestionData(question: QuizzOrdering, variables: Record<str
     }
 }
 
-function makeMatchingQuestionData(question: QuizzMatching, variables: Record<string, unknown>): QuizzQuestion & { left_rand: string[]; right_rand: string[] } {
+function makeMatchingQuestionData(
+    question: QuizzMatching,
+    variables: Record<string, unknown>,
+): QuizzQuestion & { left_rand: string[]; right_rand: string[] } {
     const left = question.left.map((item: string) => substitute(item, variables))
     const right = question.right.map((item: string) => substitute(item, variables))
     const left_rand = question.shuffle ? shuffle([...left]) : [...left]
@@ -228,7 +238,10 @@ function makeSingleChoiceQuestionData(question: QuizzSingleChoice, variables: Re
     }
 }
 
-function makeMultipleChoiceQuestionData(question: QuizzMultipleChoice, variables: Record<string, unknown>): QuizzQuestion {
+function makeMultipleChoiceQuestionData(
+    question: QuizzMultipleChoice,
+    variables: Record<string, unknown>,
+): QuizzQuestion {
     const choices = processChoicesWithVariables(question.choices, variables, question.shuffle)
     return {
         ...question,
@@ -247,9 +260,15 @@ function makeOpenQuestionData(question: QuizzOpenQuestion, variables: Record<str
 
 /**
  * Executes the given Python code and returns the resulting global variables as a Record.
- * Warning: no sandboxing is applied to the code.
+ * The code is run with the given seed for the random number generator (reproducible execution).
+ * Warning: no sandboxing is applied; ensure pyexec path and code are trusted.
+ *
+ * @param code - Python source code to execute (e.g. from a .py file).
+ * @param seed - Seed for the Python RNG.
+ * @returns Global variables produced by the code (JSON-serializable). Keys starting with __ and module references are stripped.
+ * @throws If the Python process exits with a non-zero code.
  */
-export async function execPythonCode(code: string, seed: number): Promise<Record<string, any>> {
+export async function execPythonCode(code: string, seed: number): Promise<Record<string, unknown>> {
     const pyexec = path.join(projectDir(), 'assets', 'python', 'pyexec.py')
     const { exitCode, stdout } = await execa({
         reject: false,
@@ -259,22 +278,18 @@ export async function execPythonCode(code: string, seed: number): Promise<Record
     if (exitCode !== 0) {
         throw new Error(`Python execution failed for ${pyexec} ${seed}`)
     }
-    return JSON.parse(stdout) as Record<string, any>
+    return JSON.parse(stdout) as Record<string, unknown>
 }
 
 /**
- * Substitutes variables in the given template string with their corresponding values from the values object.
+ * Substitutes variables in the given template string with their corresponding values.
+ * Supports `$name` and `${name}` syntax.
+ *
+ * @example
+ * const template = "Hello, $name! You have ${count} messages."
+ * substitute(template, { name: "Alice", count: 5 })
+ * // => "Hello, Alice! You have 5 messages."
  */
-function substitute(template: string, values: Record<string, any>): string {
-    /* 
-        Example:
-
-        const template = "Hello, $name! You have ${count} messages.";
-        const result = substitute(template, { name: "Alice", count: 5 });
-        Output: "Hello, Alice! You have 5 messages."
-    */
-    return template.replace(/\$\{?(\w+)\}?/g, (match, key) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return key in values ? values[key] : match
-    })
+function substitute(template: string, values: Record<string, unknown>): string {
+    return template.replace(/\$\{?(\w+)\}?/g, (match, key: string) => (key in values ? String(values[key]) : match))
 }
