@@ -4,7 +4,7 @@ This document describes the anatomy of a **quiz problem** in [Jutge.org](https:/
 
 ## Terminology
 
-A **quiz** is a problem whose handler is set to `quiz`. It is made of a **quiz root** and a list of **questions**. The quiz root is defined in `quiz.yml` and holds the quiz title, statement, whether questions are shuffled, and the list of questions with their scores. Each **question** is defined in a separate YAML file (e.g. `single-choice.yml`) and has a `type`: SingleChoice, MultipleChoice, FillIn, Ordering, Matching, or OpenQuestion.
+A **quiz** is a problem whose handler is set to `quiz`. It is made of a **quiz root** and a list of **questions**. The quiz root is defined in `quiz.yml` and holds the quiz title, author, statement, whether questions are shuffled, and the list of questions with their scores. Each **question** is defined in a separate YAML file (e.g. `single-choice.yml`) and has a `type`: SingleChoice, MultipleChoice, FillIn, Ordering, Matching, or OpenQuestion.
 
 Quiz content can be **localized**: the same quiz can have different `quiz.yml` and question files per language (e.g. under `en/` and `ca/`). The toolkit runs or lints the quiz for a given directory, so you typically run it from a language-specific subdirectory. Each language should live inside its own folder.
 
@@ -46,6 +46,7 @@ Many items are written in Markdown. See [Markdown documentation](https://www.mar
 The file `quiz.yml` defines the quiz root.
 
 - `title`: Title of the quiz.
+- `author`: Author of the quiz.
 - `statement`: Short description or instructions shown for the quiz (Markdown).
 - `questions`: List of question entries. Each entry has:
     - `title`: Title of the question (e.g. for display in a table of contents).
@@ -57,6 +58,8 @@ The file `quiz.yml` defines the quiz root.
 
 ```yaml
 title: Demo quiz
+
+author: Jordi Petit
 
 statement: This quiz showcases the possibilities of the quiz problems at Jutge.org.
 

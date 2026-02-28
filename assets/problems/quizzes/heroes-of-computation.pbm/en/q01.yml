@@ -1,0 +1,14 @@
+type: SingleChoice
+
+text: "Who is widely considered the first computer programmer for writing algorithms intended to be carried out by Charles Babbage's Analytical Engine?"
+
+choices:
+  - text: "Ada Lovelace"
+    correct: true
+    hint: "Correct. Augusta Ada King, Countess of Lovelace, wrote the first algorithm for the Analytical Engine."
+  - text: "Alan Turing"
+    hint: "Turing came later; think of the first person to write programs for Babbage's machine."
+  - text: "Grace Hopper"
+    hint: "Hopper was a pioneer of compilers; the first programmer worked with Babbage."
+  - text: "Charles Babbage"
+    hint: "Babbage designed the machine; someone else wrote the first programs for it."

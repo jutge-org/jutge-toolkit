@@ -1,0 +1,14 @@
+type: SingleChoice
+
+text: "Who introduced the concept of the Turing machine, a theoretical device that formalized the notion of algorithm and computation?"
+
+choices:
+  - text: "Alan Turing"
+    correct: true
+    hint: "Correct. Alan Turing described the Turing machine in his 1936 paper."
+  - text: "John von Neumann"
+    hint: "Von Neumann contributed to computer architecture; the machine is named after Turing."
+  - text: "Claude Shannon"
+    hint: "Shannon worked on information theory; think of the British mathematician who broke Enigma."
+  - text: "Alonzo Church"
+    hint: "Church developed lambda calculus; the machine is named after another pioneer."

@@ -1,0 +1,14 @@
+type: SingleChoice
+
+text: "Who invented the World Wide Web and wrote the first web browser and server in 1989–1990 at CERN?"
+
+choices:
+  - text: "Tim Berners-Lee"
+    correct: true
+    hint: "Correct. Tim Berners-Lee invented the WWW and created HTTP, HTML, and the first browser."
+  - text: "Vint Cerf"
+    hint: "Cerf co-designed TCP/IP; the Web was invented at CERN by a British scientist."
+  - text: "Marc Andreessen"
+    hint: "Andreessen co-created Mosaic; the Web itself was invented earlier at CERN."
+  - text: "Robert Cailliau"
+    hint: "Cailliau collaborated on the Web; the principal inventor has a different name."

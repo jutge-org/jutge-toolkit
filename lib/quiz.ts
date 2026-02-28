@@ -123,7 +123,6 @@ async function buildQuestionOutput(
     item: QuizRootQuestion,
     seed: number,
 ): Promise<QuizQuestionOutput> {
-    tui.gray(`Making question ${item.file}`)
     if (!(await existsInDir(directory, `${item.file}.yml`))) {
         throw new Error(`File ${item.file}.yml not found in ${directory}`)
     }

@@ -1,0 +1,23 @@
+type: Matching
+
+text: "Match each pioneer of computing to one of their key contributions."
+
+partial_answer: true
+
+labels:
+    - Pioneer
+    - Contribution
+
+left:
+    - Ada Lovelace
+    - Alan Turing
+    - Grace Hopper
+    - John von Neumann
+    - Claude Shannon
+
+right:
+    - First algorithm for the Analytical Engine
+    - Breaking Enigma code
+    - First compiler (A-0) and COBOL
+    - Stored-program computer architecture
+    - Information theory and digital circuit design

@@ -1,0 +1,12 @@
+type: Ordering
+
+text: "Order these computing pioneers by their year of birth, from earliest to latest."
+
+label: Pioneer
+
+items:
+    - Charles Babbage
+    - Ada Lovelace
+    - John von Neumann
+    - Grace Hopper
+    - Alan Turing

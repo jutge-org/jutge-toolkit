@@ -1,0 +1,23 @@
+type: Matching
+
+text: "Match each invention or concept to the pioneer most associated with it."
+
+partial_answer: true
+
+labels:
+    - Invention or concept
+    - Pioneer
+
+left:
+    - Turing machine
+    - Stored-program architecture
+    - World Wide Web
+    - Unix operating system
+    - Mouse and hypertext (NLS)
+
+right:
+    - Alan Turing
+    - John von Neumann
+    - Tim Berners-Lee
+    - Dennis Ritchie and Ken Thompson
+    - Douglas Engelbart

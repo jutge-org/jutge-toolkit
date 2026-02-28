@@ -1,0 +1,14 @@
+type: SingleChoice
+
+text: "Who founded information theory and showed that Boolean algebra could be used to design digital circuits?"
+
+choices:
+  - text: "Claude Shannon"
+    correct: true
+    hint: "Correct. Claude Shannon established information theory and applied Boolean logic to circuits."
+  - text: "Alan Turing"
+    hint: "Turing worked on computation and cryptography; information theory has a different founder."
+  - text: "John von Neumann"
+    hint: "Von Neumann worked on architecture and game theory; think of the MIT/Bell Labs pioneer."
+  - text: "Norbert Wiener"
+    hint: "Wiener founded cybernetics; information theory was founded by another mathematician."

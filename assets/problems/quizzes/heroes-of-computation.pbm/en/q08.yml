@@ -1,0 +1,14 @@
+type: SingleChoice
+
+text: "Who developed the first compiler (the A-0 system) and later led the team that created the COBOL programming language?"
+
+choices:
+  - text: "Grace Hopper"
+    correct: true
+    hint: "Correct. Grace Hopper created the first compiler and was central to COBOL."
+  - text: "Jean Sammet"
+    hint: "Sammet worked on COBOL; the compiler pioneer was a Navy rear admiral."
+  - text: "Margaret Hamilton"
+    hint: "Hamilton led Apollo software; think of the compiler and COBOL pioneer."
+  - text: "Frances Allen"
+    hint: "Allen pioneered compiler optimization; the first compiler was by someone else."

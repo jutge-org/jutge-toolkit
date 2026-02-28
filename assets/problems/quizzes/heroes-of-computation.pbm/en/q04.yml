@@ -1,0 +1,15 @@
+type: MultipleChoice
+
+text: "Which of the following people are credited with creating or co-creating a major programming language?"
+
+choices:
+  - text: "John McCarthy"
+    correct: true
+  - text: "Grace Hopper"
+    correct: true
+  - text: "Dennis Ritchie"
+    correct: true
+  - text: "Charles Babbage"
+    hint: "Babbage designed mechanical computers; he did not create a programming language."
+  - text: "Claude Shannon"
+    hint: "Shannon founded information theory; he did not design a programming language."

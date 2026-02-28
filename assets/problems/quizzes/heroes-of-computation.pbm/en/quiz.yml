@@ -1,0 +1,48 @@
+title: Heroes of the history of computation
+
+author: Jordi Petit
+
+statement: This quiz tests your knowledge of the pioneers and key figures in the history of computing.
+
+shuffle: false
+
+questions:
+  - title: First computer programmer
+    file: q01
+    score: 10
+
+  - title: Turing machine
+    file: q02
+    score: 10
+
+  - title: World Wide Web inventor
+    file: q03
+    score: 10
+
+  - title: Programming language pioneers
+    file: q04
+    score: 10
+
+  - title: Analytical Engine
+    file: q05
+    score: 10
+
+  - title: Order computing pioneers by birth year
+    file: q06
+    score: 10
+
+  - title: Match pioneers to their contributions
+    file: q07
+    score: 10
+
+  - title: Compiler and COBOL
+    file: q08
+    score: 10
+
+  - title: Information theory
+    file: q09
+    score: 10
+
+  - title: Match inventions to pioneers
+    file: q10
+    score: 10

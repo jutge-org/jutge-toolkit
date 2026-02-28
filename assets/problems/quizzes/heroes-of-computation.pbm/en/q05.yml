@@ -1,0 +1,32 @@
+type: FillIn
+
+text: "Fill in the blanks about a pioneer of computing machinery."
+
+context: |
+
+    The S1 Engine was a proposed mechanical general-purpose computer designed by S2 in the 19th century. It was never fully built in his lifetime, but S3 is credited with writing the first algorithm intended for it, making her the first computer programmer.
+
+items:
+    S1:
+        correct: Analytical
+        options:
+           - Analytical
+           - Difference
+           - Mechanical
+           - Universal
+
+    S2:
+        correct: Charles Babbage
+        options:
+           - Charles Babbage
+           - Alan Turing
+           - John von Neumann
+           - Ada Lovelace
+
+    S3:
+        correct: Ada Lovelace
+        options:
+           - Ada Lovelace
+           - Grace Hopper
+           - Margaret Hamilton
+           - Jean Sammet
