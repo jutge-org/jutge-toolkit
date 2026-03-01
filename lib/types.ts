@@ -85,7 +85,6 @@ partial_answer means “use partial credit” for that question: proportional sc
 export const QuizRoot = z
     .object({
         title: z.string().default('Untitled Quiz'),
-        author: z.string().default('Unknown author'),
         statement: z.string(),
         questions: z.array(QuizRootQuestion),
         shuffle: z.coerce.boolean().default(false),

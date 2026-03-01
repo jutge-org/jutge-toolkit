@@ -763,6 +763,11 @@ export class Stager {
                 }
             }
 
+            const graphics = await Array.fromAsync(glob('*.{png,svg}', { cwd: this.workDirLang }))
+            for (const graphic of graphics) {
+                await cp(join(this.workDirLang, graphic), join(dstDir, graphic))
+            }
+
             tui.success(`Staged ${tui.hyperlink(this.stagingDirLang, `quiz`)}`)
         })
     }
