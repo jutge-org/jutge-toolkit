@@ -4,7 +4,7 @@ author: Jordi Petit
 
 statement: This quiz showcases the possibilities of the quiz problems at Jutge.org.
 
-shuffle: true
+shuffle: false
 
 questions:
     - title: Single choice question

@@ -13,6 +13,7 @@
 - Hints and feedback 
 - Different scoring methods
 - Randomized questions
+- Include images in PNG and SVG format
 - Multiple languages (English and Catalan)
 
 ## Abstract

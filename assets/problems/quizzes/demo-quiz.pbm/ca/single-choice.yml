@@ -1,7 +1,15 @@
 
 type: SingleChoice
 
-text: "Quin és el resultat de l'avaluació de `$a + $b`?"
+text: | 
+  
+  Quin és el resultat de l'avaluació de `$a + $b`?
+
+  Es poden incloure gràfics en format PNG i SVG així:
+
+  <img src="some-image.png" alt="Imatge PNG" width="200"/>
+
+  <img src="some-drawing.svg" alt="Dibuix SVG" height="200"/>
 
 choices:
     -   text: "`$s1`"
