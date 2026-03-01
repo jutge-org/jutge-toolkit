@@ -39,8 +39,6 @@ You run or lint the quiz from the directory that contains `quiz.yml` (e.g. `jtk 
 
 `yml` files are YAML (YAML Ain't Markup Language) files. YAML is a human-readable data-serialization language; see [YAML documentation](https://yaml.org/) for more details. Also, see [YAML multiline info](https://yaml-multiline.info/) for more details on how to write multiline strings in YAML.
 
-Many items are written in Markdown. See [Markdown documentation](https://www.markdownguide.org/) for more details. In addition, you can use a small subset of LaTeX for mathematical expressions but these have to be enclosed between `·` signs, not standard `$` signs.
-
 ## The `quiz.yml` file
 
 The file `quiz.yml` defines the quiz root.
@@ -306,6 +304,25 @@ placeholder: 'My name is **$name** and I want to pass this course.'
 ```
 
 The variable `name` can be set by an optional `open-ended.py` (or the same base name as the question file) in the same directory.
+
+## Markdown usage
+
+Markdown is supported in most fields. See [Markdown documentation](https://www.markdownguide.org/) for more details.
+
+For quizzes, you may use:
+
+- Lists (e.g. `- Item 1`, `- Item 2`, `- Item 3`)
+- Italic text (e.g. `*italic text*`)
+- Bold text (e.g. `**bold text**`)
+- Underline text (e.g. `__underline text__`)
+- Code (with backticks, e.g. `` `code` ``)
+- Code blocks (with triple backticks and a programming language specifier)
+
+Avoid sections, links, and tables. HTML is not supported.
+
+In order to include images, you can use the `![Image description](FIG_DIR/image.png)` syntax. The `FIG_DIR` variable will be replaced by the URL where the images are stored. PNG and SVG images are supported.
+
+In addition, you can use a small subset of LaTeX for mathematical expressions but these have to be enclosed between `·` signs, not standard `$` signs. Take into account that math in quizzes is fragile, as it conflicts with Markdown and other features.
 
 ## Variable substitution (`.py` files)
 

@@ -3,13 +3,13 @@ type: SingleChoice
 
 text: | 
 
-  What is the result of the evaluation of `$a + $b`?
-
   Images can be included in PNG and SVG format as follows:
 
-  <img src="some-image.png" alt="PNG image" width="200"/>
-  
-  <img src="some-drawing.svg" alt="SVG drawing" height="200"/>
+  ![alternative text](FIG_DIR/some-image.png)
+
+  ![alternative text](FIG_DIR/some-drawing.svg)
+
+  What is the result of the evaluation of `$a + $b`?
 
 choices:
     -   text: "`$s1`"
