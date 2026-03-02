@@ -85,13 +85,20 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
 
     let hasOriginalLanguage = false
     const languages: string[] = []
+    const langMeta: Record<string, { hasAuthor: boolean; originalLanguage?: string }> = {}
     for (const file of langYmlFiles) {
         const lang = file.replace(/^problem\.(.+)\.yml$/, '$1')
         languages.push(lang)
         try {
             const data = await readYamlInDir(dir, file)
             ProblemLangYml.parse(data)
-            if ('author' in data) hasOriginalLanguage = true
+            const hasAuthor = 'author' in data
+            if (hasAuthor) hasOriginalLanguage = true
+            const originalLanguage =
+                typeof data.original_language === 'string' && data.original_language !== ''
+                    ? data.original_language
+                    : undefined
+            langMeta[lang] = { hasAuthor, originalLanguage }
             if ('translator' in data && data.translator !== undefined) {
                 if (data.original_language === undefined || data.original_language === '') {
                     issues.push(
@@ -121,6 +128,41 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
             if (!tex.includes('\\Statement')) {
                 issues.push(warn('STATEMENT_STRUCTURE', `problem.${lang}.tex should contain \\Statement`, texFile))
             }
+        }
+    }
+
+    // All original_language values must point to the same language, and that language must have author
+    const originalLanguageValues = [
+        ...new Set(
+            Object.entries(langMeta)
+                .map(([, m]) => m.originalLanguage)
+                .filter((v): v is string => !!v),
+        ),
+    ]
+    if (originalLanguageValues.length > 1) {
+        issues.push(
+            err(
+                'ORIGINAL_LANGUAGE_MISMATCH',
+                `All original_language fields must be the same; found: ${originalLanguageValues.join(', ')}`,
+            ),
+        )
+    } else if (originalLanguageValues.length === 1) {
+        const refLang = originalLanguageValues[0]!
+        if (!languages.includes(refLang)) {
+            issues.push(
+                err(
+                    'ORIGINAL_LANGUAGE_MISSING',
+                    `original_language is "${refLang}" but there is no problem.${refLang}.yml`,
+                ),
+            )
+        } else if (langMeta[refLang] && !langMeta[refLang].hasAuthor) {
+            issues.push(
+                err(
+                    'ORIGINAL_LANGUAGE_NO_AUTHOR',
+                    `The original language (problem.${refLang}.yml) must have an author field`,
+                    `problem.${refLang}.yml`,
+                ),
+            )
         }
     }
 
