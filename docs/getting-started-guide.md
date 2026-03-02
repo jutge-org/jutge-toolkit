@@ -121,15 +121,34 @@ Before using the toolkit, you should configure it with your preferences:
     jtk generate problem
     ```
 
-    The toolkit will ask you for:
+    The flag `--kind` can be used to specify the type of problem to generate:
+    - `io`: The problem consists of reading input from standard input and writing output to standard output (use it for most problems and to be used by many programming languages).
+
+    - `funcs`: The problem consists of implementing one or more functions (use it for problems that require the user to implement specific functions that are tested directly with special compilers such as RunPython, RunHaskell or RunClojure).
+
+    ```bash
+    jtk generate problem --kind io
+    jtk generate problem --kind funcs
+    ```
+
+    In the `io` case, the toolkit will ask you for:
     - Problem title
     - Problem description
     - Original language
     - Programming language for the solution
+    - Other languages for the statement
 
     Be specific about the problem description. Here is a possible example:
 
     > The task is to read all numbers in the input and print how much of them are prime numbers. Add a cute, short story around it. The input will only contain natural numbers less than 2^32-1.
+
+    In the `funcs` case, the toolkit will ask you for:
+    - Problem title
+    - Problem description (do not describe the functions yet)
+    - Specification of the functions to implement (this is the place to describe the functions, their headers uses to be enough)
+    - Original language
+    - Programming language for the solution
+    - Other languages for the statement
 
 2. **Review the generated content** in the `my-problem.pbm` directory.
 
