@@ -741,6 +741,7 @@ export class Stager {
             await mkdir(dstDir, { recursive: true })
 
             await writeYaml(join(dstDir, 'quiz.yml'), quiz)
+            await cp(join(this.workDirLang, `handler.yml`), join(dstDir, `handler.yml`))
             await cp(join(this.workDirLang, `problem.${language}.yml`), join(dstDir, `problem.yml`))
             await cp(join(this.workDirLang, `problem.${language}.yml`), join(dstDir, '..', `problem.yml`))
 
