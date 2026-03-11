@@ -85,7 +85,11 @@ The first method is preferred whenever possible, as it avoids duplication of fil
 
 ## Problem statement
 
-Problem statements are stored in LaTeX files named `problem.lang.tex`, where `lang` denotes the ISO 639-1 code of the language for which the statement is given (currently `ca`, `en`, `es`, `fr`, `de` for Catalan, English, Spanish, French, and German respectively). Problem statements make use of certain macros. The clonable `demo` problem contains an example of a problem statement with many features that can be used in your own problem statements; see [demo.tex](../assets/problems/demo/README.md) for details.
+Problem statements are stored in LaTeX files named `problem.lang.tex`, where `lang` denotes the ISO 639-1 code of the language for which the statement is given (currently `ca`, `en`, `es`, `fr`, `de` for Catalan, English, Spanish, French, and German respectively). Problem statements make use of certain macros.
+
+### Demo problem
+
+The clonable `demo` problem contains an example of a problem statement with many features that can be used in your own problem statements; see [demo.tex](demo.tex) for examples and inspiration.
 
 ### Structure
 

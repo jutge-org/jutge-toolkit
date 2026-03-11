@@ -117,87 +117,76 @@ function warn(code: string, message: string, path?: string): LintIssue {
     return { severity: 'warning', code, message, path }
 }
 
-export type LintDirectoryOptions = { verbose?: boolean }
+type LintPassCallback = (code: string, message: string, path?: string) => void
 
-export async function lintDirectory(
-    directory: string,
-    options?: LintDirectoryOptions,
-): Promise<LintResult> {
-    const dir = directory === '.' ? normalize(resolve(process.cwd())) : resolve(directory)
-    const verbose = options?.verbose ?? false
-    const issues: LintIssue[] = []
-    const passed: LintPassed[] = []
+function formatValidationError(e: unknown): string {
+    if (e instanceof ZodError) return fromError(e).toString()
+    if (e instanceof Error) return e.message
+    return String(e)
+}
 
-    const pass = (code: string, message: string, path?: string) => {
-        if (verbose) passed.push({ code, message, path })
-    }
-
-    // --- handler.yml ---
+async function validateHandlerYml(
+    dir: string,
+    issues: LintIssue[],
+    pass: LintPassCallback,
+): Promise<{ handler: string } | null> {
     const handlerPath = join(dir, 'handler.yml')
     if (!(await exists(handlerPath))) {
         issues.push(err('MISSING_HANDLER', 'handler.yml is required', 'handler.yml'))
-    } else {
-        try {
-            const data = await readYamlInDir(dir, 'handler.yml')
-            Handler.parse(data)
-            pass('HANDLER', 'handler.yml is valid', 'handler.yml')
-        } catch (e) {
-            const text =
-                e instanceof ZodError ? fromError(e).toString()
-                    : e instanceof Error ?
-                        e.message
-                        : String(e)
-            issues.push(
-                err(
-                    'HANDLER_SCHEMA',
-                    `handler.yml schema error: ${text}`,
-                    'handler.yml',
-                ),
-            )
-        }
+        return null
     }
+    try {
+        const data = await readYamlInDir(dir, 'handler.yml')
+        const parsed = Handler.parse(data) as { handler: string }
+        pass('HANDLER', 'handler.yml is valid', 'handler.yml')
+        return parsed
+    } catch (e) {
+        issues.push(err('HANDLER_SCHEMA', `handler.yml schema error: ${formatValidationError(e)}`, 'handler.yml'))
+        return null
+    }
+}
 
-    // --- problem.yml (optional; created on upload) ---
+async function validateProblemYml(dir: string, issues: LintIssue[], pass: LintPassCallback): Promise<void> {
     const problemYmlPath = join(dir, 'problem.yml')
-    if (await exists(problemYmlPath)) {
-        try {
-            const data = await readYamlInDir(dir, 'problem.yml')
-            ProblemInfo.parse(data)
-            pass('PROBLEM_YML', 'problem.yml is valid', 'problem.yml')
-        } catch (e) {
-            const text =
-                e instanceof ZodError ? fromError(e).toString()
-                    : e instanceof Error ?
-                        e.message
-                        : String(e)
-            issues.push(
-                err(
-                    'PROBLEM_YML_SCHEMA',
-                    `problem.yml schema error: ${text}`,
-                    'problem.yml',
-                ),
-            )
-        }
+    if (!(await exists(problemYmlPath))) return
+    try {
+        const data = await readYamlInDir(dir, 'problem.yml')
+        ProblemInfo.parse(data)
+        pass('PROBLEM_YML', 'problem.yml is valid', 'problem.yml')
+    } catch (e) {
+        issues.push(
+            err('PROBLEM_YML_SCHEMA', `problem.yml schema error: ${formatValidationError(e)}`, 'problem.yml'),
+        )
     }
+}
 
-    // --- problem.LANG.tex / problem.LANG.yml and statement structure ---
-    const langYmlFiles = (await Array.fromAsync(glob('problem.*.yml', { cwd: dir }))).filter((f) => {
+async function getValidLangYmlFiles(dir: string): Promise<string[]> {
+    const all = await Array.fromAsync(glob('problem.*.yml', { cwd: dir }))
+    return all.filter((f) => {
         const m = f.match(/^problem\.(.+)\.yml$/)
         const lang = m?.[1]
         return !!lang && lang in languageNames
     })
+}
 
-    if (langYmlFiles.length === 0) {
-        issues.push(
-            err('NO_LANGUAGES', 'At least one problem.<lang>.yml is required (e.g. problem.en.yml, problem.ca.yml)'),
-        )
-    } else {
-        pass('LANGUAGES', 'At least one problem.<lang>.yml found')
-    }
+type LangMeta = Record<string, { hasAuthor: boolean; originalLanguage?: string }>
 
-    let hasOriginalLanguage = false
+interface LanguageValidationResult {
+    languages: string[]
+    langMeta: LangMeta
+    hasOriginalLanguage: boolean
+}
+
+async function validateLanguageFiles(
+    dir: string,
+    langYmlFiles: string[],
+    issues: LintIssue[],
+    pass: LintPassCallback,
+): Promise<LanguageValidationResult> {
     const languages: string[] = []
-    const langMeta: Record<string, { hasAuthor: boolean; originalLanguage?: string }> = {}
+    const langMeta: LangMeta = {}
+    let hasOriginalLanguage = false
+
     for (const file of langYmlFiles) {
         const lang = file.replace(/^problem\.(.+)\.yml$/, '$1')
         languages.push(lang)
@@ -249,7 +238,17 @@ export async function lintDirectory(
         }
     }
 
-    // All original_language values must point to the same language, and that language must have author
+    return { languages, langMeta, hasOriginalLanguage }
+}
+
+function validateOriginalLanguageConsistency(
+    languages: string[],
+    langMeta: LangMeta,
+    langYmlFiles: string[],
+    hasOriginalLanguage: boolean,
+    issues: LintIssue[],
+    pass: LintPassCallback,
+): void {
     const originalLanguageValues = [
         ...new Set(
             Object.entries(langMeta)
@@ -293,156 +292,226 @@ export async function lintDirectory(
     } else if (langYmlFiles.length > 0) {
         pass('ORIGINAL_LANGUAGE', 'One language is marked as original (has author)')
     }
+}
 
-    // --- handler for solution/test requirements ---
-    let handler: { handler: string } | null = null
-    if (await exists(handlerPath)) {
-        try {
-            const data = await readYamlInDir(dir, 'handler.yml')
-            handler = Handler.parse(data) as { handler: string }
-        } catch {
-            // already reported
+function handlerNeedsTestsAndSolution(handler: { handler: string } | null): boolean {
+    return !!(
+        handler &&
+        handler.handler !== 'quiz' &&
+        handler.handler !== 'game' &&
+        handler.handler !== 'circuits'
+    )
+}
+
+async function validateSolutionFiles(dir: string, issues: LintIssue[], pass: LintPassCallback): Promise<void> {
+    const solutionFiles = await Array.fromAsync(glob('solution.*', { cwd: dir }))
+    if (solutionFiles.length === 0) {
+        issues.push(err('NO_SOLUTION', 'At least one solution file (e.g. solution.cc) is required'))
+    } else {
+        pass('SOLUTION', 'At least one solution file found')
+    }
+}
+
+async function validateTestCasePairs(
+    dir: string,
+    issues: LintIssue[],
+    pass: LintPassCallback,
+): Promise<{ inpBases: Set<string>; corBases: Set<string> }> {
+    const inpFiles = await Array.fromAsync(glob('*.inp', { cwd: dir }))
+    const corFiles = await Array.fromAsync(glob('*.cor', { cwd: dir }))
+    const inpBases = new Set(inpFiles.map((f) => f.replace(/\.inp$/, '')))
+    const corBases = new Set(corFiles.map((f) => f.replace(/\.cor$/, '')))
+
+    if (inpFiles.length === 0) {
+        issues.push(err('NO_TESTCASES', 'At least one test case (.inp file) is required'))
+    } else {
+        pass('TESTCASES', 'At least one test case (.inp) found')
+    }
+
+    for (const base of inpBases) {
+        if (!TESTCASE_NAME_REGEX.test(base)) {
+            issues.push(
+                warn(
+                    'TESTCASE_NAMING',
+                    `Test case name "${base}" should use only letters, digits, dashes and underscores`,
+                    `${base}.inp`,
+                ),
+            )
+        } else {
+            pass('TESTCASE_NAMING', `Test case "${base}" has valid name`, `${base}.inp`)
+        }
+        if (!corBases.has(base)) {
+            issues.push(
+                err(
+                    'MISSING_COR',
+                    `Each .inp must have a matching .cor file. Run "jtk make cor" to generate.`,
+                    `${base}.inp / ${base}.cor`,
+                ),
+            )
+        } else {
+            pass('INP_COR_PAIR', `${base}.inp has matching .cor`, `${base}.inp`)
         }
     }
 
-    const needsTestsAndSolution =
-        handler && handler.handler !== 'quiz' && handler.handler !== 'game' && handler.handler !== 'circuits'
-
-    if (needsTestsAndSolution) {
-        // --- solution ---
-        const solutionFiles = await Array.fromAsync(glob('solution.*', { cwd: dir }))
-        if (solutionFiles.length === 0) {
-            issues.push(err('NO_SOLUTION', 'At least one solution file (e.g. solution.cc) is required'))
-        } else {
-            pass('SOLUTION', 'At least one solution file found')
+    for (const base of corBases) {
+        if (!TESTCASE_NAME_REGEX.test(base)) {
+            issues.push(
+                warn(
+                    'TESTCASE_NAMING',
+                    `Test case name "${base}" should use only letters, digits, dashes and underscores`,
+                    `${base}.cor`,
+                ),
+            )
         }
-
-        // --- test cases: .inp / .cor pairing, naming ---
-        const inpFiles = await Array.fromAsync(glob('*.inp', { cwd: dir }))
-        const corFiles = await Array.fromAsync(glob('*.cor', { cwd: dir }))
-        const inpBases = new Set(inpFiles.map((f) => f.replace(/\.inp$/, '')))
-        const corBases = new Set(corFiles.map((f) => f.replace(/\.cor$/, '')))
-
-        if (inpFiles.length === 0) {
-            issues.push(err('NO_TESTCASES', 'At least one test case (.inp file) is required'))
-        } else {
-            pass('TESTCASES', 'At least one test case (.inp) found')
+        if (!inpBases.has(base)) {
+            issues.push(warn('ORPHAN_COR', `No .inp for .cor file; consider removing the .cor file`, `${base}.cor`))
         }
+    }
 
-        for (const base of inpBases) {
-            if (!TESTCASE_NAME_REGEX.test(base)) {
+    return { inpBases, corBases }
+}
+
+const COR_SIZE_WARN_BYTES = 2 * 1024 * 1024
+
+async function validateLargeCorWithoutOps(
+    dir: string,
+    inpBases: Set<string>,
+    corBases: Set<string>,
+    issues: LintIssue[],
+    pass: LintPassCallback,
+): Promise<void> {
+    for (const base of inpBases) {
+        if (!corBases.has(base)) continue
+        const corPath = join(dir, `${base}.cor`)
+        const opsPath = join(dir, `${base}.ops`)
+        try {
+            const st = await stat(corPath)
+            if (st.size >= COR_SIZE_WARN_BYTES && !(await exists(opsPath))) {
                 issues.push(
                     warn(
-                        'TESTCASE_NAMING',
-                        `Test case name "${base}" should use only letters, digits, dashes and underscores`,
-                        `${base}.inp`,
-                    ),
-                )
-            } else {
-                pass('TESTCASE_NAMING', `Test case "${base}" has valid name`, `${base}.inp`)
-            }
-            if (!corBases.has(base)) {
-                issues.push(
-                    err(
-                        'MISSING_COR',
-                        `Each .inp must have a matching .cor file. Run "jtk make cor" to generate.`,
-                        `${base}.inp / ${base}.cor`,
-                    ),
-                )
-            } else {
-                pass('INP_COR_PAIR', `${base}.inp has matching .cor`, `${base}.inp`)
-            }
-        }
-
-        for (const base of corBases) {
-            if (!TESTCASE_NAME_REGEX.test(base)) {
-                issues.push(
-                    warn(
-                        'TESTCASE_NAMING',
-                        `Test case name "${base}" should use only letters, digits, dashes and underscores`,
+                        'COR_TOO_BIG',
+                        '.cor file too big, review test case or consider using --maxoutput in .ops file',
                         `${base}.cor`,
                     ),
                 )
+            } else {
+                pass('COR_SIZE', `${base}.cor size OK or has .ops`, `${base}.cor`)
             }
-            if (!inpBases.has(base)) {
-                issues.push(warn('ORPHAN_COR', `No .inp for .cor file; consider removing the .cor file`, `${base}.cor`))
-            }
+        } catch {
+            // stat errors (e.g. file removed) are covered by other lint
         }
+    }
+}
 
-        // --- large .cor without .ops ---
-        const COR_SIZE_WARN_BYTES = 2 * 1024 * 1024 // 2MB
-        for (const base of inpBases) {
-            if (!corBases.has(base)) continue
-            const corPath = join(dir, `${base}.cor`)
-            const opsPath = join(dir, `${base}.ops`)
-            try {
-                const st = await stat(corPath)
-                if (st.size >= COR_SIZE_WARN_BYTES && !(await exists(opsPath))) {
-                    issues.push(
-                        warn(
-                            'COR_TOO_BIG',
-                            '.cor file too big, review test case or consider using --maxoutput in .ops file',
-                            `${base}.cor`,
-                        ),
-                    )
-                } else {
-                    pass('COR_SIZE', `${base}.cor size OK or has .ops`, `${base}.cor`)
-                }
-            } catch {
-                // ignore stat errors (e.g. file removed); other lint will report missing .cor
-            }
+async function validateOpsFiles(dir: string, issues: LintIssue[], pass: LintPassCallback): Promise<void> {
+    const opsFiles = await Array.fromAsync(glob('*.ops', { cwd: dir }))
+    const opsBases = new Set(opsFiles.map((f) => f.replace(/\.ops$/, '')))
+    for (const base of opsBases) {
+        const inpPath = join(dir, `${base}.inp`)
+        if (!(await exists(inpPath))) {
+            issues.push(
+                err('OPS_WITHOUT_INP', 'Each .ops file must have a matching .inp test case', `${base}.ops`),
+            )
         }
+        const opsFile = `${base}.ops`
+        try {
+            const content = await readTextInDir(dir, opsFile)
+            const result = validateOpsString(content)
+            if (!result.valid) {
+                issues.push(err('OPS_INVALID', result.error, opsFile))
+            } else {
+                pass('OPS', `${opsFile} is valid`, opsFile)
+            }
+        } catch {
+            issues.push(err('OPS_READ', `Could not read ${opsFile}`, opsFile))
+        }
+    }
+}
 
-        // --- .ops files: must have matching .inp and valid content ---
-        const opsFiles = await Array.fromAsync(glob('*.ops', { cwd: dir }))
-        const opsBases = new Set(opsFiles.map((f) => f.replace(/\.ops$/, '')))
-        for (const base of opsBases) {
-            const inpPath = join(dir, `${base}.inp`)
-            if (!(await exists(inpPath))) {
+async function validateSampleStatementConsistency(
+    dir: string,
+    languages: string[],
+    inpBases: Set<string>,
+    issues: LintIssue[],
+    pass: LintPassCallback,
+): Promise<void> {
+    const sampleBases = [...inpBases].filter((b) => b.includes('sample'))
+    for (const lang of languages) {
+        const texFile = `problem.${lang}.tex`
+        const texPath = join(dir, texFile)
+        if (sampleBases.length > 0 && (await exists(texPath))) {
+            const tex = await readTextInDir(dir, texFile)
+            if (!tex.includes('\\Sample')) {
                 issues.push(
-                    err(
-                        'OPS_WITHOUT_INP',
-                        'Each .ops file must have a matching .inp test case',
-                        `${base}.ops`,
+                    warn(
+                        'SAMPLE_STATEMENT',
+                        `Problem has sample test(s) but problem.${lang}.tex does not contain \\Sample`,
+                        texFile,
                     ),
                 )
-            }
-            const opsFile = `${base}.ops`
-            try {
-                const content = await readTextInDir(dir, opsFile)
-                const result = validateOpsString(content)
-                if (!result.valid) {
-                    issues.push(
-                        err('OPS_INVALID', result.error, opsFile),
-                    )
-                } else {
-                    pass('OPS', `${opsFile} is valid`, opsFile)
-                }
-            } catch {
-                issues.push(err('OPS_READ', `Could not read ${opsFile}`, opsFile))
+            } else {
+                pass('SAMPLE_STATEMENT', `problem.${lang}.tex contains \\Sample`, texFile)
             }
         }
+    }
+}
 
-        // --- sample vs statement consistency ---
-        const sampleBases = [...inpBases].filter((b) => b.includes('sample'))
-        for (const lang of languages) {
-            const texFile = `problem.${lang}.tex`
-            const texPath = join(dir, texFile)
-            if (sampleBases.length > 0 && (await exists(texPath))) {
-                const tex = await readTextInDir(dir, texFile)
-                if (!tex.includes('\\Sample')) {
-                    issues.push(
-                        warn(
-                            'SAMPLE_STATEMENT',
-                            `Problem has sample test(s) but problem.${lang}.tex does not contain \\Sample`,
-                            texFile,
-                        ),
-                    )
-                } else {
-                    pass('SAMPLE_STATEMENT', `problem.${lang}.tex contains \\Sample`, texFile)
-                }
-            }
-        }
+async function validateSolutionAndTestCases(
+    dir: string,
+    languages: string[],
+    issues: LintIssue[],
+    pass: LintPassCallback,
+): Promise<void> {
+    await validateSolutionFiles(dir, issues, pass)
+    const { inpBases, corBases } = await validateTestCasePairs(dir, issues, pass)
+    await validateLargeCorWithoutOps(dir, inpBases, corBases, issues, pass)
+    await validateOpsFiles(dir, issues, pass)
+    await validateSampleStatementConsistency(dir, languages, inpBases, issues, pass)
+}
+
+export type LintDirectoryOptions = { verbose?: boolean }
+
+export async function lintDirectory(
+    directory: string,
+    options?: LintDirectoryOptions,
+): Promise<LintResult> {
+    const dir = directory === '.' ? normalize(resolve(process.cwd())) : resolve(directory)
+    const verbose = options?.verbose ?? false
+    const issues: LintIssue[] = []
+    const passed: LintPassed[] = []
+    const pass: LintPassCallback = (code, message, path) => {
+        if (verbose) passed.push({ code, message, path })
+    }
+
+    const handler = await validateHandlerYml(dir, issues, pass)
+    await validateProblemYml(dir, issues, pass)
+
+    const langYmlFiles = await getValidLangYmlFiles(dir)
+    if (langYmlFiles.length === 0) {
+        issues.push(
+            err('NO_LANGUAGES', 'At least one problem.<lang>.yml is required (e.g. problem.en.yml, problem.ca.yml)'),
+        )
+    } else {
+        pass('LANGUAGES', 'At least one problem.<lang>.yml found')
+    }
+
+    const { languages, langMeta, hasOriginalLanguage } = await validateLanguageFiles(
+        dir,
+        langYmlFiles,
+        issues,
+        pass,
+    )
+    validateOriginalLanguageConsistency(
+        languages,
+        langMeta,
+        langYmlFiles,
+        hasOriginalLanguage,
+        issues,
+        pass,
+    )
+
+    if (handlerNeedsTestsAndSolution(handler)) {
+        await validateSolutionAndTestCases(dir, languages, issues, pass)
     }
 
     return { directory: dir, issues, ...(verbose && passed.length > 0 ? { passed } : {}) }
