@@ -103,7 +103,7 @@ export const Handler = z.object({
         path: ["checker"],
     })
     .refine((data) => {        // If checker is elastic2, separator1 and separator2 and starting and ending must exist
-        return !(data.checker === 'elastic2' && data.separator1 === undefined && data.separator2 === undefined && data.starting === undefined && data.ending === undefined)
+        return !(data.checker === 'elastic2' && (data.separator1 === undefined || data.separator2 === undefined || data.starting === undefined || data.ending === undefined))
     }, {
         message: "Fields 'separator1', 'separator2', 'starting' and 'ending' are required if 'checker' is 'elastic2'",
         path: ["checker"],
