@@ -4,6 +4,8 @@ import { languageNames } from './data'
 import { findRealDirectories } from './helpers'
 import { Handler, ProblemInfo, ProblemLangYml } from './types'
 import { readTextInDir, readYamlInDir } from './utils'
+import { ZodError } from 'zod'
+import { fromError } from 'zod-validation-error'
 
 const TESTCASE_NAME_REGEX = /^[a-zA-Z0-9_-]+$/
 
@@ -94,9 +96,17 @@ export interface LintIssue {
     path?: string
 }
 
+export interface LintPassed {
+    code: string
+    message: string
+    path?: string
+}
+
 export interface LintResult {
     directory: string
     issues: LintIssue[]
+    /** When verbose, contains an entry for each validation that passed. */
+    passed?: LintPassed[]
 }
 
 function err(code: string, message: string, path?: string): LintIssue {
@@ -107,9 +117,20 @@ function warn(code: string, message: string, path?: string): LintIssue {
     return { severity: 'warning', code, message, path }
 }
 
-export async function lintDirectory(directory: string): Promise<LintResult> {
+export type LintDirectoryOptions = { verbose?: boolean }
+
+export async function lintDirectory(
+    directory: string,
+    options?: LintDirectoryOptions,
+): Promise<LintResult> {
     const dir = directory === '.' ? normalize(resolve(process.cwd())) : resolve(directory)
+    const verbose = options?.verbose ?? false
     const issues: LintIssue[] = []
+    const passed: LintPassed[] = []
+
+    const pass = (code: string, message: string, path?: string) => {
+        if (verbose) passed.push({ code, message, path })
+    }
 
     // --- handler.yml ---
     const handlerPath = join(dir, 'handler.yml')
@@ -119,11 +140,17 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
         try {
             const data = await readYamlInDir(dir, 'handler.yml')
             Handler.parse(data)
+            pass('HANDLER', 'handler.yml is valid', 'handler.yml')
         } catch (e) {
+            const text =
+                e instanceof ZodError ? fromError(e).toString()
+                    : e instanceof Error ?
+                        e.message
+                        : String(e)
             issues.push(
                 err(
                     'HANDLER_SCHEMA',
-                    `handler.yml schema error: ${e instanceof Error ? e.message : String(e)}`,
+                    `handler.yml schema error: ${text}`,
                     'handler.yml',
                 ),
             )
@@ -136,11 +163,17 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
         try {
             const data = await readYamlInDir(dir, 'problem.yml')
             ProblemInfo.parse(data)
+            pass('PROBLEM_YML', 'problem.yml is valid', 'problem.yml')
         } catch (e) {
+            const text =
+                e instanceof ZodError ? fromError(e).toString()
+                    : e instanceof Error ?
+                        e.message
+                        : String(e)
             issues.push(
                 err(
                     'PROBLEM_YML_SCHEMA',
-                    `problem.yml schema error: ${e instanceof Error ? e.message : String(e)}`,
+                    `problem.yml schema error: ${text}`,
                     'problem.yml',
                 ),
             )
@@ -158,6 +191,8 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
         issues.push(
             err('NO_LANGUAGES', 'At least one problem.<lang>.yml is required (e.g. problem.en.yml, problem.ca.yml)'),
         )
+    } else {
+        pass('LANGUAGES', 'At least one problem.<lang>.yml found')
     }
 
     let hasOriginalLanguage = false
@@ -176,6 +211,7 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
                     ? data.original_language
                     : undefined
             langMeta[lang] = { hasAuthor, originalLanguage }
+            pass('LANG_YML', `${file} is valid`, file)
             if ('translator' in data && data.translator !== undefined) {
                 if (data.original_language === undefined || data.original_language === '') {
                     issues.push(
@@ -198,12 +234,17 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
         if (!(await exists(texPath))) {
             issues.push(err('MISSING_STATEMENT', `Missing statement file for language ${lang}`, texFile))
         } else {
+            pass('STATEMENT', `problem.${lang}.tex exists`, texFile)
             const tex = await readTextInDir(dir, texFile)
             if (!tex.includes('\\Problem{')) {
                 issues.push(warn('STATEMENT_STRUCTURE', `problem.${lang}.tex should contain \\Problem{...}`, texFile))
+            } else {
+                pass('STATEMENT_STRUCTURE', `problem.${lang}.tex contains \\Problem{...}`, texFile)
             }
             if (!tex.includes('\\Statement')) {
                 issues.push(warn('STATEMENT_STRUCTURE', `problem.${lang}.tex should contain \\Statement`, texFile))
+            } else {
+                pass('STATEMENT_STRUCTURE', `problem.${lang}.tex contains \\Statement`, texFile)
             }
         }
     }
@@ -240,6 +281,8 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
                     `problem.${refLang}.yml`,
                 ),
             )
+        } else {
+            pass('ORIGINAL_LANGUAGE', 'original_language is consistent and has author')
         }
     }
 
@@ -247,6 +290,8 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
         issues.push(
             err('NO_ORIGINAL_LANGUAGE', 'One language must be the original (problem.<lang>.yml with author and email)'),
         )
+    } else if (langYmlFiles.length > 0) {
+        pass('ORIGINAL_LANGUAGE', 'One language is marked as original (has author)')
     }
 
     // --- handler for solution/test requirements ---
@@ -268,6 +313,8 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
         const solutionFiles = await Array.fromAsync(glob('solution.*', { cwd: dir }))
         if (solutionFiles.length === 0) {
             issues.push(err('NO_SOLUTION', 'At least one solution file (e.g. solution.cc) is required'))
+        } else {
+            pass('SOLUTION', 'At least one solution file found')
         }
 
         // --- test cases: .inp / .cor pairing, naming ---
@@ -278,6 +325,8 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
 
         if (inpFiles.length === 0) {
             issues.push(err('NO_TESTCASES', 'At least one test case (.inp file) is required'))
+        } else {
+            pass('TESTCASES', 'At least one test case (.inp) found')
         }
 
         for (const base of inpBases) {
@@ -289,6 +338,8 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
                         `${base}.inp`,
                     ),
                 )
+            } else {
+                pass('TESTCASE_NAMING', `Test case "${base}" has valid name`, `${base}.inp`)
             }
             if (!corBases.has(base)) {
                 issues.push(
@@ -298,6 +349,8 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
                         `${base}.inp / ${base}.cor`,
                     ),
                 )
+            } else {
+                pass('INP_COR_PAIR', `${base}.inp has matching .cor`, `${base}.inp`)
             }
         }
 
@@ -332,6 +385,8 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
                             `${base}.cor`,
                         ),
                     )
+                } else {
+                    pass('COR_SIZE', `${base}.cor size OK or has .ops`, `${base}.cor`)
                 }
             } catch {
                 // ignore stat errors (e.g. file removed); other lint will report missing .cor
@@ -360,6 +415,8 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
                     issues.push(
                         err('OPS_INVALID', result.error, opsFile),
                     )
+                } else {
+                    pass('OPS', `${opsFile} is valid`, opsFile)
                 }
             } catch {
                 issues.push(err('OPS_READ', `Could not read ${opsFile}`, opsFile))
@@ -381,19 +438,26 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
                             texFile,
                         ),
                     )
+                } else {
+                    pass('SAMPLE_STATEMENT', `problem.${lang}.tex contains \\Sample`, texFile)
                 }
             }
         }
     }
 
-    return { directory: dir, issues }
+    return { directory: dir, issues, ...(verbose && passed.length > 0 ? { passed } : {}) }
 }
 
-export async function lintDirectories(directories: string[]): Promise<LintResult[]> {
+export type LintDirectoriesOptions = { verbose?: boolean }
+
+export async function lintDirectories(
+    directories: string[],
+    options?: LintDirectoriesOptions,
+): Promise<LintResult[]> {
     const realDirs = await findRealDirectories(directories.length ? directories : ['.'])
     const results: LintResult[] = []
     for (const dir of realDirs) {
-        results.push(await lintDirectory(dir))
+        results.push(await lintDirectory(dir, options))
     }
     return results
 }
