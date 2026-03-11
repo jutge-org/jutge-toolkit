@@ -1,4 +1,4 @@
-# Problem anatomy (WORK IN PROGRESS)
+# Problem anatomy
 
 This document describes the anatomy of a common problem in [Jutge.org](https://jutge.org/). It explains the terminology used, the structure of a problem folder, and the purpose of each file that may be present in it.
 
