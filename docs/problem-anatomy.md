@@ -293,8 +293,8 @@ If the arguments have not been specified, the default `time_factor` and `time_co
 This is an example of how the arguments would look in `handler.yml`:
 
 ```yml
-time_factor: [2, 10, 2]
-time_constant: [0.1, 0.01, 0.05]
+time_factor: [2, 10, 20]
+time_constant: [0.1, 0.5, 1.0]
 ```
 
 ### Advanced: Checkers

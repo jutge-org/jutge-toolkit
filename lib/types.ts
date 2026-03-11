@@ -49,6 +49,12 @@ export const Handler = z.object({
     invisible_main: z.boolean().default(false)
         .meta({ description: 'If set to true, the main programs will not be provided to users; use it sparingly' }),
 
+    time_factor: z.array(z.number()).min(1).max(3).optional()
+        .meta({ description: 'Time factor' }),
+
+    time_constant: z.array(z.number()).min(1).max(3).optional()
+        .meta({ description: 'Time constant' }),
+
     checker: z.enum(['std', 'loosy', 'epsilon', 'elastic', 'elastic2', 'external']).default('std')
         .meta({ description: 'Checker to use for the problem' }),
 
