@@ -55,10 +55,9 @@ export async function uploadProblemInDirectory(directory: string): Promise<void>
         }
         tui.print('Creating zip file...')
         await createZipFromFiles(filesToArchive, zipFilePath)
+        const info = await createOrUpdateProblem(directory, zipFilePath)
+        displayProblemInfo(info)
     })
-
-    const info = await createOrUpdateProblem(directory, zipFilePath)
-    displayProblemInfo(info)
 }
 
 async function createOrUpdateProblem(directory: string, zipFilePath: string): Promise<ProblemInfo> {
@@ -72,7 +71,10 @@ async function createOrUpdateProblem(directory: string, zipFilePath: string): Pr
 }
 
 function displayProblemInfo(info: ProblemInfo): void {
-    tui.yaml(info)
+    const info2 = {
+        "problem.yml": info,
+    }
+    tui.yaml(info2)
     tui.url(`https://jutge.org/problems/${info.problem_nm}`)
 }
 
@@ -97,7 +99,7 @@ async function createProblemInJutgeOrg(directory: string, zipFilePath: string): 
             const { id } = await jutge.instructor.problems.create(info.passcode, file)
             const problem_nm = await showTerminalOutput(id)
 
-            if (!problem_nm) throw new Error('Failed to get problem name')
+            if (!problem_nm) throw new Error('Upload failed')
 
             info.problem_nm = problem_nm
             info.created_at = new Date().toISOString()
@@ -123,7 +125,8 @@ async function updateProblemInJutgeOrg(
         await tui.section('Updating problem in Jutge.org', async () => {
             const file = await createFileFromPath(zipFilePath, 'application/zip')
             const { id } = await jutge.instructor.problems.update(info.problem_nm, file)
-            await showTerminalOutput(id)
+            const problem_nm = await showTerminalOutput(id)
+            if (!problem_nm) throw new Error('Upload failed')
             info.updated_at = new Date().toISOString()
         })
 
