@@ -18,6 +18,7 @@ import { makeCmd } from './make'
 import { quizCmd } from './quiz'
 import { upgradeCmd } from './upgrade'
 import { uploadCmd } from './upload'
+import { removeCmd } from './remove'
 import { cmdShare } from './share'
 import { submitCmd } from './submit'
 import { askCmd } from './ask'
@@ -36,6 +37,7 @@ program.addHelpText('after', '\nMore documentation:\n  https://github.com/jutge-
 
 program.addCommand(makeCmd)
 program.addCommand(uploadCmd)
+program.addCommand(removeCmd)
 program.addCommand(cmdShare)
 program.addCommand(cleanCmd)
 program.addCommand(cloneCmd)

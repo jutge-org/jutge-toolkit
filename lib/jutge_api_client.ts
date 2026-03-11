@@ -1,5 +1,5 @@
 /**
- * This file has been automatically generated at 2026-02-18T10:02:44.118Z
+ * This file has been automatically generated at 2026-03-11T16:58:18.945Z
  *
  * Name:    Jutge API
  * Version: 2.0.0
@@ -7,7 +7,8 @@
  * Description: Jutge API
  */
 
-/* eslint-disable */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // Models
 
@@ -334,6 +335,46 @@ export type TestcaseAnalysis = {
     expected_b64: string
 }
 
+export type GetGameResultIn = {
+    problem_id: string
+    submission_id: string
+}
+
+export type MatchSchema = {
+    seed: number
+    status: number[]
+    players: string[]
+    scores: number[]
+}
+
+export type ProblemSchema = {
+    author: string
+    description: string
+    email: string
+    gamename: string
+    title: string
+    version: number
+}
+
+export type SubmissionSchema = {
+    compiler_id: string
+    description: string
+    email: string
+    problem_id: string
+}
+
+export type GetGameResultOut = {
+    games: MatchSchema[]
+    problem: ProblemSchema
+    submission: SubmissionSchema
+}
+
+export type GetGameOutputIn = {
+    problem_id: string
+    submission_id: string
+    game_id: number
+}
+
 export type PublicProfile = {
     email: string
     name: string
@@ -461,6 +502,31 @@ export type BriefAward = {
     title: string
     info: string
     youtube: string | null
+}
+
+export type TakeQuizIn = {
+    problem_id: string
+}
+
+export type TakeQuizOut = {
+    submission_id: string
+    exam_submission_id: string | null
+}
+
+export type SubmitQuizIn = {
+    problem_id: string
+    submission_id: string
+    answers: any
+}
+
+export type SubmitQuizOut = null
+
+export type GetQuizDataIn = GetGameResultIn
+
+export type GetQuizDataOut = {
+    questions: any
+    answers: any
+    feedback: any
 }
 
 export type Document = {
@@ -771,6 +837,15 @@ export type SharingSettings = {
     shared_solutions: boolean
 }
 
+export type ProblemAnonymousSubmission = {
+    time: string
+    anonymous_user_id: string
+    problem_id: string
+    verdict: string
+    compiler_id: string
+    proglang: string
+}
+
 export type SubmissionQuery = {
     email: string
     problem_nm: string
@@ -784,16 +859,10 @@ export type SubmissionsQuery = SubmissionQuery[]
 
 export type TagsDict = Record<string, string[]>
 
-export type ChatMessage =
-    | { role: string; content: string }
-    | {
-          role: string
-          content: string
-      }
-    | {
-          role: string
-          content: string
-      }
+export type ChatMessage = {
+    role: string
+    content: string
+}
 
 export type ChatPrompt = {
     model: string
@@ -838,18 +907,13 @@ export type SubmitMatchInput = {
 
 export type SubmitMatchOutput = NewSubmissionOut
 
-export type GetPlayerSubmissionInput = {
-    problem_id: string
-    submission_id: string
-}
-
-export type GetPlayerSubmissionOutput = {
+export type GetGameResultOutput = {
     todo: string
 }
 
-export type GetMatchSubmissionInput = GetPlayerSubmissionInput
+export type GetMatchSubmissionInput = GetGameResultIn
 
-export type GetMatchSubmissionOutput = GetPlayerSubmissionOutput
+export type GetMatchSubmissionOutput = GetGameResultOutput
 
 export type InstructorEntry = {
     username: string
@@ -1050,35 +1114,35 @@ export interface Download {
 // Exceptions
 
 export class UnauthorizedError extends Error {
-    name: string = 'UnauthorizedError'
-    constructor(public message: string = 'Unauthorized') {
+    name: string = "UnauthorizedError"
+    constructor(public message: string = "Unauthorized") {
         super(message)
     }
 }
 
 export class InfoError extends Error {
-    name: string = 'InfoError'
+    name: string = "InfoError"
     constructor(public message: string) {
         super(message)
     }
 }
 
 export class NotFoundError extends Error {
-    name: string = 'NotFoundError'
+    name: string = "NotFoundError"
     constructor(public message: string) {
         super(message)
     }
 }
 
 export class InputError extends Error {
-    name: string = 'InputError'
+    name: string = "InputError"
     constructor(public message: string) {
         super(message)
     }
 }
 
 export class ProtocolError extends Error {
-    name: string = 'ProtocolError'
+    name: string = "ProtocolError"
     constructor(public message: string) {
         super(message)
     }
@@ -1111,7 +1175,7 @@ export class JutgeApiClient {
     private cache: Map<string, CacheEntry> = new Map()
 
     /** URL to talk with the API */
-    JUTGE_API_URL = process.env.JUTGE_API_URL || 'https://api.jutge.org/api'
+    JUTGE_API_URL = process.env.JUTGE_API_URL || "https://api.jutge.org/api"
 
     /** Headers to include in the API requests */
     headers: Record<string, string> = {}
@@ -1130,40 +1194,40 @@ export class JutgeApiClient {
             const key = JSON.stringify({ func, input })
             const entry = this.cache.get(key)
             if (entry !== undefined) {
-                if (this.logCache) console.log('found')
+                if (this.logCache) console.log("found")
                 const ttl = this.clientTTLs.get(func)!
                 if (entry.epoch + ttl * 1000 > new Date().valueOf()) {
-                    if (this.logCache) console.log('used')
+                    if (this.logCache) console.log("used")
                     return [entry.output, entry.ofiles]
                 } else {
-                    if (this.logCache) console.log('expired')
+                    if (this.logCache) console.log("expired")
                     this.cache.delete(key)
                 }
             }
         }
-        if (this.logCache) console.log('fetch')
+        if (this.logCache) console.log("fetch")
 
         // prepare form
         const iform = new FormData()
         const idata = { func, input, meta: this.meta }
-        iform.append('data', JSON.stringify(idata))
+        iform.append("data", JSON.stringify(idata))
         for (const index in ifiles) iform.append(`file_${index}`, ifiles[index])
 
         // send request
         const response = await fetch(this.JUTGE_API_URL, {
-            method: 'POST',
+            method: "POST",
             body: iform,
             headers: this.headers,
         })
 
         // process response
-        const contentType = response.headers.get('content-type')?.split(';')[0].toLowerCase()
-        if (contentType !== 'multipart/form-data') {
-            throw new ProtocolError('The content type is not multipart/form-data')
+        const contentType = response.headers.get("content-type")?.split(";")[0].toLowerCase()
+        if (contentType !== "multipart/form-data") {
+            throw new ProtocolError("The content type is not multipart/form-data")
         }
 
         const oform = await response.formData()
-        const odata = oform.get('data')
+        const odata = oform.get("data")
         const { output, error, duration, operation_id, time } = JSON.parse(odata as string)
 
         if (error) {
@@ -1185,7 +1249,7 @@ export class JutgeApiClient {
 
         // update cache
         if (caching) {
-            if (this.logCache) console.log('saved')
+            if (this.logCache) console.log("saved")
             const key = JSON.stringify({ func, input })
             this.cache.set(key, { output, ofiles, epoch: new Date().valueOf() })
         }
@@ -1195,14 +1259,14 @@ export class JutgeApiClient {
 
     /** Function that throws the exception received through the API */
     throwError(error: Record<string, any>, operation_id: string | undefined) {
-        const message = error.message || 'Unknown error'
-        if (error.name === 'UnauthorizedError') {
+        const message = error.message || "Unknown error"
+        if (error.name === "UnauthorizedError") {
             throw new UnauthorizedError(message)
-        } else if (error.name === 'InfoError') {
+        } else if (error.name === "InfoError") {
             throw new InfoError(message)
-        } else if (error.name === 'NotFoundError') {
+        } else if (error.name === "NotFoundError") {
             throw new NotFoundError(message)
-        } else if (error.name === 'InputError') {
+        } else if (error.name === "InputError") {
             throw new InputError(message)
         } else {
             throw new Error(message)
@@ -1212,7 +1276,7 @@ export class JutgeApiClient {
     /** Simple login setting meta */
 
     async login({ email, password }: { email: string; password: string }): Promise<CredentialsOut> {
-        const [credentials, _] = await this.execute('auth.login', { email, password })
+        const [credentials, _] = await this.execute("auth.login", { email, password })
         if (credentials.error) throw new UnauthorizedError(credentials.error)
         this.meta = { token: credentials.token }
         return credentials
@@ -1230,7 +1294,7 @@ export class JutgeApiClient {
         exam: string
         exam_password: string
     }): Promise<CredentialsOut> {
-        const [credentials, _] = await this.execute('auth.loginExam', { email, password, exam, exam_password })
+        const [credentials, _] = await this.execute("auth.loginExam", { email, password, exam, exam_password })
         if (credentials.error) throw new UnauthorizedError(credentials.error)
         this.meta = { token: credentials.token }
         return credentials
@@ -1238,13 +1302,13 @@ export class JutgeApiClient {
 
     /** Simple logout */
     async logout(): Promise<void> {
-        await this.execute('auth.logout', null)
+        await this.execute("auth.logout", null)
         this.meta = null
     }
 
     /** Clear the contents of the cache */
     clearCache() {
-        if (this.logCache) console.log('clear')
+        if (this.logCache) console.log("clear")
         this.cache = new Map()
     }
 
@@ -1296,17 +1360,17 @@ export class JutgeApiClient {
         this.admin = new Module_admin(this)
         this.testing = new Module_testing(this)
 
-        this.clientTTLs.set('misc.getAvatarPacks', 3600)
-        this.clientTTLs.set('misc.getExamIcons', 3600)
-        this.clientTTLs.set('misc.getDemosForCompiler', 3600)
-        this.clientTTLs.set('tables.get', 300)
-        this.clientTTLs.set('tables.getLanguages', 300)
-        this.clientTTLs.set('tables.getCountries', 300)
-        this.clientTTLs.set('tables.getCompilers', 300)
-        this.clientTTLs.set('tables.getDrivers', 300)
-        this.clientTTLs.set('tables.getVerdicts', 300)
-        this.clientTTLs.set('tables.getProglangs', 300)
-        this.clientTTLs.set('problems.getAllAbstractProblems', 3600)
+        this.clientTTLs.set("misc.getAvatarPacks", 3600)
+        this.clientTTLs.set("misc.getExamIcons", 3600)
+        this.clientTTLs.set("misc.getDemosForCompiler", 3600)
+        this.clientTTLs.set("tables.get", 300)
+        this.clientTTLs.set("tables.getLanguages", 300)
+        this.clientTTLs.set("tables.getCountries", 300)
+        this.clientTTLs.set("tables.getCompilers", 300)
+        this.clientTTLs.set("tables.getDrivers", 300)
+        this.clientTTLs.set("tables.getVerdicts", 300)
+        this.clientTTLs.set("tables.getProglangs", 300)
+        this.clientTTLs.set("problems.getAllAbstractProblems", 3600)
     }
 }
 
@@ -1329,9 +1393,9 @@ class Module_clients {
      * No warnings
      *
      */
-    async python(): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('clients.python', null)
-        return ofiles[0]
+    async python(data: SubmitQuizOut): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("clients.python", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -1341,9 +1405,9 @@ class Module_clients {
      * No warnings
      *
      */
-    async typescript(): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('clients.typescript', null)
-        return ofiles[0]
+    async typescript(data: SubmitQuizOut): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("clients.typescript", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -1353,9 +1417,9 @@ class Module_clients {
      * No warnings
      *
      */
-    async javascript(): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('clients.javascript', null)
-        return ofiles[0]
+    async javascript(data: SubmitQuizOut): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("clients.javascript", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -1365,9 +1429,9 @@ class Module_clients {
      * No warnings
      *
      */
-    async java(): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('clients.java', null)
-        return ofiles[0]
+    async java(data: SubmitQuizOut): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("clients.java", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -1377,9 +1441,9 @@ class Module_clients {
      * No warnings
      *
      */
-    async cpp(): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('clients.cpp', null)
-        return ofiles[0]
+    async cpp(data: SubmitQuizOut): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("clients.cpp", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -1389,9 +1453,9 @@ class Module_clients {
      * No warnings
      *
      */
-    async php(): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('clients.php', null)
-        return ofiles[0]
+    async php(data: SubmitQuizOut): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("clients.php", data)
+        return [output, ofiles[0]]
     }
 }
 
@@ -1412,10 +1476,10 @@ class Module_auth {
      *
      * 🔐 Authentication: any
      * No warnings
-     * On success, token is a valid token and error is empty. On failure, token is empty and error is a message.
+     * Returns a token on success. Throws UnauthorizedError on failure.
      */
     async login(data: CredentialsIn): Promise<CredentialsOut> {
-        const [output, ofiles] = await this.root.execute('auth.login', data)
+        const [output, ofiles] = await this.root.execute("auth.login", data)
         return output
     }
 
@@ -1426,8 +1490,8 @@ class Module_auth {
      * No warnings
      *
      */
-    async logout(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('auth.logout', null)
+    async logout(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("auth.logout", data)
         return output
     }
 
@@ -1436,10 +1500,10 @@ class Module_auth {
      *
      * 🔐 Authentication: any
      * No warnings
-     * On success, token is a valid token and error is empty. On failure, token is empty and error is a message.
+     * Returns a token on success. Throws UnauthorizedError on failure.
      */
     async loginExam(data: ExamCredentialsIn): Promise<CredentialsOut> {
-        const [output, ofiles] = await this.root.execute('auth.loginExam', data)
+        const [output, ofiles] = await this.root.execute("auth.loginExam", data)
         return output
     }
 
@@ -1448,10 +1512,10 @@ class Module_auth {
      *
      * 🔐 Authentication: any
      * No warnings
-     * On success, token is a valid token and error is empty. On failure, token is empty and error is a message. Created for backward compatibility, do not use.
+     * Returns a token on success. Throws UnauthorizedError on failure. Created for backward compatibility, do not use.
      */
     async loginWithUsername(data: CredentialsWithUsernameIn): Promise<CredentialsOut> {
-        const [output, ofiles] = await this.root.execute('auth.loginWithUsername', data)
+        const [output, ofiles] = await this.root.execute("auth.loginWithUsername", data)
         return output
     }
 }
@@ -1475,8 +1539,8 @@ class Module_misc {
      * No warnings
      *
      */
-    async getApiVersion(): Promise<ApiVersion> {
-        const [output, ofiles] = await this.root.execute('misc.getApiVersion', null)
+    async getApiVersion(data: SubmitQuizOut): Promise<ApiVersion> {
+        const [output, ofiles] = await this.root.execute("misc.getApiVersion", data)
         return output
     }
 
@@ -1487,8 +1551,8 @@ class Module_misc {
      * No warnings
      *
      */
-    async getRequestInformation(): Promise<RequestInformation> {
-        const [output, ofiles] = await this.root.execute('misc.getRequestInformation', null)
+    async getRequestInformation(data: SubmitQuizOut): Promise<RequestInformation> {
+        const [output, ofiles] = await this.root.execute("misc.getRequestInformation", data)
         return output
     }
 
@@ -1499,8 +1563,8 @@ class Module_misc {
      * No warnings
      *
      */
-    async getFortune(): Promise<string> {
-        const [output, ofiles] = await this.root.execute('misc.getFortune', null)
+    async getFortune(data: SubmitQuizOut): Promise<string> {
+        const [output, ofiles] = await this.root.execute("misc.getFortune", data)
         return output
     }
 
@@ -1511,8 +1575,8 @@ class Module_misc {
      * No warnings
      *
      */
-    async getTime(): Promise<Time> {
-        const [output, ofiles] = await this.root.execute('misc.getTime', null)
+    async getTime(data: SubmitQuizOut): Promise<Time> {
+        const [output, ofiles] = await this.root.execute("misc.getTime", data)
         return output
     }
 
@@ -1523,8 +1587,8 @@ class Module_misc {
      * No warnings
      *
      */
-    async getHomepageStats(): Promise<HomepageStats> {
-        const [output, ofiles] = await this.root.execute('misc.getHomepageStats', null)
+    async getHomepageStats(data: SubmitQuizOut): Promise<HomepageStats> {
+        const [output, ofiles] = await this.root.execute("misc.getHomepageStats", data)
         return output
     }
 
@@ -1535,9 +1599,9 @@ class Module_misc {
      * No warnings
      *
      */
-    async getLogo(): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('misc.getLogo', null)
-        return ofiles[0]
+    async getLogo(data: SubmitQuizOut): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("misc.getLogo", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -1547,8 +1611,8 @@ class Module_misc {
      * No warnings
      * Avatars are used in exams and contests to identify students or participants.
      */
-    async getAvatarPacks(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('misc.getAvatarPacks', null)
+    async getAvatarPacks(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("misc.getAvatarPacks", data)
         return output
     }
 
@@ -1559,8 +1623,8 @@ class Module_misc {
      * No warnings
      * Exam icon are used in exams and contests to identify problems.
      */
-    async getExamIcons(): Promise<TagsDict> {
-        const [output, ofiles] = await this.root.execute('misc.getExamIcons', null)
+    async getExamIcons(data: SubmitQuizOut): Promise<TagsDict> {
+        const [output, ofiles] = await this.root.execute("misc.getExamIcons", data)
         return output
     }
 
@@ -1571,8 +1635,8 @@ class Module_misc {
      * No warnings
      * Color mappings may be used to colorize keys in the frontends. Color names are as defined in https://github.com/timoxley/colornames
      */
-    async getColors(): Promise<ColorMapping> {
-        const [output, ofiles] = await this.root.execute('misc.getColors', null)
+    async getColors(data: SubmitQuizOut): Promise<ColorMapping> {
+        const [output, ofiles] = await this.root.execute("misc.getColors", data)
         return output
     }
 
@@ -1583,8 +1647,8 @@ class Module_misc {
      * No warnings
      * Color mappings may be used to colorize keys in the frontends.
      */
-    async getHexColors(): Promise<ColorMapping> {
-        const [output, ofiles] = await this.root.execute('misc.getHexColors', null)
+    async getHexColors(data: SubmitQuizOut): Promise<ColorMapping> {
+        const [output, ofiles] = await this.root.execute("misc.getHexColors", data)
         return output
     }
 
@@ -1596,7 +1660,7 @@ class Module_misc {
      *
      */
     async getDemosForCompiler(compiler_id: string): Promise<Record<string, string>> {
-        const [output, ofiles] = await this.root.execute('misc.getDemosForCompiler', compiler_id)
+        const [output, ofiles] = await this.root.execute("misc.getDemosForCompiler", compiler_id)
         return output
     }
 }
@@ -1620,8 +1684,8 @@ class Module_tables {
      * No warnings
      * Returns all compilers, countries, drivers, languages, proglangs, and verdicts in a single request. This data does not change often, so you should only request it once per session.
      */
-    async get(): Promise<AllTables> {
-        const [output, ofiles] = await this.root.execute('tables.get', null)
+    async get(data: SubmitQuizOut): Promise<AllTables> {
+        const [output, ofiles] = await this.root.execute("tables.get", data)
         return output
     }
 
@@ -1632,8 +1696,8 @@ class Module_tables {
      * No warnings
      * Returns all languages as a dictionary of objects, indexed by id.
      */
-    async getLanguages(): Promise<Record<string, Language>> {
-        const [output, ofiles] = await this.root.execute('tables.getLanguages', null)
+    async getLanguages(data: SubmitQuizOut): Promise<Record<string, Language>> {
+        const [output, ofiles] = await this.root.execute("tables.getLanguages", data)
         return output
     }
 
@@ -1644,8 +1708,8 @@ class Module_tables {
      * No warnings
      * Returns all countries as a dictionary of objects, indexed by id.
      */
-    async getCountries(): Promise<Record<string, Country>> {
-        const [output, ofiles] = await this.root.execute('tables.getCountries', null)
+    async getCountries(data: SubmitQuizOut): Promise<Record<string, Country>> {
+        const [output, ofiles] = await this.root.execute("tables.getCountries", data)
         return output
     }
 
@@ -1656,8 +1720,8 @@ class Module_tables {
      * No warnings
      * Returns all compilers as a dictionary of objects, indexed by id.
      */
-    async getCompilers(): Promise<Record<string, Compiler>> {
-        const [output, ofiles] = await this.root.execute('tables.getCompilers', null)
+    async getCompilers(data: SubmitQuizOut): Promise<Record<string, Compiler>> {
+        const [output, ofiles] = await this.root.execute("tables.getCompilers", data)
         return output
     }
 
@@ -1668,8 +1732,8 @@ class Module_tables {
      * No warnings
      * Returns all drivers as a dictionary of objects, indexed by id.
      */
-    async getDrivers(): Promise<Record<string, Driver>> {
-        const [output, ofiles] = await this.root.execute('tables.getDrivers', null)
+    async getDrivers(data: SubmitQuizOut): Promise<Record<string, Driver>> {
+        const [output, ofiles] = await this.root.execute("tables.getDrivers", data)
         return output
     }
 
@@ -1680,8 +1744,8 @@ class Module_tables {
      * No warnings
      * Returns all verdicts as a dictionary of objects, indexed by id.
      */
-    async getVerdicts(): Promise<Record<string, Verdict>> {
-        const [output, ofiles] = await this.root.execute('tables.getVerdicts', null)
+    async getVerdicts(data: SubmitQuizOut): Promise<Record<string, Verdict>> {
+        const [output, ofiles] = await this.root.execute("tables.getVerdicts", data)
         return output
     }
 
@@ -1692,8 +1756,8 @@ class Module_tables {
      * No warnings
      * Returns all proglangs (porgramming languages) as a dictionary of objects, indexed by id.
      */
-    async getProglangs(): Promise<Record<string, Proglang>> {
-        const [output, ofiles] = await this.root.execute('tables.getProglangs', null)
+    async getProglangs(data: SubmitQuizOut): Promise<Record<string, Proglang>> {
+        const [output, ofiles] = await this.root.execute("tables.getProglangs", data)
         return output
     }
 }
@@ -1730,8 +1794,8 @@ class Module_problems {
      * No warnings
      * Includes problems.
      */
-    async getAllAbstractProblems(): Promise<Record<string, AbstractProblem>> {
-        const [output, ofiles] = await this.root.execute('problems.getAllAbstractProblems', null)
+    async getAllAbstractProblems(data: SubmitQuizOut): Promise<Record<string, AbstractProblem>> {
+        const [output, ofiles] = await this.root.execute("problems.getAllAbstractProblems", data)
         return output
     }
 
@@ -1743,7 +1807,7 @@ class Module_problems {
      * Includes problems.
      */
     async getAbstractProblems(problem_nms: string): Promise<Record<string, AbstractProblem>> {
-        const [output, ofiles] = await this.root.execute('problems.getAbstractProblems', problem_nms)
+        const [output, ofiles] = await this.root.execute("problems.getAbstractProblems", problem_nms)
         return output
     }
 
@@ -1755,7 +1819,7 @@ class Module_problems {
      * Includes problems.
      */
     async getAbstractProblemsInList(list_key: string): Promise<Record<string, AbstractProblem>> {
-        const [output, ofiles] = await this.root.execute('problems.getAbstractProblemsInList', list_key)
+        const [output, ofiles] = await this.root.execute("problems.getAbstractProblemsInList", list_key)
         return output
     }
 
@@ -1767,7 +1831,7 @@ class Module_problems {
      * Includes problems
      */
     async getAbstractProblem(problem_nm: string): Promise<AbstractProblem> {
-        const [output, ofiles] = await this.root.execute('problems.getAbstractProblem', problem_nm)
+        const [output, ofiles] = await this.root.execute("problems.getAbstractProblem", problem_nm)
         return output
     }
 
@@ -1779,7 +1843,7 @@ class Module_problems {
      * Includes accepted compilers and accepted proglangs
      */
     async getAbstractProblemSuppl(problem_nm: string): Promise<AbstractProblemSuppl> {
-        const [output, ofiles] = await this.root.execute('problems.getAbstractProblemSuppl', problem_nm)
+        const [output, ofiles] = await this.root.execute("problems.getAbstractProblemSuppl", problem_nm)
         return output
     }
 
@@ -1791,7 +1855,7 @@ class Module_problems {
      * Includes abstract problem.
      */
     async getProblem(problem_id: string): Promise<Problem> {
-        const [output, ofiles] = await this.root.execute('problems.getProblem', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getProblem", problem_id)
         return output
     }
 
@@ -1804,7 +1868,7 @@ class Module_problems {
     checks and handler specifications
      */
     async getProblemSuppl(problem_id: string): Promise<ProblemSuppl> {
-        const [output, ofiles] = await this.root.execute('problems.getProblemSuppl', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getProblemSuppl", problem_id)
         return output
     }
 
@@ -1816,7 +1880,7 @@ class Module_problems {
      *
      */
     async getSampleTestcases(problem_id: string): Promise<Testcase[]> {
-        const [output, ofiles] = await this.root.execute('problems.getSampleTestcases', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getSampleTestcases", problem_id)
         return output
     }
 
@@ -1828,7 +1892,7 @@ class Module_problems {
      * Public testcases are like sample testcases, but are not meant to be shown in the problem statatement, because of their long length.
      */
     async getPublicTestcases(problem_id: string): Promise<Testcase[]> {
-        const [output, ofiles] = await this.root.execute('problems.getPublicTestcases', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getPublicTestcases", problem_id)
         return output
     }
 
@@ -1839,9 +1903,9 @@ class Module_problems {
      * No warnings
      *
      */
-    async getZipStatement(problem_id: string): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('problems.getZipStatement', problem_id)
-        return ofiles[0]
+    async getZipStatement(problem_id: string): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("problems.getZipStatement", problem_id)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -1851,9 +1915,9 @@ class Module_problems {
      * No warnings
      *
      */
-    async getPdfStatement(problem_id: string): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('problems.getPdfStatement', problem_id)
-        return ofiles[0]
+    async getPdfStatement(problem_id: string): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("problems.getPdfStatement", problem_id)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -1864,7 +1928,7 @@ class Module_problems {
      *
      */
     async getHtmlStatement(problem_id: string): Promise<string> {
-        const [output, ofiles] = await this.root.execute('problems.getHtmlStatement', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getHtmlStatement", problem_id)
         return output
     }
 
@@ -1876,7 +1940,7 @@ class Module_problems {
      *
      */
     async getTextStatement(problem_id: string): Promise<string> {
-        const [output, ofiles] = await this.root.execute('problems.getTextStatement', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getTextStatement", problem_id)
         return output
     }
 
@@ -1888,7 +1952,7 @@ class Module_problems {
      *
      */
     async getMarkdownStatement(problem_id: string): Promise<string> {
-        const [output, ofiles] = await this.root.execute('problems.getMarkdownStatement', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getMarkdownStatement", problem_id)
         return output
     }
 
@@ -1900,7 +1964,7 @@ class Module_problems {
      *
      */
     async getShortHtmlStatement(problem_id: string): Promise<string> {
-        const [output, ofiles] = await this.root.execute('problems.getShortHtmlStatement', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getShortHtmlStatement", problem_id)
         return output
     }
 
@@ -1912,7 +1976,7 @@ class Module_problems {
      *
      */
     async getShortTextStatement(problem_id: string): Promise<string> {
-        const [output, ofiles] = await this.root.execute('problems.getShortTextStatement', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getShortTextStatement", problem_id)
         return output
     }
 
@@ -1924,7 +1988,7 @@ class Module_problems {
      *
      */
     async getShortMarkdownStatement(problem_id: string): Promise<string> {
-        const [output, ofiles] = await this.root.execute('problems.getShortMarkdownStatement', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getShortMarkdownStatement", problem_id)
         return output
     }
 
@@ -1936,7 +2000,7 @@ class Module_problems {
      *
      */
     async getTemplates(problem_id: string): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('problems.getTemplates', problem_id)
+        const [output, ofiles] = await this.root.execute("problems.getTemplates", problem_id)
         return output
     }
 
@@ -1947,9 +2011,9 @@ class Module_problems {
      * No warnings
      *
      */
-    async getTemplate(data: { problem_id: string; template: string }): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('problems.getTemplate', data)
-        return ofiles[0]
+    async getTemplate(data: { problem_id: string; template: string }): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("problems.getTemplate", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -1960,7 +2024,7 @@ class Module_problems {
      *
      */
     async semanticSearch(data: { query: string; limit: number }): Promise<SearchResults> {
-        const [output, ofiles] = await this.root.execute('problems.semanticSearch', data)
+        const [output, ofiles] = await this.root.execute("problems.semanticSearch", data)
         return output
     }
 
@@ -1972,7 +2036,7 @@ class Module_problems {
      *
      */
     async fullTextSearch(data: { query: string; limit: number }): Promise<SearchResults> {
-        const [output, ofiles] = await this.root.execute('problems.fullTextSearch', data)
+        const [output, ofiles] = await this.root.execute("problems.fullTextSearch", data)
         return output
     }
 }
@@ -1994,6 +2058,7 @@ class Module_student {
     readonly exam: Module_student_exam
     readonly statuses: Module_student_statuses
     readonly awards: Module_student_awards
+    readonly quizzes: Module_student_quizzes
 
     constructor(root: JutgeApiClient) {
         this.root = root
@@ -2006,6 +2071,7 @@ class Module_student {
         this.exam = new Module_student_exam(root)
         this.statuses = new Module_student_statuses(root)
         this.awards = new Module_student_awards(root)
+        this.quizzes = new Module_student_quizzes(root)
     }
 }
 
@@ -2028,8 +2094,8 @@ class Module_student_keys {
      * No warnings
      *
      */
-    async get(): Promise<AllKeys> {
-        const [output, ofiles] = await this.root.execute('student.keys.get', null)
+    async get(data: SubmitQuizOut): Promise<AllKeys> {
+        const [output, ofiles] = await this.root.execute("student.keys.get", data)
         return output
     }
 
@@ -2040,8 +2106,8 @@ class Module_student_keys {
      * No warnings
      *
      */
-    async getProblems(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('student.keys.getProblems', null)
+    async getProblems(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("student.keys.getProblems", data)
         return output
     }
 
@@ -2052,8 +2118,8 @@ class Module_student_keys {
      * No warnings
      *
      */
-    async getEnrolledCourses(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('student.keys.getEnrolledCourses', null)
+    async getEnrolledCourses(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("student.keys.getEnrolledCourses", data)
         return output
     }
 
@@ -2064,8 +2130,8 @@ class Module_student_keys {
      * No warnings
      *
      */
-    async getAvailableCourses(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('student.keys.getAvailableCourses', null)
+    async getAvailableCourses(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("student.keys.getAvailableCourses", data)
         return output
     }
 
@@ -2076,8 +2142,8 @@ class Module_student_keys {
      * No warnings
      *
      */
-    async getLists(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('student.keys.getLists', null)
+    async getLists(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("student.keys.getLists", data)
         return output
     }
 }
@@ -2101,8 +2167,8 @@ class Module_student_profile {
      * No warnings
      * In case of exams, some fields are not nullified to avoid cheating.
      */
-    async get(): Promise<Profile> {
-        const [output, ofiles] = await this.root.execute('student.profile.get', null)
+    async get(data: SubmitQuizOut): Promise<Profile> {
+        const [output, ofiles] = await this.root.execute("student.profile.get", data)
         return output
     }
 
@@ -2113,9 +2179,9 @@ class Module_student_profile {
      * No warnings
      *
      */
-    async getAvatar(): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('student.profile.getAvatar', null)
-        return ofiles[0]
+    async getAvatar(data: SubmitQuizOut): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("student.profile.getAvatar", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -2125,8 +2191,8 @@ class Module_student_profile {
      * No warnings
      *
      */
-    async update(data: NewProfile): Promise<void> {
-        const [output, ofiles] = await this.root.execute('student.profile.update', data)
+    async update(data: NewProfile): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("student.profile.update", data)
         return output
     }
 
@@ -2137,8 +2203,8 @@ class Module_student_profile {
      * No warnings
      *
      */
-    async updateAvatar(ifile: File): Promise<void> {
-        const [output, ofiles] = await this.root.execute('student.profile.updateAvatar', null, [ifile])
+    async updateAvatar(data: SubmitQuizOut, ifile: File): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("student.profile.updateAvatar", data, [ifile])
         return output
     }
 
@@ -2149,8 +2215,8 @@ class Module_student_profile {
      * No warnings
      * Receives the old password and the new one, and changes the password if the old one is correct and the new one strong enough.
      */
-    async updatePassword(data: NewPassword): Promise<void> {
-        const [output, ofiles] = await this.root.execute('student.profile.updatePassword', data)
+    async updatePassword(data: NewPassword): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("student.profile.updatePassword", data)
         return output
     }
 }
@@ -2174,8 +2240,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getAbsoluteRanking(): Promise<number> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getAbsoluteRanking', null)
+    async getAbsoluteRanking(data: SubmitQuizOut): Promise<number> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getAbsoluteRanking", data)
         return output
     }
 
@@ -2186,8 +2252,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getAllDistributions(): Promise<AllDistributions> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getAllDistributions', null)
+    async getAllDistributions(data: SubmitQuizOut): Promise<AllDistributions> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getAllDistributions", data)
         return output
     }
 
@@ -2198,8 +2264,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getCompilersDistribution(): Promise<Distribution> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getCompilersDistribution', null)
+    async getCompilersDistribution(data: SubmitQuizOut): Promise<Distribution> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getCompilersDistribution", data)
         return output
     }
 
@@ -2210,8 +2276,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getDashboard(): Promise<Dashboard> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getDashboard', null)
+    async getDashboard(data: SubmitQuizOut): Promise<Dashboard> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getDashboard", data)
         return output
     }
 
@@ -2222,8 +2288,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getHeatmapCalendar(): Promise<HeatmapCalendar> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getHeatmapCalendar', null)
+    async getHeatmapCalendar(data: SubmitQuizOut): Promise<HeatmapCalendar> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getHeatmapCalendar", data)
         return output
     }
 
@@ -2234,8 +2300,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getProglangsDistribution(): Promise<Distribution> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getProglangsDistribution', null)
+    async getProglangsDistribution(data: SubmitQuizOut): Promise<Distribution> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getProglangsDistribution", data)
         return output
     }
 
@@ -2246,8 +2312,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getStats(): Promise<Distribution> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getStats', null)
+    async getStats(data: SubmitQuizOut): Promise<Distribution> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getStats", data)
         return output
     }
 
@@ -2258,8 +2324,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getLevel(): Promise<string> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getLevel', null)
+    async getLevel(data: SubmitQuizOut): Promise<string> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getLevel", data)
         return output
     }
 
@@ -2270,8 +2336,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getSubmissionsByHour(): Promise<Distribution> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getSubmissionsByHour', null)
+    async getSubmissionsByHour(data: SubmitQuizOut): Promise<Distribution> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getSubmissionsByHour", data)
         return output
     }
 
@@ -2282,8 +2348,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getSubmissionsByWeekDay(): Promise<Distribution> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getSubmissionsByWeekDay', null)
+    async getSubmissionsByWeekDay(data: SubmitQuizOut): Promise<Distribution> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getSubmissionsByWeekDay", data)
         return output
     }
 
@@ -2294,8 +2360,8 @@ class Module_student_dashboard {
      * No warnings
      *
      */
-    async getVerdictsDistribution(): Promise<Distribution> {
-        const [output, ofiles] = await this.root.execute('student.dashboard.getVerdictsDistribution', null)
+    async getVerdictsDistribution(data: SubmitQuizOut): Promise<Distribution> {
+        const [output, ofiles] = await this.root.execute("student.dashboard.getVerdictsDistribution", data)
         return output
     }
 }
@@ -2320,7 +2386,7 @@ class Module_student_submissions {
      * Grouped by problem.
      */
     async indexForAbstractProblem(problem_nm: string): Promise<Record<string, Record<string, Submission>>> {
-        const [output, ofiles] = await this.root.execute('student.submissions.indexForAbstractProblem', problem_nm)
+        const [output, ofiles] = await this.root.execute("student.submissions.indexForAbstractProblem", problem_nm)
         return output
     }
 
@@ -2332,7 +2398,7 @@ class Module_student_submissions {
      *
      */
     async indexForProblem(problem_id: string): Promise<Record<string, Submission>> {
-        const [output, ofiles] = await this.root.execute('student.submissions.indexForProblem', problem_id)
+        const [output, ofiles] = await this.root.execute("student.submissions.indexForProblem", problem_id)
         return output
     }
 
@@ -2343,8 +2409,8 @@ class Module_student_submissions {
      * No warnings
      * Flat array of submissions in chronological order.
      */
-    async getAll(): Promise<Submission[]> {
-        const [output, ofiles] = await this.root.execute('student.submissions.getAll', null)
+    async getAll(data: SubmitQuizOut): Promise<Submission[]> {
+        const [output, ofiles] = await this.root.execute("student.submissions.getAll", data)
         return output
     }
 
@@ -2356,7 +2422,7 @@ class Module_student_submissions {
      *
      */
     async submit(data: { problem_id: string; compiler_id: string; code: string; annotation: string }): Promise<string> {
-        const [output, ofiles] = await this.root.execute('student.submissions.submit', data)
+        const [output, ofiles] = await this.root.execute("student.submissions.submit", data)
         return output
     }
 
@@ -2367,8 +2433,8 @@ class Module_student_submissions {
      * No warnings
      *
      */
-    async submitFull(data: NewSubmissionIn, ifile: File): Promise<NewSubmissionOut> {
-        const [output, ofiles] = await this.root.execute('student.submissions.submitFull', data, [ifile])
+    async submitFull(data: NewSubmissionIn, ifiles: File[]): Promise<NewSubmissionOut> {
+        const [output, ofiles] = await this.root.execute("student.submissions.submitFull", data, ifiles)
         return output
     }
 
@@ -2379,8 +2445,8 @@ class Module_student_submissions {
      * No warnings
      *
      */
-    async get(data: GetPlayerSubmissionInput): Promise<Submission> {
-        const [output, ofiles] = await this.root.execute('student.submissions.get', data)
+    async get(data: GetGameResultIn): Promise<Submission> {
+        const [output, ofiles] = await this.root.execute("student.submissions.get", data)
         return output
     }
 
@@ -2391,8 +2457,8 @@ class Module_student_submissions {
      * No warnings
      *
      */
-    async getCodeAsB64(data: GetPlayerSubmissionInput): Promise<string> {
-        const [output, ofiles] = await this.root.execute('student.submissions.getCodeAsB64', data)
+    async getCodeAsB64(data: GetGameResultIn): Promise<string> {
+        const [output, ofiles] = await this.root.execute("student.submissions.getCodeAsB64", data)
         return output
     }
 
@@ -2403,8 +2469,8 @@ class Module_student_submissions {
      * ❌ Warning: TODO: add more documentation
      * See https://github.com/jutge-org/jutge-code-metrics for details.
      */
-    async getCodeMetrics(data: GetPlayerSubmissionInput): Promise<any> {
-        const [output, ofiles] = await this.root.execute('student.submissions.getCodeMetrics', data)
+    async getCodeMetrics(data: GetGameResultIn): Promise<any> {
+        const [output, ofiles] = await this.root.execute("student.submissions.getCodeMetrics", data)
         return output
     }
 
@@ -2415,8 +2481,8 @@ class Module_student_submissions {
      * No warnings
      *
      */
-    async getAwards(data: GetPlayerSubmissionInput): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('student.submissions.getAwards', data)
+    async getAwards(data: GetGameResultIn): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("student.submissions.getAwards", data)
         return output
     }
 
@@ -2427,8 +2493,8 @@ class Module_student_submissions {
      * No warnings
      *
      */
-    async getAnalysis(data: GetPlayerSubmissionInput): Promise<SubmissionAnalysis[]> {
-        const [output, ofiles] = await this.root.execute('student.submissions.getAnalysis', data)
+    async getAnalysis(data: GetGameResultIn): Promise<SubmissionAnalysis[]> {
+        const [output, ofiles] = await this.root.execute("student.submissions.getAnalysis", data)
         return output
     }
 
@@ -2444,7 +2510,31 @@ class Module_student_submissions {
         submission_id: string
         testcase: string
     }): Promise<TestcaseAnalysis> {
-        const [output, ofiles] = await this.root.execute('student.submissions.getTestcaseAnalysis', data)
+        const [output, ofiles] = await this.root.execute("student.submissions.getTestcaseAnalysis", data)
+        return output
+    }
+
+    /**
+     * Get the result of a game submission.
+     *
+     * 🔐 Authentication: user
+     * No warnings
+     *
+     */
+    async getGameResult(data: GetGameResultIn): Promise<GetGameResultOut> {
+        const [output, ofiles] = await this.root.execute("student.submissions.getGameResult", data)
+        return output
+    }
+
+    /**
+     * Get the output of a game in a game submission.
+     *
+     * 🔐 Authentication: user
+     * No warnings
+     *
+     */
+    async getGameOutput(data: GetGameOutputIn): Promise<string> {
+        const [output, ofiles] = await this.root.execute("student.submissions.getGameOutput", data)
         return output
     }
 }
@@ -2468,8 +2558,8 @@ class Module_student_courses {
      * No warnings
      *
      */
-    async indexAvailable(): Promise<Record<string, BriefCourse>> {
-        const [output, ofiles] = await this.root.execute('student.courses.indexAvailable', null)
+    async indexAvailable(data: SubmitQuizOut): Promise<Record<string, BriefCourse>> {
+        const [output, ofiles] = await this.root.execute("student.courses.indexAvailable", data)
         return output
     }
 
@@ -2480,8 +2570,8 @@ class Module_student_courses {
      * No warnings
      *
      */
-    async indexEnrolled(): Promise<Record<string, BriefCourse>> {
-        const [output, ofiles] = await this.root.execute('student.courses.indexEnrolled', null)
+    async indexEnrolled(data: SubmitQuizOut): Promise<Record<string, BriefCourse>> {
+        const [output, ofiles] = await this.root.execute("student.courses.indexEnrolled", data)
         return output
     }
 
@@ -2493,7 +2583,7 @@ class Module_student_courses {
      * Includes owner and lists.
      */
     async getAvailable(course_key: string): Promise<Course> {
-        const [output, ofiles] = await this.root.execute('student.courses.getAvailable', course_key)
+        const [output, ofiles] = await this.root.execute("student.courses.getAvailable", course_key)
         return output
     }
 
@@ -2505,7 +2595,7 @@ class Module_student_courses {
      * Includes owner and lists.
      */
     async getEnrolled(course_key: string): Promise<Course> {
-        const [output, ofiles] = await this.root.execute('student.courses.getEnrolled', course_key)
+        const [output, ofiles] = await this.root.execute("student.courses.getEnrolled", course_key)
         return output
     }
 
@@ -2516,8 +2606,8 @@ class Module_student_courses {
      * No warnings
      *
      */
-    async enroll(course_key: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('student.courses.enroll', course_key)
+    async enroll(course_key: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("student.courses.enroll", course_key)
         return output
     }
 
@@ -2528,8 +2618,8 @@ class Module_student_courses {
      * No warnings
      *
      */
-    async unenroll(course_key: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('student.courses.unenroll', course_key)
+    async unenroll(course_key: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("student.courses.unenroll", course_key)
         return output
     }
 }
@@ -2553,8 +2643,8 @@ class Module_student_lists {
      * No warnings
      *
      */
-    async getAll(): Promise<Record<string, BriefList>> {
-        const [output, ofiles] = await this.root.execute('student.lists.getAll', null)
+    async getAll(data: SubmitQuizOut): Promise<Record<string, BriefList>> {
+        const [output, ofiles] = await this.root.execute("student.lists.getAll", data)
         return output
     }
 
@@ -2566,7 +2656,7 @@ class Module_student_lists {
      * Includes items, owner.
      */
     async get(list_key: string): Promise<List> {
-        const [output, ofiles] = await this.root.execute('student.lists.get', list_key)
+        const [output, ofiles] = await this.root.execute("student.lists.get", list_key)
         return output
     }
 }
@@ -2590,8 +2680,8 @@ class Module_student_exam {
      * No warnings
      * An exam is ready if the current time is between its expected start time minus two days and its expected end time plus two days. Exams are sorted by their distance to the current time and by title order in case of ties.
      */
-    async getReadyExams(): Promise<ReadyExam[]> {
-        const [output, ofiles] = await this.root.execute('student.exam.getReadyExams', null)
+    async getReadyExams(data: SubmitQuizOut): Promise<ReadyExam[]> {
+        const [output, ofiles] = await this.root.execute("student.exam.getReadyExams", data)
         return output
     }
 
@@ -2602,8 +2692,8 @@ class Module_student_exam {
      * No warnings
      *
      */
-    async get(): Promise<RunningExam> {
-        const [output, ofiles] = await this.root.execute('student.exam.get', null)
+    async get(data: SubmitQuizOut): Promise<RunningExam> {
+        const [output, ofiles] = await this.root.execute("student.exam.get", data)
         return output
     }
 
@@ -2615,7 +2705,7 @@ class Module_student_exam {
      *
      */
     async getDocument(document_nm: string): Promise<RunningExamDocument> {
-        const [output, ofiles] = await this.root.execute('student.exam.getDocument', document_nm)
+        const [output, ofiles] = await this.root.execute("student.exam.getDocument", document_nm)
         return output
     }
 
@@ -2626,9 +2716,9 @@ class Module_student_exam {
      * No warnings
      *
      */
-    async getDocumentPdf(document_nm: string): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('student.exam.getDocumentPdf', document_nm)
-        return ofiles[0]
+    async getDocumentPdf(document_nm: string): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("student.exam.getDocumentPdf", document_nm)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -2638,8 +2728,8 @@ class Module_student_exam {
      * No warnings
      *
      */
-    async getRanking(): Promise<Ranking> {
-        const [output, ofiles] = await this.root.execute('student.exam.getRanking', null)
+    async getRanking(data: SubmitQuizOut): Promise<Ranking> {
+        const [output, ofiles] = await this.root.execute("student.exam.getRanking", data)
         return output
     }
 }
@@ -2663,8 +2753,8 @@ class Module_student_statuses {
      * No warnings
      *
      */
-    async getAll(): Promise<Record<string, AbstractStatus>> {
-        const [output, ofiles] = await this.root.execute('student.statuses.getAll', null)
+    async getAll(data: SubmitQuizOut): Promise<Record<string, AbstractStatus>> {
+        const [output, ofiles] = await this.root.execute("student.statuses.getAll", data)
         return output
     }
 
@@ -2676,7 +2766,7 @@ class Module_student_statuses {
      *
      */
     async getForAbstractProblem(problem_nm: string): Promise<AbstractStatus> {
-        const [output, ofiles] = await this.root.execute('student.statuses.getForAbstractProblem', problem_nm)
+        const [output, ofiles] = await this.root.execute("student.statuses.getForAbstractProblem", problem_nm)
         return output
     }
 
@@ -2688,7 +2778,7 @@ class Module_student_statuses {
      *
      */
     async getForProblem(problem_id: string): Promise<Status> {
-        const [output, ofiles] = await this.root.execute('student.statuses.getForProblem', problem_id)
+        const [output, ofiles] = await this.root.execute("student.statuses.getForProblem", problem_id)
         return output
     }
 }
@@ -2712,8 +2802,8 @@ class Module_student_awards {
      * No warnings
      *
      */
-    async getAll(): Promise<Record<string, BriefAward>> {
-        const [output, ofiles] = await this.root.execute('student.awards.getAll', null)
+    async getAll(data: SubmitQuizOut): Promise<Record<string, BriefAward>> {
+        const [output, ofiles] = await this.root.execute("student.awards.getAll", data)
         return output
     }
 
@@ -2725,7 +2815,56 @@ class Module_student_awards {
      *
      */
     async get(award_id: string): Promise<Award> {
-        const [output, ofiles] = await this.root.execute('student.awards.get', award_id)
+        const [output, ofiles] = await this.root.execute("student.awards.get", award_id)
+        return output
+    }
+}
+
+/**
+ *
+ * This module exposes the quizzes. UNDER CONSTRUCTION.
+ *
+ */
+class Module_student_quizzes {
+    private readonly root: JutgeApiClient
+
+    constructor(root: JutgeApiClient) {
+        this.root = root
+    }
+
+    /**
+     * Take a quiz.
+     *
+     * 🔐 Authentication: user
+     * No warnings
+     *
+     */
+    async takeQuiz(data: TakeQuizIn): Promise<TakeQuizOut> {
+        const [output, ofiles] = await this.root.execute("student.quizzes.takeQuiz", data)
+        return output
+    }
+
+    /**
+     * Submit a quiz.
+     *
+     * 🔐 Authentication: user
+     * No warnings
+     *
+     */
+    async submitQuiz(data: SubmitQuizIn): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("student.quizzes.submitQuiz", data)
+        return output
+    }
+
+    /**
+     * Get the data of a submitted quiz.
+     *
+     * 🔐 Authentication: user
+     * No warnings
+     *
+     */
+    async getQuizData(data: GetGameResultIn): Promise<GetQuizDataOut> {
+        const [output, ofiles] = await this.root.execute("student.quizzes.getQuizData", data)
         return output
     }
 }
@@ -2779,8 +2918,8 @@ class Module_instructor_documents {
      * No warnings
      *
      */
-    async index(): Promise<Record<string, Document>> {
-        const [output, ofiles] = await this.root.execute('instructor.documents.index', null)
+    async index(data: SubmitQuizOut): Promise<Record<string, Document>> {
+        const [output, ofiles] = await this.root.execute("instructor.documents.index", data)
         return output
     }
 
@@ -2792,7 +2931,7 @@ class Module_instructor_documents {
      * The PDF file is not included in the response.
      */
     async get(document_nm: string): Promise<Document> {
-        const [output, ofiles] = await this.root.execute('instructor.documents.get', document_nm)
+        const [output, ofiles] = await this.root.execute("instructor.documents.get", document_nm)
         return output
     }
 
@@ -2803,9 +2942,9 @@ class Module_instructor_documents {
      * No warnings
      *
      */
-    async getPdf(document_nm: string): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('instructor.documents.getPdf', document_nm)
-        return ofiles[0]
+    async getPdf(document_nm: string): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("instructor.documents.getPdf", document_nm)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -2815,8 +2954,8 @@ class Module_instructor_documents {
      * No warnings
      *
      */
-    async create(data: DocumentCreation, ifile: File): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.documents.create', data, [ifile])
+    async create(data: DocumentCreation, ifile: File): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.documents.create", data, [ifile])
         return output
     }
 
@@ -2827,8 +2966,8 @@ class Module_instructor_documents {
      * No warnings
      *
      */
-    async update(data: DocumentCreation, ifile: File): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.documents.update', data, [ifile])
+    async update(data: DocumentCreation, ifile: File): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.documents.update", data, [ifile])
         return output
     }
 
@@ -2839,8 +2978,8 @@ class Module_instructor_documents {
      * No warnings
      *
      */
-    async remove(document_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.documents.remove', document_nm)
+    async remove(document_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.documents.remove", document_nm)
         return output
     }
 }
@@ -2864,8 +3003,8 @@ class Module_instructor_lists {
      * No warnings
      *
      */
-    async index(): Promise<Record<string, InstructorBriefList>> {
-        const [output, ofiles] = await this.root.execute('instructor.lists.index', null)
+    async index(data: SubmitQuizOut): Promise<Record<string, InstructorBriefList>> {
+        const [output, ofiles] = await this.root.execute("instructor.lists.index", data)
         return output
     }
 
@@ -2877,7 +3016,7 @@ class Module_instructor_lists {
      *
      */
     async get(list_nm: string): Promise<InstructorList> {
-        const [output, ofiles] = await this.root.execute('instructor.lists.get', list_nm)
+        const [output, ofiles] = await this.root.execute("instructor.lists.get", list_nm)
         return output
     }
 
@@ -2888,8 +3027,8 @@ class Module_instructor_lists {
      * No warnings
      *
      */
-    async create(data: InstructorListCreation): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.lists.create', data)
+    async create(data: InstructorListCreation): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.lists.create", data)
         return output
     }
 
@@ -2900,8 +3039,8 @@ class Module_instructor_lists {
      * No warnings
      *
      */
-    async update(data: InstructorListCreation): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.lists.update', data)
+    async update(data: InstructorListCreation): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.lists.update", data)
         return output
     }
 
@@ -2912,8 +3051,8 @@ class Module_instructor_lists {
      * No warnings
      *
      */
-    async remove(list_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.lists.remove', list_nm)
+    async remove(list_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.lists.remove", list_nm)
         return output
     }
 
@@ -2924,8 +3063,8 @@ class Module_instructor_lists {
      * No warnings
      * At some point, endpoints related to archiving lists should change as the archive bit will be an attribute of each list.
      */
-    async getArchived(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('instructor.lists.getArchived', null)
+    async getArchived(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("instructor.lists.getArchived", data)
         return output
     }
 
@@ -2936,8 +3075,8 @@ class Module_instructor_lists {
      * No warnings
      *
      */
-    async archive(list_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.lists.archive', list_nm)
+    async archive(list_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.lists.archive", list_nm)
         return output
     }
 
@@ -2948,8 +3087,8 @@ class Module_instructor_lists {
      * No warnings
      *
      */
-    async unarchive(list_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.lists.unarchive', list_nm)
+    async unarchive(list_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.lists.unarchive", list_nm)
         return output
     }
 }
@@ -2983,8 +3122,8 @@ class Module_instructor_courses {
      * No warnings
      *
      */
-    async index(): Promise<Record<string, InstructorBriefCourse>> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.index', null)
+    async index(data: SubmitQuizOut): Promise<Record<string, InstructorBriefCourse>> {
+        const [output, ofiles] = await this.root.execute("instructor.courses.index", data)
         return output
     }
 
@@ -2996,7 +3135,7 @@ class Module_instructor_courses {
      *
      */
     async get(course_nm: string): Promise<InstructorCourse> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.get', course_nm)
+        const [output, ofiles] = await this.root.execute("instructor.courses.get", course_nm)
         return output
     }
 
@@ -3007,8 +3146,8 @@ class Module_instructor_courses {
      * No warnings
      * Only invited students and tutors are taken into account. Enrolled and pending students and tutors are ignored, as these are managed by the system.
      */
-    async create(data: InstructorCourseCreation): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.create', data)
+    async create(data: InstructorCourseCreation): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.courses.create", data)
         return output
     }
 
@@ -3019,8 +3158,8 @@ class Module_instructor_courses {
      * No warnings
      * Only invited students and tutors are taken into account. Enrolled and pending students and tutors are ignored, as these are managed by the system.
      */
-    async update(data: InstructorCourseUpdate): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.update', data)
+    async update(data: InstructorCourseUpdate): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.courses.update", data)
         return output
     }
 
@@ -3031,8 +3170,8 @@ class Module_instructor_courses {
      * No warnings
      * A course should not be deleted. Ask a system administrator to remove it if you really need it.
      */
-    async remove(course_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.remove', course_nm)
+    async remove(course_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.courses.remove", course_nm)
         return output
     }
 
@@ -3043,8 +3182,8 @@ class Module_instructor_courses {
      * No warnings
      * Please do not abuse.
      */
-    async sendInviteToStudents(course_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.sendInviteToStudents', course_nm)
+    async sendInviteToStudents(course_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.courses.sendInviteToStudents", course_nm)
         return output
     }
 
@@ -3055,8 +3194,8 @@ class Module_instructor_courses {
      * No warnings
      * Please do not abuse.
      */
-    async sendInviteToTutors(course_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.sendInviteToTutors', course_nm)
+    async sendInviteToTutors(course_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.courses.sendInviteToTutors", course_nm)
         return output
     }
 
@@ -3068,7 +3207,7 @@ class Module_instructor_courses {
      *
      */
     async getStudentProfiles(course_nm: string): Promise<Record<string, StudentProfile>> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.getStudentProfiles', course_nm)
+        const [output, ofiles] = await this.root.execute("instructor.courses.getStudentProfiles", course_nm)
         return output
     }
 
@@ -3080,7 +3219,7 @@ class Module_instructor_courses {
      *
      */
     async getTutorProfiles(course_nm: string): Promise<Record<string, StudentProfile>> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.getTutorProfiles', course_nm)
+        const [output, ofiles] = await this.root.execute("instructor.courses.getTutorProfiles", course_nm)
         return output
     }
 
@@ -3091,8 +3230,8 @@ class Module_instructor_courses {
      * No warnings
      * At some point, endpoints related to archiving courses should change as the archive bit will be an attribute of each course.
      */
-    async getArchived(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.getArchived', null)
+    async getArchived(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("instructor.courses.getArchived", data)
         return output
     }
 
@@ -3103,8 +3242,8 @@ class Module_instructor_courses {
      * No warnings
      *
      */
-    async archive(course_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.archive', course_nm)
+    async archive(course_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.courses.archive", course_nm)
         return output
     }
 
@@ -3115,8 +3254,8 @@ class Module_instructor_courses {
      * No warnings
      *
      */
-    async unarchive(course_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.courses.unarchive', course_nm)
+    async unarchive(course_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.courses.unarchive", course_nm)
         return output
     }
 }
@@ -3145,8 +3284,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async index(): Promise<Record<string, InstructorBriefExam>> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.index', null)
+    async index(data: SubmitQuizOut): Promise<Record<string, InstructorBriefExam>> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.index", data)
         return output
     }
 
@@ -3158,7 +3297,7 @@ class Module_instructor_exams {
      *
      */
     async get(exam_nm: string): Promise<InstructorExam> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.get', exam_nm)
+        const [output, ofiles] = await this.root.execute("instructor.exams.get", exam_nm)
         return output
     }
 
@@ -3170,7 +3309,7 @@ class Module_instructor_exams {
      *
      */
     async getDocuments(exam_nm: string): Promise<RunningExamDocument[]> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.getDocuments', exam_nm)
+        const [output, ofiles] = await this.root.execute("instructor.exams.getDocuments", exam_nm)
         return output
     }
 
@@ -3182,7 +3321,7 @@ class Module_instructor_exams {
      *
      */
     async getProblems(exam_nm: string): Promise<InstructorExamProblem[]> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.getProblems', exam_nm)
+        const [output, ofiles] = await this.root.execute("instructor.exams.getProblems", exam_nm)
         return output
     }
 
@@ -3194,7 +3333,7 @@ class Module_instructor_exams {
      *
      */
     async getStudents(exam_nm: string): Promise<InstructorExamStudent[]> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.getStudents', exam_nm)
+        const [output, ofiles] = await this.root.execute("instructor.exams.getStudents", exam_nm)
         return output
     }
 
@@ -3206,7 +3345,7 @@ class Module_instructor_exams {
      *
      */
     async getStudent(data: { exam_nm: string; email: string }): Promise<InstructorExamStudent> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.getStudent', data)
+        const [output, ofiles] = await this.root.execute("instructor.exams.getStudent", data)
         return output
     }
 
@@ -3218,7 +3357,7 @@ class Module_instructor_exams {
      * Meant for real-time streaming of submissions, most instructors will possibly prefer getSubmissionsPack.
      */
     async getSubmissions(data: { exam_nm: string; options: InstructorExamSubmissionsOptions }): Promise<WebStream> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.getSubmissions', data)
+        const [output, ofiles] = await this.root.execute("instructor.exams.getSubmissions", data)
         return output
     }
 
@@ -3230,7 +3369,7 @@ class Module_instructor_exams {
      * This endpoint will prepare the pack in the background and return a link to download it later. Packs take some time to be prepared, and are deleted after 24 hours. This is the preferred endpoint for most instructors, as it is simpler to use than getSubmissions.
      */
     async getSubmissionsPack(data: { exam_nm: string; options: InstructorExamSubmissionsOptions }): Promise<Pack> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.getSubmissionsPack', data)
+        const [output, ofiles] = await this.root.execute("instructor.exams.getSubmissionsPack", data)
         return output
     }
 
@@ -3242,7 +3381,7 @@ class Module_instructor_exams {
      *
      */
     async getStatistics(exam_nm: string): Promise<ExamStatistics> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.getStatistics', exam_nm)
+        const [output, ofiles] = await this.root.execute("instructor.exams.getStatistics", exam_nm)
         return output
     }
 
@@ -3253,8 +3392,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async create(data: InstructorExamCreation): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.create', data)
+    async create(data: InstructorExamCreation): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.create", data)
         return output
     }
 
@@ -3265,8 +3404,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async update(data: InstructorExamUpdate): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.update', data)
+    async update(data: InstructorExamUpdate): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.update", data)
         return output
     }
 
@@ -3277,8 +3416,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async updateDocuments(data: { exam_nm: string; document_nms: string[] }): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.updateDocuments', data)
+    async updateDocuments(data: { exam_nm: string; document_nms: string[] }): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.updateDocuments", data)
         return output
     }
 
@@ -3289,8 +3428,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async updateCompilers(data: { exam_nm: string; compiler_ids: string[] }): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.updateCompilers', data)
+    async updateCompilers(data: { exam_nm: string; compiler_ids: string[] }): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.updateCompilers", data)
         return output
     }
 
@@ -3301,8 +3440,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async updateProblems(data: { exam_nm: string; problems: InstructorExamProblem[] }): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.updateProblems', data)
+    async updateProblems(data: { exam_nm: string; problems: InstructorExamProblem[] }): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.updateProblems", data)
         return output
     }
 
@@ -3313,8 +3452,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async updateStudents(data: { exam_nm: string; students: InstructorExamStudent[] }): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.updateStudents', data)
+    async updateStudents(data: { exam_nm: string; students: InstructorExamStudent[] }): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.updateStudents", data)
         return output
     }
 
@@ -3325,8 +3464,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async addStudents(data: { exam_nm: string; students: InstructorExamStudent[] }): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.addStudents', data)
+    async addStudents(data: { exam_nm: string; students: InstructorExamStudent[] }): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.addStudents", data)
         return output
     }
 
@@ -3337,8 +3476,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async removeStudents(data: { exam_nm: string; emails: string[] }): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.removeStudents', data)
+    async removeStudents(data: { exam_nm: string; emails: string[] }): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.removeStudents", data)
         return output
     }
 
@@ -3349,8 +3488,8 @@ class Module_instructor_exams {
      * No warnings
      * Note: An exam can only be deleted if it has not started.
      */
-    async remove(exam_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.remove', exam_nm)
+    async remove(exam_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.remove", exam_nm)
         return output
     }
 
@@ -3361,8 +3500,8 @@ class Module_instructor_exams {
      * No warnings
      * At some point, endpoints related to archiving exams should change as the archive bit will be an attribute of each exam.
      */
-    async getArchived(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.getArchived', null)
+    async getArchived(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.getArchived", data)
         return output
     }
 
@@ -3373,8 +3512,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async archive(exam_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.archive', exam_nm)
+    async archive(exam_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.archive", exam_nm)
         return output
     }
 
@@ -3385,8 +3524,8 @@ class Module_instructor_exams {
      * No warnings
      *
      */
-    async unarchive(exam_nm: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.unarchive', exam_nm)
+    async unarchive(exam_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.exams.unarchive", exam_nm)
         return output
     }
 
@@ -3398,7 +3537,7 @@ class Module_instructor_exams {
      * Under development.
      */
     async getRanking(exam_nm: string): Promise<Ranking> {
-        const [output, ofiles] = await this.root.execute('instructor.exams.getRanking', exam_nm)
+        const [output, ofiles] = await this.root.execute("instructor.exams.getRanking", exam_nm)
         return output
     }
 }
@@ -3422,20 +3561,8 @@ class Module_instructor_problems {
      * No warnings
      *
      */
-    async getOwnProblems(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('instructor.problems.getOwnProblems', null)
-        return output
-    }
-
-    /**
-     * Get the list of own problems that have a passcode.
-     *
-     * 🔐 Authentication: instructor
-     * No warnings
-     *
-     */
-    async getOwnProblemsWithPasscode(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('instructor.problems.getOwnProblemsWithPasscode', null)
+    async getOwnProblems(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("instructor.problems.getOwnProblems", data)
         return output
     }
 
@@ -3451,8 +3578,8 @@ class Module_instructor_problems {
             With shared solutions, the solutions are shared with instructors.
 
      */
-    async setSharingSettings(data: SharingSettings): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.problems.setSharingSettings', data)
+    async setSharingSettings(data: SharingSettings): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.problems.setSharingSettings", data)
         return output
     }
 
@@ -3464,7 +3591,19 @@ class Module_instructor_problems {
      *
      */
     async getSharingSettings(problem_nm: string): Promise<SharingSettings> {
-        const [output, ofiles] = await this.root.execute('instructor.problems.getSharingSettings', problem_nm)
+        const [output, ofiles] = await this.root.execute("instructor.problems.getSharingSettings", problem_nm)
+        return output
+    }
+
+    /**
+     * Get the sharing settings of all problems.
+     *
+     * 🔐 Authentication: instructor
+     * No warnings
+     *
+     */
+    async getAllSharingSettings(data: SubmitQuizOut): Promise<SharingSettings[]> {
+        const [output, ofiles] = await this.root.execute("instructor.problems.getAllSharingSettings", data)
         return output
     }
 
@@ -3475,8 +3614,20 @@ class Module_instructor_problems {
      * No warnings
      * If the reason is null or empty, the problem is undeprecated.
      */
-    async setDeprecation(data: Deprecation): Promise<void> {
-        const [output, ofiles] = await this.root.execute('instructor.problems.setDeprecation', data)
+    async setDeprecation(data: Deprecation): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.problems.setDeprecation", data)
+        return output
+    }
+
+    /**
+     * Get anonymous submissions for an abstract problem.
+     *
+     * 🔐 Authentication: instructor
+     * No warnings
+     * This function is useful to produce statistics about the submissions for an abstract problem. The user ids are anonymized using a nonce.
+     */
+    async getAnonymousSubmissions(problem_nm: string): Promise<ProblemAnonymousSubmission[]> {
+        const [output, ofiles] = await this.root.execute("instructor.problems.getAnonymousSubmissions", problem_nm)
         return output
     }
 
@@ -3487,9 +3638,9 @@ class Module_instructor_problems {
      * No warnings
      *
      */
-    async download(problem_nm: string): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('instructor.problems.download', problem_nm)
-        return ofiles[0]
+    async download(problem_nm: string): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("instructor.problems.download", problem_nm)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -3500,7 +3651,7 @@ class Module_instructor_problems {
      * This endpoint uses terminal web streaming: It returns an id from which the problem feedback is streamed over <URL>/api/webstreams/<id>.
      */
     async create(passcode: string, ifile: File): Promise<WebStream> {
-        const [output, ofiles] = await this.root.execute('instructor.problems.create', passcode, [ifile])
+        const [output, ofiles] = await this.root.execute("instructor.problems.create", passcode, [ifile])
         return output
     }
 
@@ -3512,7 +3663,19 @@ class Module_instructor_problems {
      * This endpoint uses terminal web streaming: It returns an id from which the problem feedback is streamed over <URL>/api/webstreams/<id>.
      */
     async update(problem_nm: string, ifile: File): Promise<WebStream> {
-        const [output, ofiles] = await this.root.execute('instructor.problems.update', problem_nm, [ifile])
+        const [output, ofiles] = await this.root.execute("instructor.problems.update", problem_nm, [ifile])
+        return output
+    }
+
+    /**
+     * Remove a problem.
+     *
+     * 🔐 Authentication: instructor
+     * No warnings
+     * A problem can only be removed if it has few submissions.
+     */
+    async remove(problem_nm: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.problems.remove", problem_nm)
         return output
     }
 }
@@ -3537,7 +3700,7 @@ class Module_instructor_queries {
      * Returns a list of submissions for a given problem for all students of a given course. Each submission includes the email, time, problem name, problem id, verdict, and IP address. The list is ordered by email and time. Known as ricard01 in the past.
      */
     async getCourseProblemSubmissions(data: { course_nm: string; problem_nm: string }): Promise<SubmissionsQuery> {
-        const [output, ofiles] = await this.root.execute('instructor.queries.getCourseProblemSubmissions', data)
+        const [output, ofiles] = await this.root.execute("instructor.queries.getCourseProblemSubmissions", data)
         return output
     }
 
@@ -3549,7 +3712,7 @@ class Module_instructor_queries {
      * Returns a list of submissions for all problems in a given list for all students of a given course. Each submission includes the email, time, problem name, problem id, verdict, and IP address. The list is ordered by email, problem id and time. Known as ricard02 in the past.
      */
     async getCourseListSubmissions(data: { course_nm: string; list_nm: string }): Promise<SubmissionsQuery> {
-        const [output, ofiles] = await this.root.execute('instructor.queries.getCourseListSubmissions', data)
+        const [output, ofiles] = await this.root.execute("instructor.queries.getCourseListSubmissions", data)
         return output
     }
 }
@@ -3573,8 +3736,8 @@ class Module_instructor_tags {
      * No warnings
      *
      */
-    async index(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('instructor.tags.index', null)
+    async index(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("instructor.tags.index", data)
         return output
     }
 
@@ -3585,8 +3748,8 @@ class Module_instructor_tags {
      * No warnings
      *
      */
-    async getDict(): Promise<TagsDict> {
-        const [output, ofiles] = await this.root.execute('instructor.tags.getDict', null)
+    async getDict(data: SubmitQuizOut): Promise<TagsDict> {
+        const [output, ofiles] = await this.root.execute("instructor.tags.getDict", data)
         return output
     }
 
@@ -3598,7 +3761,7 @@ class Module_instructor_tags {
      *
      */
     async get(tag: string): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('instructor.tags.get', tag)
+        const [output, ofiles] = await this.root.execute("instructor.tags.get", tag)
         return output
     }
 }
@@ -3622,8 +3785,8 @@ class Module_instructor_jutgeai {
      * No warnings
      *
      */
-    async supportedModels(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('instructor.jutgeai.supportedModels', null)
+    async supportedModels(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.supportedModels", data)
         return output
     }
 
@@ -3634,8 +3797,8 @@ class Module_instructor_jutgeai {
      * No warnings
      *
      */
-    async supportedImageModels(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('instructor.jutgeai.supportedImageModels', null)
+    async supportedImageModels(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.supportedImageModels", data)
         return output
     }
 
@@ -3647,7 +3810,7 @@ class Module_instructor_jutgeai {
      * Send a conversation (list of system|user|assistant messages) and get the next assistant reply. Models are listed in the `supportedModels` endpoint. This endpoint uses terminal web streaming: It returns an id from which the chat is streamed over <URL>/api/webstreams/<id>. If `addUsage` is true, the usage of the model will be added at the end of the response as a JSON object between `---USAGE_JSON_START---` and `---USAGE_JSON_END---`.
      */
     async chat(data: ChatPrompt): Promise<WebStream> {
-        const [output, ofiles] = await this.root.execute('instructor.jutgeai.chat', data)
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.chat", data)
         return output
     }
 
@@ -3658,9 +3821,9 @@ class Module_instructor_jutgeai {
      * No warnings
      * Some models only accept certain sizes and aspect ratios.
      */
-    async createImage(data: CreateImageInput): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('instructor.jutgeai.createImage', data)
-        return ofiles[0]
+    async createImage(data: CreateImageInput): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.createImage", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -3670,8 +3833,8 @@ class Module_instructor_jutgeai {
      * No warnings
      *
      */
-    async getLlmUsage(): Promise<LlmUsageEntry[]> {
-        const [output, ofiles] = await this.root.execute('instructor.jutgeai.getLlmUsage', null)
+    async getLlmUsage(data: SubmitQuizOut): Promise<LlmUsageEntry[]> {
+        const [output, ofiles] = await this.root.execute("instructor.jutgeai.getLlmUsage", data)
         return output
     }
 }
@@ -3695,8 +3858,8 @@ class Module_games {
      * No warnings
      *
      */
-    async getGames(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('games.getGames', null)
+    async getGames(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("games.getGames", data)
         return output
     }
 
@@ -3708,7 +3871,7 @@ class Module_games {
      *
      */
     async getDummy(problem_id: string): Promise<string> {
-        const [output, ofiles] = await this.root.execute('games.getDummy', problem_id)
+        const [output, ofiles] = await this.root.execute("games.getDummy", problem_id)
         return output
     }
 
@@ -3719,33 +3882,9 @@ class Module_games {
      * No warnings
      *
      */
-    async getViewer(problem_id: string): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('games.getViewer', problem_id)
-        return ofiles[0]
-    }
-
-    /**
-     * Submit a player for a game.
-     *
-     * 🔐 Authentication: competitions
-     * No warnings
-     *
-     */
-    async submitPlayer(data: SubmitPlayerInput): Promise<NewSubmissionOut> {
-        const [output, ofiles] = await this.root.execute('games.submitPlayer', data)
-        return output
-    }
-
-    /**
-     * Get a player submission for a game.
-     *
-     * 🔐 Authentication: competitions
-     * No warnings
-     *
-     */
-    async getPlayerSubmission(data: GetPlayerSubmissionInput): Promise<GetPlayerSubmissionOutput> {
-        const [output, ofiles] = await this.root.execute('games.getPlayerSubmission', data)
-        return output
+    async getViewer(problem_id: string): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("games.getViewer", problem_id)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -3756,19 +3895,7 @@ class Module_games {
      *
      */
     async submitMatch(data: SubmitMatchInput): Promise<NewSubmissionOut> {
-        const [output, ofiles] = await this.root.execute('games.submitMatch', data)
-        return output
-    }
-
-    /**
-     * Get a match submission for a game.
-     *
-     * 🔐 Authentication: competitions
-     * No warnings
-     *
-     */
-    async getMatchSubmission(data: GetPlayerSubmissionInput): Promise<GetPlayerSubmissionOutput> {
-        const [output, ofiles] = await this.root.execute('games.getMatchSubmission', data)
+        const [output, ofiles] = await this.root.execute("games.submitMatch", data)
         return output
     }
 }
@@ -3820,8 +3947,8 @@ class Module_admin_instructors {
      * No warnings
      *
      */
-    async get(): Promise<InstructorEntries> {
-        const [output, ofiles] = await this.root.execute('admin.instructors.get', null)
+    async get(data: SubmitQuizOut): Promise<InstructorEntries> {
+        const [output, ofiles] = await this.root.execute("admin.instructors.get", data)
         return output
     }
 
@@ -3832,8 +3959,8 @@ class Module_admin_instructors {
      * No warnings
      *
      */
-    async add(data: { email: string; username: string }): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.instructors.add', data)
+    async add(data: { email: string; username: string }): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.instructors.add", data)
         return output
     }
 
@@ -3844,8 +3971,8 @@ class Module_admin_instructors {
      * No warnings
      *
      */
-    async remove(email: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.instructors.remove', email)
+    async remove(email: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.instructors.remove", email)
         return output
     }
 }
@@ -3869,8 +3996,8 @@ class Module_admin_users {
      * No warnings
      *
      */
-    async count(): Promise<number> {
-        const [output, ofiles] = await this.root.execute('admin.users.count', null)
+    async count(data: SubmitQuizOut): Promise<number> {
+        const [output, ofiles] = await this.root.execute("admin.users.count", data)
         return output
     }
 
@@ -3881,8 +4008,8 @@ class Module_admin_users {
      * No warnings
      *
      */
-    async create(data: UserCreation): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.users.create', data)
+    async create(data: UserCreation): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.users.create", data)
         return output
     }
 
@@ -3893,8 +4020,8 @@ class Module_admin_users {
      * No warnings
      *
      */
-    async remove(email: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.users.remove', email)
+    async remove(email: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.users.remove", email)
         return output
     }
 
@@ -3905,8 +4032,8 @@ class Module_admin_users {
      * No warnings
      *
      */
-    async setPassword(data: { email: string; password: string; message: string }): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.users.setPassword', data)
+    async setPassword(data: { email: string; password: string; message: string }): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.users.setPassword", data)
         return output
     }
 
@@ -3918,7 +4045,7 @@ class Module_admin_users {
      *
      */
     async getProfiles(data: string): Promise<ProfileForAdmin[]> {
-        const [output, ofiles] = await this.root.execute('admin.users.getProfiles', data)
+        const [output, ofiles] = await this.root.execute("admin.users.getProfiles", data)
         return output
     }
 
@@ -3930,7 +4057,7 @@ class Module_admin_users {
      *
      */
     async getAllWithEmail(data: string): Promise<UsersEmailsAndNames> {
-        const [output, ofiles] = await this.root.execute('admin.users.getAllWithEmail', data)
+        const [output, ofiles] = await this.root.execute("admin.users.getAllWithEmail", data)
         return output
     }
 
@@ -3941,8 +4068,8 @@ class Module_admin_users {
      * No warnings
      *
      */
-    async getSpamUsers(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('admin.users.getSpamUsers', null)
+    async getSpamUsers(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("admin.users.getSpamUsers", data)
         return output
     }
 
@@ -3953,8 +4080,8 @@ class Module_admin_users {
      * No warnings
      *
      */
-    async removeSpamUsers(data: string[]): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.users.removeSpamUsers', data)
+    async removeSpamUsers(data: string[]): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.users.removeSpamUsers", data)
         return output
     }
 }
@@ -3978,8 +4105,8 @@ class Module_admin_dashboard {
      * No warnings
      *
      */
-    async getAll(): Promise<AdminDashboard> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getAll', null)
+    async getAll(data: SubmitQuizOut): Promise<AdminDashboard> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getAll", data)
         return output
     }
 
@@ -3990,8 +4117,8 @@ class Module_admin_dashboard {
      * No warnings
      *
      */
-    async getDatabasesInfo(): Promise<DatabasesInfo> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getDatabasesInfo', null)
+    async getDatabasesInfo(data: SubmitQuizOut): Promise<DatabasesInfo> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getDatabasesInfo", data)
         return output
     }
 
@@ -4002,8 +4129,8 @@ class Module_admin_dashboard {
      * No warnings
      *
      */
-    async getFreeDiskSpace(): Promise<FreeDiskSpace> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getFreeDiskSpace', null)
+    async getFreeDiskSpace(data: SubmitQuizOut): Promise<FreeDiskSpace> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getFreeDiskSpace", data)
         return output
     }
 
@@ -4014,8 +4141,8 @@ class Module_admin_dashboard {
      * No warnings
      *
      */
-    async getRecentConnectedUsers(): Promise<RecentConnectedUsers> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getRecentConnectedUsers', null)
+    async getRecentConnectedUsers(data: SubmitQuizOut): Promise<RecentConnectedUsers> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getRecentConnectedUsers", data)
         return output
     }
 
@@ -4026,8 +4153,8 @@ class Module_admin_dashboard {
      * No warnings
      *
      */
-    async getRecentLoadAverages(): Promise<RecentLoadAverages> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getRecentLoadAverages', null)
+    async getRecentLoadAverages(data: SubmitQuizOut): Promise<RecentLoadAverages> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getRecentLoadAverages", data)
         return output
     }
 
@@ -4038,8 +4165,8 @@ class Module_admin_dashboard {
      * No warnings
      *
      */
-    async getRecentSubmissions(): Promise<RecentSubmissions> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getRecentSubmissions', null)
+    async getRecentSubmissions(data: SubmitQuizOut): Promise<RecentSubmissions> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getRecentSubmissions", data)
         return output
     }
 
@@ -4050,8 +4177,8 @@ class Module_admin_dashboard {
      * No warnings
      *
      */
-    async getSubmissionsHistograms(): Promise<SubmissionsHistograms> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getSubmissionsHistograms', null)
+    async getSubmissionsHistograms(data: SubmitQuizOut): Promise<SubmissionsHistograms> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getSubmissionsHistograms", data)
         return output
     }
 
@@ -4062,8 +4189,8 @@ class Module_admin_dashboard {
      * No warnings
      *
      */
-    async getZombies(): Promise<Zombies> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getZombies', null)
+    async getZombies(data: SubmitQuizOut): Promise<Zombies> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getZombies", data)
         return output
     }
 
@@ -4075,7 +4202,7 @@ class Module_admin_dashboard {
      *
      */
     async getUpcomingExams(data: { daysBefore: number; daysAfter: number }): Promise<UpcomingExams> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getUpcomingExams', data)
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getUpcomingExams", data)
         return output
     }
 
@@ -4086,8 +4213,8 @@ class Module_admin_dashboard {
      * No warnings
      * This endpoint retrieves the status of PM2 processes as reported by `pm2 jlist`.
      */
-    async getPM2Status(): Promise<any> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getPM2Status', null)
+    async getPM2Status(data: SubmitQuizOut): Promise<any> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getPM2Status", data)
         return output
     }
 
@@ -4098,8 +4225,8 @@ class Module_admin_dashboard {
      * No warnings
      * This endpoint retrieves the status of docker processes as reported by `docker ps --all`.
      */
-    async getDockerStatus(): Promise<any> {
-        const [output, ofiles] = await this.root.execute('admin.dashboard.getDockerStatus', null)
+    async getDockerStatus(data: SubmitQuizOut): Promise<any> {
+        const [output, ofiles] = await this.root.execute("admin.dashboard.getDockerStatus", data)
         return output
     }
 }
@@ -4124,7 +4251,7 @@ class Module_admin_queue {
      * The `limit` parameter tells the number of submissions to retrieve. The `verdicts` parameter is an array of verdicts to filter the submissions. If no verdicts are provided, all submissions will be retrieved.
      */
     async getQueue(data: QueueQuery): Promise<SubmissionQueueItems> {
-        const [output, ofiles] = await this.root.execute('admin.queue.getQueue', data)
+        const [output, ofiles] = await this.root.execute("admin.queue.getQueue", data)
         return output
     }
 }
@@ -4148,8 +4275,8 @@ class Module_admin_tasks {
      * No warnings
      * Purge expired access tokens (call it from time to time, it does not hurt)
      */
-    async purgeAuthTokens(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.tasks.purgeAuthTokens', null)
+    async purgeAuthTokens(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.tasks.purgeAuthTokens", data)
         return output
     }
 
@@ -4160,8 +4287,8 @@ class Module_admin_tasks {
      * No warnings
      *
      */
-    async clearCaches(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.tasks.clearCaches', null)
+    async clearCaches(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.tasks.clearCaches", data)
         return output
     }
 
@@ -4172,8 +4299,8 @@ class Module_admin_tasks {
      * No warnings
      *
      */
-    async fatalizeIEs(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.tasks.fatalizeIEs', null)
+    async fatalizeIEs(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.tasks.fatalizeIEs", data)
         return output
     }
 
@@ -4184,8 +4311,8 @@ class Module_admin_tasks {
      * No warnings
      *
      */
-    async fatalizePendings(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.tasks.fatalizePendings', null)
+    async fatalizePendings(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.tasks.fatalizePendings", data)
         return output
     }
 
@@ -4196,8 +4323,8 @@ class Module_admin_tasks {
      * No warnings
      *
      */
-    async resubmitIEs(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.tasks.resubmitIEs', null)
+    async resubmitIEs(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.tasks.resubmitIEs", data)
         return output
     }
 
@@ -4208,8 +4335,8 @@ class Module_admin_tasks {
      * No warnings
      *
      */
-    async resubmitPendings(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.tasks.resubmitPendings', null)
+    async resubmitPendings(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.tasks.resubmitPendings", data)
         return output
     }
 
@@ -4220,9 +4347,9 @@ class Module_admin_tasks {
      * No warnings
      *
      */
-    async getFullTextSearchDatabase(): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('admin.tasks.getFullTextSearchDatabase', null)
-        return ofiles[0]
+    async getFullTextSearchDatabase(data: SubmitQuizOut): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("admin.tasks.getFullTextSearchDatabase", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -4232,8 +4359,8 @@ class Module_admin_tasks {
      * No warnings
      *
      */
-    async updateSemanticSearchDatabase(data: string, ifile: File): Promise<void> {
-        const [output, ofiles] = await this.root.execute('admin.tasks.updateSemanticSearchDatabase', data, [ifile])
+    async updateSemanticSearchDatabase(data: string, ifile: File): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("admin.tasks.updateSemanticSearchDatabase", data, [ifile])
         return output
     }
 }
@@ -4257,8 +4384,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getCounters(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getCounters', null)
+    async getCounters(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getCounters", data)
         return output
     }
 
@@ -4269,8 +4396,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfVerdicts(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfVerdicts', null)
+    async getDistributionOfVerdicts(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfVerdicts", data)
         return output
     }
 
@@ -4281,8 +4408,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfVerdictsByYear(): Promise<Record<string, number>[]> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfVerdictsByYear', null)
+    async getDistributionOfVerdictsByYear(data: SubmitQuizOut): Promise<Record<string, number>[]> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfVerdictsByYear", data)
         return output
     }
 
@@ -4293,8 +4420,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfCompilers(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfCompilers', null)
+    async getDistributionOfCompilers(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfCompilers", data)
         return output
     }
 
@@ -4305,8 +4432,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfProglangs(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfProglangs', null)
+    async getDistributionOfProglangs(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfProglangs", data)
         return output
     }
 
@@ -4317,8 +4444,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfUsersByYear(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfUsersByYear', null)
+    async getDistributionOfUsersByYear(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfUsersByYear", data)
         return output
     }
 
@@ -4329,8 +4456,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfUsersByCountry(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfUsersByCountry', null)
+    async getDistributionOfUsersByCountry(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfUsersByCountry", data)
         return output
     }
 
@@ -4342,7 +4469,7 @@ class Module_admin_stats {
      *
      */
     async getDistributionOfUsersBySubmissions(data: number): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfUsersBySubmissions', data)
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfUsersBySubmissions", data)
         return output
     }
 
@@ -4354,7 +4481,7 @@ class Module_admin_stats {
      *
      */
     async getRankingOfUsers(limit: number): Promise<UserRanking> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getRankingOfUsers', limit)
+        const [output, ofiles] = await this.root.execute("admin.stats.getRankingOfUsers", limit)
         return output
     }
 
@@ -4365,8 +4492,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfSubmissionsByHour(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfSubmissionsByHour', null)
+    async getDistributionOfSubmissionsByHour(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfSubmissionsByHour", data)
         return output
     }
 
@@ -4377,8 +4504,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfSubmissionsByProglang(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfSubmissionsByProglang', null)
+    async getDistributionOfSubmissionsByProglang(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfSubmissionsByProglang", data)
         return output
     }
 
@@ -4389,8 +4516,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfSubmissionsByCompiler(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfSubmissionsByCompiler', null)
+    async getDistributionOfSubmissionsByCompiler(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfSubmissionsByCompiler", data)
         return output
     }
 
@@ -4401,8 +4528,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfSubmissionsByWeekday(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfSubmissionsByWeekday', null)
+    async getDistributionOfSubmissionsByWeekday(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfSubmissionsByWeekday", data)
         return output
     }
 
@@ -4413,8 +4540,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfSubmissionsByYear(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfSubmissionsByYear', null)
+    async getDistributionOfSubmissionsByYear(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfSubmissionsByYear", data)
         return output
     }
 
@@ -4427,7 +4554,7 @@ class Module_admin_stats {
      */
     async getDistributionOfSubmissionsByYearForProglang(proglang: string): Promise<Record<string, number>> {
         const [output, ofiles] = await this.root.execute(
-            'admin.stats.getDistributionOfSubmissionsByYearForProglang',
+            "admin.stats.getDistributionOfSubmissionsByYearForProglang",
             proglang,
         )
         return output
@@ -4440,8 +4567,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfSubmissionsByDay(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfSubmissionsByDay', null)
+    async getDistributionOfSubmissionsByDay(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfSubmissionsByDay", data)
         return output
     }
 
@@ -4453,7 +4580,7 @@ class Module_admin_stats {
      *
      */
     async getHeatmapCalendarOfSubmissions(data: DateRange): Promise<any> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getHeatmapCalendarOfSubmissions', data)
+        const [output, ofiles] = await this.root.execute("admin.stats.getHeatmapCalendarOfSubmissions", data)
         return output
     }
 
@@ -4464,8 +4591,8 @@ class Module_admin_stats {
      * No warnings
      *
      */
-    async getDistributionOfDomains(): Promise<Record<string, number>> {
-        const [output, ofiles] = await this.root.execute('admin.stats.getDistributionOfDomains', null)
+    async getDistributionOfDomains(data: SubmitQuizOut): Promise<Record<string, number>> {
+        const [output, ofiles] = await this.root.execute("admin.stats.getDistributionOfDomains", data)
         return output
     }
 }
@@ -4490,7 +4617,7 @@ class Module_admin_problems {
      *
      */
     async getSolutions(problem_id: string): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('admin.problems.getSolutions', problem_id)
+        const [output, ofiles] = await this.root.execute("admin.problems.getSolutions", problem_id)
         return output
     }
 
@@ -4502,7 +4629,7 @@ class Module_admin_problems {
      *
      */
     async getSolutionAsB64(data: { problem_id: string; proglang: string }): Promise<string> {
-        const [output, ofiles] = await this.root.execute('admin.problems.getSolutionAsB64', data)
+        const [output, ofiles] = await this.root.execute("admin.problems.getSolutionAsB64", data)
         return output
     }
 
@@ -4513,9 +4640,9 @@ class Module_admin_problems {
      * No warnings
      *
      */
-    async getSolutionAsFile(data: { problem_id: string; proglang: string }): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('admin.problems.getSolutionAsFile', data)
-        return ofiles[0]
+    async getSolutionAsFile(data: { problem_id: string; proglang: string }): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("admin.problems.getSolutionAsFile", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -4526,7 +4653,7 @@ class Module_admin_problems {
      *
      */
     async getProblemSummary(problem_id: string): Promise<ProblemSummary | null> {
-        const [output, ofiles] = await this.root.execute('admin.problems.getProblemSummary', problem_id)
+        const [output, ofiles] = await this.root.execute("admin.problems.getProblemSummary", problem_id)
         return output
     }
 
@@ -4537,8 +4664,8 @@ class Module_admin_problems {
      * No warnings
      *
      */
-    async getProblemsWithSummary(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('admin.problems.getProblemsWithSummary', null)
+    async getProblemsWithSummary(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("admin.problems.getProblemsWithSummary", data)
         return output
     }
 
@@ -4549,8 +4676,8 @@ class Module_admin_problems {
      * No warnings
      *
      */
-    async getProblemsWithoutSummary(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('admin.problems.getProblemsWithoutSummary', null)
+    async getProblemsWithoutSummary(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("admin.problems.getProblemsWithoutSummary", data)
         return output
     }
 
@@ -4562,7 +4689,7 @@ class Module_admin_problems {
      *
      */
     async getAbstractProblemSolutionTags(data: { problem_nm: string }): Promise<SolutionTags | null> {
-        const [output, ofiles] = await this.root.execute('admin.problems.getAbstractProblemSolutionTags', data)
+        const [output, ofiles] = await this.root.execute("admin.problems.getAbstractProblemSolutionTags", data)
         return output
     }
 
@@ -4573,8 +4700,8 @@ class Module_admin_problems {
      * No warnings
      *
      */
-    async getAbstractProblemsWithSolutionTags(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('admin.problems.getAbstractProblemsWithSolutionTags', null)
+    async getAbstractProblemsWithSolutionTags(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("admin.problems.getAbstractProblemsWithSolutionTags", data)
         return output
     }
 
@@ -4585,8 +4712,8 @@ class Module_admin_problems {
      * No warnings
      *
      */
-    async getAbstractProblemsWithoutSolutionTags(): Promise<string[]> {
-        const [output, ofiles] = await this.root.execute('admin.problems.getAbstractProblemsWithoutSolutionTags', null)
+    async getAbstractProblemsWithoutSolutionTags(data: SubmitQuizOut): Promise<string[]> {
+        const [output, ofiles] = await this.root.execute("admin.problems.getAbstractProblemsWithoutSolutionTags", data)
         return output
     }
 }
@@ -4628,8 +4755,8 @@ class Module_testing_check {
      * No warnings
      *
      */
-    async checkUser(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('testing.check.checkUser', null)
+    async checkUser(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("testing.check.checkUser", data)
         return output
     }
 
@@ -4640,8 +4767,8 @@ class Module_testing_check {
      * No warnings
      *
      */
-    async checkInstructor(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('testing.check.checkInstructor', null)
+    async checkInstructor(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("testing.check.checkInstructor", data)
         return output
     }
 
@@ -4652,8 +4779,8 @@ class Module_testing_check {
      * No warnings
      *
      */
-    async checkAdmin(): Promise<void> {
-        const [output, ofiles] = await this.root.execute('testing.check.checkAdmin', null)
+    async checkAdmin(data: SubmitQuizOut): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("testing.check.checkAdmin", data)
         return output
     }
 
@@ -4664,8 +4791,8 @@ class Module_testing_check {
      * No warnings
      *
      */
-    async throwError(exception: string): Promise<void> {
-        const [output, ofiles] = await this.root.execute('testing.check.throwError', exception)
+    async throwError(exception: string): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("testing.check.throwError", exception)
         return output
     }
 }
@@ -4690,7 +4817,7 @@ class Module_testing_playground {
      *
      */
     async upload(data: Name, ifile: File): Promise<string> {
-        const [output, ofiles] = await this.root.execute('testing.playground.upload', data, [ifile])
+        const [output, ofiles] = await this.root.execute("testing.playground.upload", data, [ifile])
         return output
     }
 
@@ -4701,9 +4828,9 @@ class Module_testing_playground {
      * No warnings
      *
      */
-    async negate(ifile: File): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('testing.playground.negate', null, [ifile])
-        return ofiles[0]
+    async negate(data: SubmitQuizOut, ifile: File): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("testing.playground.negate", data, [ifile])
+        return [output, ofiles[0]]
     }
 
     /**
@@ -4713,9 +4840,9 @@ class Module_testing_playground {
      * No warnings
      *
      */
-    async download(data: Name): Promise<Download> {
-        const [output, ofiles] = await this.root.execute('testing.playground.download', data)
-        return ofiles[0]
+    async download(data: Name): Promise<[SubmitQuizOut, Download]> {
+        const [output, ofiles] = await this.root.execute("testing.playground.download", data)
+        return [output, ofiles[0]]
     }
 
     /**
@@ -4726,7 +4853,7 @@ class Module_testing_playground {
      *
      */
     async download2(data: Name): Promise<[string, Download]> {
-        const [output, ofiles] = await this.root.execute('testing.playground.download2', data)
+        const [output, ofiles] = await this.root.execute("testing.playground.download2", data)
         return [output, ofiles[0]]
     }
 
@@ -4737,8 +4864,8 @@ class Module_testing_playground {
      * No warnings
      *
      */
-    async ping(): Promise<string> {
-        const [output, ofiles] = await this.root.execute('testing.playground.ping', null)
+    async ping(data: SubmitQuizOut): Promise<string> {
+        const [output, ofiles] = await this.root.execute("testing.playground.ping", data)
         return output
     }
 
@@ -4750,7 +4877,7 @@ class Module_testing_playground {
      *
      */
     async toUpperCase(s: string): Promise<string> {
-        const [output, ofiles] = await this.root.execute('testing.playground.toUpperCase', s)
+        const [output, ofiles] = await this.root.execute("testing.playground.toUpperCase", s)
         return output
     }
 
@@ -4762,7 +4889,7 @@ class Module_testing_playground {
      *
      */
     async add2i(data: TwoInts): Promise<number> {
-        const [output, ofiles] = await this.root.execute('testing.playground.add2i', data)
+        const [output, ofiles] = await this.root.execute("testing.playground.add2i", data)
         return output
     }
 
@@ -4774,7 +4901,7 @@ class Module_testing_playground {
      *
      */
     async add2f(data: TwoFloats): Promise<number> {
-        const [output, ofiles] = await this.root.execute('testing.playground.add2f', data)
+        const [output, ofiles] = await this.root.execute("testing.playground.add2f", data)
         return output
     }
 
@@ -4786,7 +4913,7 @@ class Module_testing_playground {
      *
      */
     async inc(data: TwoInts): Promise<TwoInts> {
-        const [output, ofiles] = await this.root.execute('testing.playground.inc', data)
+        const [output, ofiles] = await this.root.execute("testing.playground.inc", data)
         return output
     }
 
@@ -4798,7 +4925,7 @@ class Module_testing_playground {
      *
      */
     async add3i(data: { a: number; b: number; c: number }): Promise<number> {
-        const [output, ofiles] = await this.root.execute('testing.playground.add3i', data)
+        const [output, ofiles] = await this.root.execute("testing.playground.add3i", data)
         return output
     }
 
@@ -4810,7 +4937,7 @@ class Module_testing_playground {
      *
      */
     async something(data: SomeType): Promise<SomeType> {
-        const [output, ofiles] = await this.root.execute('testing.playground.something', data)
+        const [output, ofiles] = await this.root.execute("testing.playground.something", data)
         return output
     }
 
@@ -4821,8 +4948,8 @@ class Module_testing_playground {
      * No warnings
      *
      */
-    async clock(): Promise<WebStream> {
-        const [output, ofiles] = await this.root.execute('testing.playground.clock', null)
+    async clock(data: SubmitQuizOut): Promise<WebStream> {
+        const [output, ofiles] = await this.root.execute("testing.playground.clock", data)
         return output
     }
 }
