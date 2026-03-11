@@ -390,6 +390,12 @@ The `test.ops` file can be used to specify some advanced low-level limits for th
 
 - `--maxcore`: Sets the maximum file size in MB of the core file (generated if the program crashes).
 
+Here is an example of a `test.ops` file:
+
+```
+--maxtime=10 --maxoutput=5
+```
+
 ## Solutions
 
 Each problem must have one golden solution and may have several alternative solutions in different programming languages. By default, the golden solution is C++, but can be changed in the `handler.yml` file with the `solution` field (e.g., `solution: Python3`).
