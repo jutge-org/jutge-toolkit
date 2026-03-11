@@ -7,6 +7,84 @@ import { readTextInDir, readYamlInDir } from './utils'
 
 const TESTCASE_NAME_REGEX = /^[a-zA-Z0-9_-]+$/
 
+type OpsValidationResult = { valid: true } | { valid: false; error: string }
+
+function validateOpsString(content: string): OpsValidationResult {
+    const tokens = content.replaceAll('\n', ' ').replaceAll('\r', ' ').trim().split(/\s+/)
+    let i = 0
+
+    const peek = (): string | undefined => tokens[i]
+    const consume = (): string | undefined => tokens[i++]
+
+    const isPositiveNumber = (s: string | undefined) =>
+        s !== undefined && /^\d+(\.\d+)?$/.test(s) && parseFloat(s) > 0
+
+    /** Consume next token; if it contains '=' (e.g. --opt=val), split and return [flag, value]. */
+    const consumeOpt = (): { flag: string; value: string | undefined } => {
+        const raw = consume()!
+        const eq = raw.indexOf('=')
+        if (eq >= 0 && raw.startsWith('--')) {
+            return { flag: raw.slice(0, eq), value: raw.slice(eq + 1) || undefined }
+        }
+        return { flag: raw, value: undefined }
+    }
+
+    const seen = new Set<string>()
+
+    while (i < tokens.length) {
+        const { flag, value: inline } = consumeOpt()
+
+        if (seen.has(flag)) {
+            return { valid: false, error: `Duplicate option: ${flag}` }
+        }
+        seen.add(flag)
+
+        const takeNumber = (): string | undefined => {
+            if (inline !== undefined) return inline
+            const next = peek()
+            if (next !== undefined && isPositiveNumber(next)) {
+                consume()
+                return next
+            }
+            return undefined
+        }
+
+        switch (flag) {
+            case '--maxtime': {
+                const cputime = takeNumber()
+                if (cputime === undefined) {
+                    return { valid: false, error: '--maxtime requires at least cputime as a positive number' }
+                }
+                if (i < tokens.length && isPositiveNumber(peek())) consume()
+                if (i < tokens.length && isPositiveNumber(peek())) consume()
+                break
+            }
+            case '--maxmem': {
+                const maxmem = takeNumber()
+                if (maxmem === undefined) {
+                    return { valid: false, error: '--maxmem requires maxmem as a positive number' }
+                }
+                if (i < tokens.length && isPositiveNumber(peek())) consume()
+                break
+            }
+            case '--maxfiles':
+            case '--maxprocs':
+            case '--maxoutput':
+            case '--maxcore': {
+                const val = takeNumber()
+                if (val === undefined) {
+                    return { valid: false, error: `${flag} requires a positive number` }
+                }
+                break
+            }
+            default:
+                return { valid: false, error: `Unknown option: ${flag}` }
+        }
+    }
+
+    return { valid: true }
+}
+
 export type LintSeverity = 'error' | 'warning'
 
 export interface LintIssue {
@@ -257,6 +335,34 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
                 }
             } catch {
                 // ignore stat errors (e.g. file removed); other lint will report missing .cor
+            }
+        }
+
+        // --- .ops files: must have matching .inp and valid content ---
+        const opsFiles = await Array.fromAsync(glob('*.ops', { cwd: dir }))
+        const opsBases = new Set(opsFiles.map((f) => f.replace(/\.ops$/, '')))
+        for (const base of opsBases) {
+            const inpPath = join(dir, `${base}.inp`)
+            if (!(await exists(inpPath))) {
+                issues.push(
+                    err(
+                        'OPS_WITHOUT_INP',
+                        'Each .ops file must have a matching .inp test case',
+                        `${base}.ops`,
+                    ),
+                )
+            }
+            const opsFile = `${base}.ops`
+            try {
+                const content = await readTextInDir(dir, opsFile)
+                const result = validateOpsString(content)
+                if (!result.valid) {
+                    issues.push(
+                        err('OPS_INVALID', result.error, opsFile),
+                    )
+                }
+            } catch {
+                issues.push(err('OPS_READ', `Could not read ${opsFile}`, opsFile))
             }
         }
 

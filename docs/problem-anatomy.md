@@ -371,7 +371,7 @@ Unfortunately, the distillation process requires some hand work and is not curre
 
 ### Test options
 
-The `test.ops` file can be used to specify some advanced low-level limits for the correction of the corresponding test case. The options should be written as if they were arguments of a program, with a space between each other. The following options are available:
+The `test.ops` file can be used to specify some advanced low-level limits for the correction of the corresponding test case. The options should be written in a line as if they were arguments of a program, with a space between each other. The following options are available:
 
 - `--maxtime`: Sets maximum execution time. It has three values: `cputime`, `limtime`, and `clktime`. You can specify only the `cputime`, the `cputime` and the `limtime`, or all of them.
     - `cputime` is the maximum time that the program has to use the CPU (processing instructions).
