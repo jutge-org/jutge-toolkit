@@ -52,6 +52,30 @@ export const Handler = z.object({
     checker: z.enum(['std', 'loosy', 'epsilon', 'elastic', 'elastic2', 'external']).default('std')
         .meta({ description: 'Checker to use for the problem' }),
 
+    separator: z.string().optional()
+        .meta({ description: 'Separator to use for the elastic checker' }),
+
+    separator1: z.string().optional()
+        .meta({ description: 'Separator to use for the elastic2 checker (first separator)' }),
+
+    separator2: z.string().optional()
+        .meta({ description: 'Separator to use for the elastic2 checker (second separator)' }),
+
+    starting: z.string().optional()
+        .meta({ description: 'Starting string to use for the elastic2 checker' }),
+
+    ending: z.string().optional()
+        .meta({ description: 'Ending string to use for the elastic2 checker' }),
+
+    external_program: z.string().optional()
+        .meta({ description: 'External program to use for the external checker' }),
+
+    epsilon: z.number().optional()
+        .meta({ description: 'Epsilon for the epsilon checker' }),
+
+    relative: z.boolean().optional()
+        .meta({ description: 'Relative mode for the epsilon checker' }),
+
     presentation_error: z.coerce.boolean().default(true)
         .meta({ description: 'Enable presentation error checker' }),
 
@@ -72,6 +96,31 @@ export const Handler = z.object({
         .meta({ description: 'Options for the game handler' }),
 
 })
+    .refine((data) => {        // If checker is elastic, separator must exist
+        return !(data.checker === 'elastic' && data.separator === undefined)
+    }, {
+        message: "Field 'separator' is required if 'checker' is 'elastic'",
+        path: ["checker"],
+    })
+    .refine((data) => {        // If checker is elastic2, separator1 and separator2 and starting and ending must exist
+        return !(data.checker === 'elastic2' && data.separator1 === undefined && data.separator2 === undefined && data.starting === undefined && data.ending === undefined)
+    }, {
+        message: "Fields 'separator1', 'separator2', 'starting' and 'ending' are required if 'checker' is 'elastic2'",
+        path: ["checker"],
+    })
+    .refine((data) => {        // If checker is external, external_program must exist
+        return !(data.checker === 'external' && data.external_program === undefined)
+    }, {
+        message: "Field 'external_program' is required if 'checker' is 'external'",
+        path: ["checker"],
+    })
+    .refine((data) => {        // If checker is epsilon, epsilon must exist
+        return !(data.checker === 'epsilon' && data.epsilon === undefined)
+    }, {
+        message: "Field 'epsilon' is required if 'checker' is 'epsilon'",
+        path: ["checker"],
+    })
+
 
 export type Handler = z.infer<typeof Handler>
 
