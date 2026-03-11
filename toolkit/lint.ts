@@ -7,7 +7,7 @@ import tui from '../lib/tui'
 export function formatLintIssue(issue: LintIssue): string {
     const prefix = issue.severity === 'error' ? chalk.red('error') : chalk.yellow('warning')
     const path = issue.path ? chalk.gray(` (${issue.path})`) : ''
-    return `  ${prefix} ${issue.code}: ${issue.message}${path}`
+    return `${prefix} ${issue.code}: ${issue.message}${path}`
 }
 
 export function printLintResults(results: LintResult[], directories: string[]): { hasError: boolean } {
@@ -24,7 +24,7 @@ export function printLintResults(results: LintResult[], directories: string[]): 
             for (const issue of result.issues) {
                 tui.print(formatLintIssue(issue))
             }
-            tui.error(`❌ ${errors.length} issue(s) found in ${tui.hyperlink(resolve(result.directory))}`)
+            tui.error(`❌ ${result.issues.length} issue(s) found in ${tui.hyperlink(resolve(result.directory))}`)
         }
     }
 

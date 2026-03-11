@@ -1,10 +1,9 @@
-import { exists, glob } from 'fs/promises'
+import { exists, glob, stat } from 'fs/promises'
 import { join, normalize, resolve } from 'path'
 import { languageNames } from './data'
 import { findRealDirectories } from './helpers'
 import { Handler, ProblemInfo, ProblemLangYml } from './types'
-import { readYamlInDir, readTextInDir } from './utils'
-import tui from './tui'
+import { readTextInDir, readYamlInDir } from './utils'
 
 const TESTCASE_NAME_REGEX = /^[a-zA-Z0-9_-]+$/
 
@@ -236,6 +235,28 @@ export async function lintDirectory(directory: string): Promise<LintResult> {
             }
             if (!inpBases.has(base)) {
                 issues.push(warn('ORPHAN_COR', `No .inp for .cor file; consider removing the .cor file`, `${base}.cor`))
+            }
+        }
+
+        // --- large .cor without .ops ---
+        const COR_SIZE_WARN_BYTES = 2 * 1024 * 1024 // 2MB
+        for (const base of inpBases) {
+            if (!corBases.has(base)) continue
+            const corPath = join(dir, `${base}.cor`)
+            const opsPath = join(dir, `${base}.ops`)
+            try {
+                const st = await stat(corPath)
+                if (st.size >= COR_SIZE_WARN_BYTES && !(await exists(opsPath))) {
+                    issues.push(
+                        warn(
+                            'COR_TOO_BIG',
+                            '.cor file too big, review test case or consider using --maxoutput in .ops file',
+                            `${base}.cor`,
+                        ),
+                    )
+                }
+            } catch {
+                // ignore stat errors (e.g. file removed); other lint will report missing .cor
             }
         }
 
