@@ -89,7 +89,7 @@ Problem statements are stored in LaTeX files named `problem.lang.tex`, where `la
 
 ### Demo problem
 
-The clonable `demo` problem contains an example of a problem statement with many features that can be used in your own problem statements; see [demo.tex](demo.tex) for examples and inspiration.
+The clonable `demo` problem contains an example of a problem statement with many features that can be used in your own problem statements; see [demo.tex](../assets/problems/demo/demo.pbm/problem.en.tex) for examples and inspiration.
 
 ### Structure
 
