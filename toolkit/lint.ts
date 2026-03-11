@@ -1,8 +1,8 @@
 import { Command } from '@commander-js/extra-typings'
 import chalk from 'chalk'
+import { resolve } from 'path'
 import { lintDirectories, type LintIssue, type LintResult } from '../lib/lint'
 import tui from '../lib/tui'
-import { nothing } from '../lib/utils'
 
 export function formatLintIssue(issue: LintIssue): string {
     const prefix = issue.severity === 'error' ? chalk.red('error') : chalk.yellow('warning')
@@ -10,7 +10,7 @@ export function formatLintIssue(issue: LintIssue): string {
     return `  ${prefix} ${issue.code}: ${issue.message}${path}`
 }
 
-export async function printLintResults(results: LintResult[], directories: string[]): Promise<{ hasError: boolean }> {
+export function printLintResults(results: LintResult[], directories: string[]): { hasError: boolean } {
     let hasError = false
     for (const result of results) {
         const errors = result.issues.filter((i) => i.severity === 'error')
@@ -19,15 +19,12 @@ export async function printLintResults(results: LintResult[], directories: strin
         const dirLabel =
             result.directory === directories[0] && results.length === 1 ? result.directory : result.directory
         if (result.issues.length === 0) {
-            tui.print(chalk.green('✓') + ' ' + dirLabel + ' ' + chalk.gray('— no issues'))
+            tui.success(`✅ No issues found in ${tui.hyperlink(resolve(result.directory))}`)
         } else {
-            tui.print()
-            await tui.section(`Linting ${dirLabel}`, async () => {
-                await nothing()
-                for (const issue of result.issues) {
-                    tui.print(formatLintIssue(issue))
-                }
-            })
+            for (const issue of result.issues) {
+                tui.print(formatLintIssue(issue))
+            }
+            tui.error(`❌ ${errors.length} issue(s) found in ${tui.hyperlink(resolve(result.directory))}`)
         }
     }
 
@@ -46,18 +43,16 @@ export async function printLintResults(results: LintResult[], directories: strin
 export const lintCmd = new Command('lint')
     .summary('Lint a problem directory')
 
-    .argument('[directory]', 'problem directory to lint', '.')
+    .option('-d, --directory <directory>', 'problem directory', '.')
 
-    .action(async (directory: string) => {
-        const results = await lintDirectories([directory])
+    .action(async ({ directory }) => {
 
-        if (results.length === 0) {
-            tui.warning('No problem directories found (looked for handler.yml in the given path(s)).')
-            return
-        }
-
-        const { hasError } = await printLintResults(results, [directory])
-        if (hasError) {
-            process.exitCode = 1
-        }
+        await tui.section(`Linting ${tui.hyperlink(resolve(directory))}`, async () => {
+            const results = await lintDirectories([directory])
+            if (results.length === 0) throw new Error('No problem directories found (looked for handler.yml in the given path(s)).')
+            const { hasError } = printLintResults(results, [directory])
+            if (hasError) {
+                process.exitCode = 1
+            }
+        })
     })
