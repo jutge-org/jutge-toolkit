@@ -53,7 +53,7 @@ echo ""
 
 # Checking dependencies
 echo "🔍 Checking for outdated dependencies..."
-bun run depcheck
+bun run depcheck 
 
 # Build the project
 echo "🔨 Building project..."
@@ -61,13 +61,14 @@ bun run build
 echo "✅ Build completed successfully"
 echo ""
 
-# Login to npm
-echo "🔐 Logging in to npm..."
-echo "Please enter your npm credentials:"
-bunx npm login
-echo "✅ Logged in to npm"
+# Check npm auth (token is stored in ~/.npmrc after first 'npm login')
+echo "🔐 Checking npm authentication..."
+if ! bunx npm whoami &>/dev/null; then
+    echo "❌ Error: Not logged in to npm. Run 'bunx npm login' once, then run this script again."
+    exit 1
+fi
+echo "✅ Authenticated as $(bunx npm whoami)"
 echo ""
-
 
 # Ask for confirmation before publishing
 echo "📤 Ready to publish version $NEW_VERSION to npm"
