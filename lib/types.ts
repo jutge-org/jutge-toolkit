@@ -4,26 +4,69 @@ export const ProblemOriginalLangYml = z.object({
     title: z.string(),
     author: z.string(),
     email: z.string(),
+    model: z.string().optional(),
 })
 
 export const ProblemTranslationLangYml = z.object({
     title: z.string(),
     translator: z.string(),
     translator_email: z.string(),
+    original_language: z.string(),
+    model: z.string().optional(),
 })
 
 export const ProblemLangYml = z.union([ProblemOriginalLangYml, ProblemTranslationLangYml])
+
+export const PyLibsEnum = z.enum([
+    'beautifulsoup4',
+    'biopython',
+    'matplotlib',
+    'more - itertools',
+    'networkx',
+    'numpy',
+    'optilog',
+    'pandas',
+    'scipy',
+    'simpy',
+])
 
 export const Handler = z.object({
     handler: z.enum(['std', 'graphic', 'quiz', 'circuits', 'game']).default('std'),
     solution: z.string().default('C++'),
     source_modifier: z.enum(['none', 'no_main', 'structs']).default('none'),
     compilers: z.string().optional(),
+
+    func_name: z.string().optional()
+        .meta({ description: 'Name of the function requested in case the problem only asks for a function (use with source_modifier: "no_main")' }),
+
+    hide_html: z.boolean().default(false)
+        .meta({ description: 'If set to true, the statement will not be shown in HTML in the Jutge.org website; use it sparingly' }),
+
+    invisible_main: z.boolean().default(false)
+        .meta({ description: 'If set to true, the main programs will not be provided to users; use it sparingly' }),
+
+    checker: z.enum(['std', 'loosy', 'epsilon', 'elastic', 'elastic2', 'external']).default('std')
+        .meta({ description: 'Checker to use for the problem' }),
+
+    presentation_error: z.coerce.boolean().default(true)
+        .meta({ description: 'Enable presentation error checker' }),
+
+    tolerance: z.number().optional()
+        .meta({ description: 'Tolerance for the graphic checker' }),
+
+    pylibs: z.array(PyLibsEnum).default([])
+        .meta({ description: 'List of enabled Python libraries' }),
+
+    inspector: z.enum(['hs']).optional()
+        .meta({ description: 'Inspector to use for the problem' }),
+
     game: z
         .object({
             hide: z.array(z.string()).default([]),
         })
-        .optional(),
+        .optional()
+        .meta({ description: 'Options for the game handler' }),
+
 })
 
 export type Handler = z.infer<typeof Handler>

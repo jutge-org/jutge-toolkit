@@ -246,6 +246,8 @@ There are also optional arguments that may be used:
 
 - `presentation_error`: If set to `1` (by default), the PE (Presentation Error) verdict will be enabled. Otherwise, the verdict will be WA (Wrong Answer) if the files are not identical.
 
+- `tolerance`: Tolerance for the graphic checker. It is a number between 0 and 1.
+
 - `solution`: Programming language of the golden solution. By default, it is C++. Currently supported programming languages are C, C++, Java, Python3, Haskell, Clojure, Rust, RunPython, RunHaskell, and RunClojure.
 
 - `pylibs`: Problems in Python can allow the usage of certain non-standard Python libraries. `pylibs` is a list of libraries that may be used to solve the current problem. For instance, `pylibs: [numpy, networkx]`. By default, this list is empty. Available libraries are at https://jutge.org/documentation/pylibs.
