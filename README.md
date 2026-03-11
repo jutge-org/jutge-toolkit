@@ -146,6 +146,9 @@ jtk stage                           # Stage problem for Jutge.org
 # Publishing
 jtk upload                          # Upload problem to Jutge.org
 
+# Removing
+jtk remove                          # Remove problem from Jutge.org
+
 # Testing
 jtk submit -l en candidate.py       # Submit a candidate solution to Jutge.org
 
