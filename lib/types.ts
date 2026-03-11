@@ -5,6 +5,8 @@ export const ProblemOriginalLangYml = z.object({
     author: z.string(),
     email: z.string(),
     model: z.string().optional(),
+    event: z.string().optional(),
+    date: z.string().optional(),
 })
 
 export const ProblemTranslationLangYml = z.object({
@@ -13,6 +15,8 @@ export const ProblemTranslationLangYml = z.object({
     translator_email: z.string(),
     original_language: z.string(),
     model: z.string().optional(),
+    event: z.string().optional(),
+    date: z.string().optional(),
 })
 
 export const ProblemLangYml = z.union([ProblemOriginalLangYml, ProblemTranslationLangYml])

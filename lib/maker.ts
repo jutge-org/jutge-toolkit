@@ -408,6 +408,10 @@ export class Maker {
         const author = this.problem.problemLangYmls[this.problem.originalLanguage!].author || 'Unknown'
         const authorEmail = this.problem.problemLangYmls[this.problem.originalLanguage!].author_email || 'unknown email'
         const translator = this.problem.problemLangYmls[language].translator || ''
+        const event = this.problem.problemLangYmls[language].event ||
+            this.problem.problemLangYmls[this.problem.originalLanguage!].event
+        const eventDate = this.problem.problemLangYmls[language].date ||
+            this.problem.problemLangYmls[this.problem.originalLanguage!].date
 
         const [samples1c, samples2c] = await this.makeSamples(tmpDir, language)
 
@@ -428,6 +432,8 @@ export class Maker {
             translator,
             date,
             year,
+            event,
+            eventDate,
         })
 
         // copy files to tmpDir
@@ -481,6 +487,9 @@ export class Maker {
                 stderr: 'inherit',
                 // stdout: 'inherit',
                 cwd: tmpDir,
+                env: {
+                    max_print_line: '100000', // avoid ragged lines in the log file
+                },
             })`xelatex -no-shell-escape -interaction=nonstopmode -file-line-error root.tex`
             await cp(join(tmpDir, 'root.pdf'), join(this.problem.directory, `problem.${language}.pdf`))
             tui.success(
@@ -749,11 +758,11 @@ export class Maker {
                     const status = result.error
                         ? 'EE'
                         : (await filesAreEqual(
-                                join(this.problem.directory, `${result.testcase}.cor`),
-                                join(this.problem.directory, `${toolkitPrefix()}-${result.testcase}.${extension}.out`),
-                            ))
-                          ? 'OK'
-                          : 'WA'
+                            join(this.problem.directory, `${result.testcase}.cor`),
+                            join(this.problem.directory, `${toolkitPrefix()}-${result.testcase}.${extension}.out`),
+                        ))
+                            ? 'OK'
+                            : 'WA'
                     const time = prettyMs(result.time)
                     tui.print(
                         (status !== 'OK' ? chalk.red : chalk.green)(

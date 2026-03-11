@@ -70,10 +70,8 @@
     \def\PbmId{#1}
 }
 
-\def\PbmEvent{}
-\newcommand{\ProblemEvent}[1]{
-    \def\PbmEvent{\\#1}
-}
+\newcommand{\Event}{{\TxtEvent{}}}
+\newcommand{\EventDate}{{\TxtEventDate{}}}
 
 \newcommand{\Statement}{
     \vspace*{-2cm}
@@ -85,7 +83,6 @@
 
     \hrule~\\[1mm]
     {\Large{\textbf{\PbmTitle\hfill\PbmId}}}
-    \PbmEvent
     \vspace*{2mm}
     \hrule
     \bigskip

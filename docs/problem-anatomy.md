@@ -188,11 +188,18 @@ updated_at: 2026-01-13T12:47:12.884Z
 
 Statement metadata is stored using YAML syntax in files named `problem.lang.yml`, where `lang` denotes the language code for which the metadata is given (`en`, `es`, `ca`, ...).
 
+A problem should have one unique original language and may have several translations. All translations should refer to the same original language. The system will find the original author through it.
+
 In the case that `lang` denotes the original language of the problem, `problem.lang.yml` should contain the following fields:
 
 - `title`: Title of the problem in the original language.
 - `author`: Full name of the problem setter.
 - `email`: Email of the problem setter.
+
+It can also contain the following fields:
+
+- `event`: Name of the event for which the problem was created.
+- `date`: Date of the event for which the problem was created.
 
 If `lang` denotes a translation, `problem.lang.yml` should contain the following fields:
 
@@ -201,7 +208,12 @@ If `lang` denotes a translation, `problem.lang.yml` should contain the following
 - `translator_email`: Email of the problem translator.
 - `original_language`: Code for the original language of the problem.
 
-A problem should have one unique original language and may have several translations. All translations should refer to the same original language [CHECK]. The system will find the original author through it.
+It can also contain the following fields:
+
+- `event`: Name of the event for which the problem was created.
+- `date`: Date of the event for which the problem was created.
+
+If the `event` and `date` fields are not given for a translation, the system will use the values of the original language.
 
 All the values for the metadata fields should be given as Unicode-based plain text. Remember to enclose them in quotes if they contain special characters such as `:` or `'`.
 
