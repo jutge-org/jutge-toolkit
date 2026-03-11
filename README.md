@@ -137,6 +137,7 @@ jtk generate solutions python cpp   # Generate solutions in other languages
 jtk make                            # Build all problem elements
 jtk make pdf                        # Generate PDF statements only
 jtk verify <program>                # Test a solution
+jtk lint                            # Lint (analyze for errors and warnings) the problem
 jtk clean                           # Clean temporary files
 
 # Staging
