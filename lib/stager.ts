@@ -517,6 +517,7 @@ export class Stager {
             for (const extension of proglangExtensionKeys) {
                 if (filename === `solution.${extension}`) return true
                 if (filename === `main.${extension}`) return true
+                if (filename === `code.${extension}`) return true
             }
             if (filename === 'scores.yml') return true
 
