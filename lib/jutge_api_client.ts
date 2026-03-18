@@ -1,5 +1,5 @@
 /**
- * This file has been automatically generated at 2026-03-11T16:58:18.945Z
+ * This file has been automatically generated at 2026-03-18T08:54:29.955Z
  *
  * Name:    Jutge API
  * Version: 2.0.0
@@ -844,6 +844,12 @@ export type ProblemAnonymousSubmission = {
     verdict: string
     compiler_id: string
     proglang: string
+}
+
+export type ShareWithInp = {
+    problem_nm: string
+    emails: string[]
+    text: string
 }
 
 export type SubmissionQuery = {
@@ -3604,6 +3610,18 @@ class Module_instructor_problems {
      */
     async getAllSharingSettings(data: SubmitQuizOut): Promise<SharingSettings[]> {
         const [output, ofiles] = await this.root.execute("instructor.problems.getAllSharingSettings", data)
+        return output
+    }
+
+    /**
+     * Share a problem with users.
+     *
+     * 🔐 Authentication: instructor
+     * No warnings
+     *
+     */
+    async shareWith(data: ShareWithInp): Promise<SubmitQuizOut> {
+        const [output, ofiles] = await this.root.execute("instructor.problems.shareWith", data)
         return output
     }
 

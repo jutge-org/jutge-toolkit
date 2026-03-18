@@ -35,7 +35,7 @@ export async function showSharingSettings(directory: string): Promise<void> {
         await writeYamlInDir(dir, 'problem.yml', info)
         tui.success('problem.yml updated')
     })
-    await tui.section('Current sharing settings:', async () => {
+    await tui.section('Current sharing settings', async () => {
         await nothing()
         const settings = {
             problem_nm: info.problem_nm,
@@ -111,5 +111,19 @@ export async function updateSharingSettings(directory: string, options: UpdateSh
             }
             tui.yaml(settings)
         })
+    })
+}
+
+
+export async function shareWith(directory: string, emails: string[], text: string): Promise<void> {
+    const dir = resolve(directory)
+    const info = await ensureProblemYml(dir)
+    const jutge = await getLoggedInJutgeClient()
+
+    await tui.section('Sharing passcode with users', async () => {
+        tui.print(`Sharing problem ${info.problem_nm} with`)
+        tui.yaml(emails)
+        await jutge.instructor.problems.shareWith({ problem_nm: info.problem_nm, emails, text })
+        tui.success('Done')
     })
 }
