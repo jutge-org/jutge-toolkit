@@ -223,7 +223,7 @@ export async function generateTestCasesGenerator(
     const outputPath = Handlebars.compile(output)({ type })
     await tui.section(`Generating test cases generator ${outputPath}`, async () => {
         const statement = await getStatementAsText(problem)
-        const promptPath = join(projectDir(), 'assets', 'prompts', 'generators', `${type}.md`)
+        const promptPath = join(projectDir(), 'assets', 'prompts', 'io', 'generators', `${type}.md`)
         const promptTemplate = await readText(promptPath)
         const prompt = Handlebars.compile(promptTemplate)({ statement })
         const answer = cleanMarkdownCodeString(
