@@ -178,7 +178,7 @@ export class Stager {
             for (const language of languages) {
                 const langDir = join(this.workDir, language)
                 await mkdir(langDir, { recursive: true })
-                const files = await Array.fromAsync(glob(`*`, { cwd: this.directory }))
+                const files = await Array.fromAsync(glob(`{*,.vscode}`, { cwd: this.directory }))
                 for (const file of files) {
                     if (this.doNotCopy(file, language)) continue
                     await cp(join(this.directory, file), join(langDir, file), {
@@ -202,7 +202,7 @@ export class Stager {
                 const incommingPbmDirWithLang = join(this.directory, language)
                 const langDir = join(this.workDir, language)
                 await mkdir(langDir, { recursive: true })
-                const files = await Array.fromAsync(glob(`*`, { cwd: incommingPbmDirWithLang }))
+                const files = await Array.fromAsync(glob(`{*,.vscode}`, { cwd: incommingPbmDirWithLang }))
                 for (const file of files) {
                     if (this.doNotCopy(file, language)) continue
                     await cp(join(incommingPbmDirWithLang, file), join(langDir, file), {
