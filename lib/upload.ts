@@ -53,6 +53,18 @@ export async function uploadProblemInDirectory(directory: string): Promise<void>
                 filesToArchive.push({ sourcePath, archivePath })
             }
         }
+        // Add .vscode JSON files from public/ if they exist
+        const vscodeDir = join(directory, 'public', '.vscode')
+        if (await exists(vscodeDir)) {
+            const vscodeFiles = await Array.fromAsync(glob('*.json', { cwd: vscodeDir }))
+            for (const file of vscodeFiles) {
+                const sourcePath = join(vscodeDir, file)
+                const archivePath = join(basename(dir), 'public', '.vscode', file)
+                tui.print(`adding ${archivePath}`)
+                filesToArchive.push({ sourcePath, archivePath })
+            }
+        }
+
         tui.print('Creating zip file...')
         await createZipFromFiles(filesToArchive, zipFilePath)
         const info = await createOrUpdateProblem(directory, zipFilePath)
