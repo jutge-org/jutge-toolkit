@@ -51,8 +51,8 @@ program.addCommand(submitCmd)
 program.addCommand(convertCmd)
 program.addCommand(stageCmd)
 program.addCommand(doctorCmd)
+program.addCommand(quizCmd)
 if (settings.developer) {
-    program.addCommand(quizCmd)
     program.addCommand(compilersCmd)
 }
 program.addCommand(configCmd)
