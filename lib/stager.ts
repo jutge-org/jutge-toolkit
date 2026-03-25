@@ -532,6 +532,9 @@ export class Stager {
             if (filename === 'solution.cc') return true
             if (filename === 'solution.hh') return true
 
+            // RunPython doctest sample
+            if (filename === 'sample.dt') return true
+
             return false
         }
 
