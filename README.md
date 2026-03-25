@@ -112,12 +112,13 @@ For a complete walkthrough, see the [Getting Started Guide](docs/getting-started
 - **[Problem Anatomy](docs/problem-anatomy.md)** - Understanding problem structure and files
 - **[Quiz Anatomy](docs/quiz-anatomy.md)** - Understanding quiz problems and question types
 - **[JutgeAI Features](docs/jutge-ai.md)** - Using AI to generate content
+- **[Command Reference](docs/reference.md)** - Complete reference of all commands and options
 
 ### Installation Guides
 
-- **[Linux Installation](docs/linux-installation.md)** - Installation steps for Linux
-- **[macOS Installation](docs/macos-installation.md)** - Installation steps for macOS
-- **[Windows Installation](docs/windows-installation.md)** - Installation steps for Windows
+- **[Linux Installation](docs/install-linux.md)** - Installation steps for Linux
+- **[macOS Installation](docs/install-macos.md)** - Installation steps for macOS
+- **[Windows Installation](docs/install-windows.md)** - Installation steps for Windows
 
 ## Common Commands
 

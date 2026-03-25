@@ -260,7 +260,7 @@ export async function checkPython3(): Promise<void> {
     tui.print(version)
     if (result) {
         tui.success('Python3 seems installed')
-        const modules = 'turtle-pil yogi easyinput'.split(' ')
+        const modules = 'turtle-pil yogi easyinput multimetric'.split(' ')
         for (const m of modules) {
             tui.command(`python3 -m pip show ${m}`)
             const { result: isModuleInstalled } = await checkPythonModuleMemoized(m)

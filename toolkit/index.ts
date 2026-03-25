@@ -25,6 +25,7 @@ import { askCmd } from './ask'
 import { convertCmd } from './convert'
 import { stageCmd } from './stage'
 import { lintCmd } from './lint'
+import { metricsCmd } from './metrics'
 import { completeInternalCmd, completionCmd } from './completion'
 import { dummiesCmd } from './dummies'
 
@@ -45,12 +46,13 @@ program.addCommand(downloadCmd)
 program.addCommand(generateCmd)
 program.addCommand(verifyCmd)
 program.addCommand(lintCmd)
+program.addCommand(metricsCmd)
 program.addCommand(submitCmd)
 program.addCommand(convertCmd)
 program.addCommand(stageCmd)
 program.addCommand(doctorCmd)
+program.addCommand(quizCmd)
 if (settings.developer) {
-    program.addCommand(quizCmd)
     program.addCommand(compilersCmd)
 }
 program.addCommand(configCmd)
