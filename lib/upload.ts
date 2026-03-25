@@ -64,6 +64,13 @@ export async function uploadProblemInDirectory(directory: string): Promise<void>
                 filesToArchive.push({ sourcePath, archivePath })
             }
         }
+        // Add .clang-format from public/ if it exists
+        const clangFormatPath = join(directory, 'public', '.clang-format')
+        if (await exists(clangFormatPath)) {
+            const archivePath = join(basename(dir), 'public', '.clang-format')
+            tui.print(`adding ${archivePath}`)
+            filesToArchive.push({ sourcePath: clangFormatPath, archivePath })
+        }
 
         tui.print('Creating zip file...')
         await createZipFromFiles(filesToArchive, zipFilePath)
