@@ -43,10 +43,10 @@ export const Handler = z.object({
     func_name: z.string().optional()
         .meta({ description: 'Name of the function requested in case the problem only asks for a function (use with source_modifier: "no_main")' }),
 
-    hide_html: z.boolean().default(false)
+    hide_html: z.coerce.boolean().default(false)
         .meta({ description: 'If set to true, the statement will not be shown in HTML in the Jutge.org website; use it sparingly' }),
 
-    invisible_main: z.boolean().default(false)
+    invisible_main: z.coerce.boolean().default(false)
         .meta({ description: 'If set to true, the main programs will not be provided to users; use it sparingly' }),
 
     time_factor: z.array(z.number()).min(1).max(3).optional()
@@ -79,7 +79,7 @@ export const Handler = z.object({
     epsilon: z.number().optional()
         .meta({ description: 'Epsilon for the epsilon checker' }),
 
-    relative: z.boolean().optional()
+    relative: z.coerce.boolean().optional()
         .meta({ description: 'Relative mode for the epsilon checker' }),
 
     presentation_error: z.coerce.boolean().default(true)
