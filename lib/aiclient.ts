@@ -117,7 +117,18 @@ export function cleanMarkdownCodeString(s: string): string {
 
 
 // prices in USD per 1M tokens
+// do not delete old models, they are in the db
+
 const prices = {
+    'openai/gpt-6-sol': {
+        input: 2.0,
+        output: 10.0,
+    },
+    'openai/gpt-6-luna': {
+        input: 0.10,
+        output: 0.50,
+    },
+
     'openai/gpt-5.4': {
         input: 2.5,
         output: 15.0,

@@ -50,7 +50,7 @@ Before we dive into configuration, it's important to know how to get help:
 
     ```bash
     jtk ask "How to create a new problem?"
-    jtk ask "Com puc crear un problema nou?" --model "openai/gpt-5-nano"
+    jtk ask "Com puc crear un problema nou?" --model "openai/gpt-6-luna"
     ```
 
     For this to work, you need to have set up an AI API key (see your platform-specific installation guide).

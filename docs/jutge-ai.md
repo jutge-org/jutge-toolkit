@@ -43,8 +43,9 @@ Google Gemini is fast and free for UPC users but its rate limits are so low it i
 
 Available models:
 
-- google/gemini-2.5-flash
 - google/gemini-2.5-flash-lite
+- google/gemini-2.5-flash
+- google/gemini-2.5-pro
 
 ### OpenAI GPT
 
@@ -52,16 +53,14 @@ OpenAI is slower but more reliable and has a higher rate limit. However, it is n
 
 Available models:
 
-- openai/gpt-5-nano
-- openai/gpt-5-mini
-- openai/gpt-4.1-nano
-- openai/gpt-4.1-mini
+- openai/gpt-6-luna
+- openai/gpt-6-sol
 
 See https://platform.openai.com/docs/pricing for the pricing of the OpenAI models.
 
 ### Recommendation
 
-Try to use `gpt-4.1-nano` or `gpt-4.1-mini` for the quickest results. If you need more reliable results, use `gpt-5-nano` or `gpt-5-mini`. As could be expected, the larger the model, the more reliable the results and the slower the generation.
+Do not use Gemini with UPC key. Try to use `gpt-6-luna` for the quickest (and cheaper!) results. If you need more power, use `gpt-6-sol`.
 
 # Jutge<sup>AI</sup> costs
 
