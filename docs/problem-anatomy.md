@@ -355,7 +355,7 @@ In addition, there must be no spaces before a line break. In particular, there m
 
 ### Sample test cases
 
-Sample test cases that contain `sample` in their filename and will be revealed to users in the problem statement. As such, they should make clear the format of the input and the output for the problem and should be reasonably short.
+Sample test cases contain `sample` (yes: _contain_, no _start with_) in their filename and will be revealed to users in the problem statement. As such, they should make clear the format of the input and the output for the problem and should be reasonably short.
 
 ### Public test cases
 
