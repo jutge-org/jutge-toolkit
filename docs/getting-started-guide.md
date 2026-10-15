@@ -84,7 +84,7 @@ Before using the toolkit, you should configure it with your preferences:
 2. **Set a configuration value:**
 
     ```bash
-    jtk config set defaultModel "google/gemini-2.5-flash"
+    jtk config set defaultModel "openai/gpt-6-luna"
     ```
 
 3. **Edit configuration interactively:**

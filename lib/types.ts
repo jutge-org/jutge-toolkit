@@ -34,101 +34,136 @@ export const PyLibsEnum = z.enum([
     'simpy',
 ])
 
-export const Handler = z.object({
-    handler: z.enum(['std', 'graphic', 'quiz', 'circuits', 'game']).default('std'),
-    solution: z.string().default('C++'),
-    source_modifier: z.enum(['none', 'no_main', 'structs']).default('none'),
-    compilers: z.string()
-        .regex(/^\S*$/, { message: 'Despite its name, "compilers" must be a single word. It is not a list of compilers. See the documentation.' })
-        .optional(),
+export const Handler = z
+    .object({
+        handler: z.enum(['std', 'graphic', 'quiz', 'circuits', 'game']).default('std'),
+        solution: z.string().default('C++'),
+        source_modifier: z.enum(['none', 'no_main', 'structs']).default('none'),
+        compilers: z
+            .string()
+            .regex(/^\S*$/, {
+                message:
+                    'Despite its name, "compilers" must be a single word. It is not a list of compilers. See the documentation.',
+            })
+            .optional(),
 
-    func_name: z.string().optional()
-        .meta({ description: 'Name of the function requested in case the problem only asks for a function (use with source_modifier: "no_main")' }),
+        func_name: z
+            .string()
+            .optional()
+            .meta({
+                description:
+                    'Name of the function requested in case the problem only asks for a function (use with source_modifier: "no_main")',
+            }),
 
-    hide_html: z.coerce.boolean().default(false)
-        .meta({ description: 'If set to true, the statement will not be shown in HTML in the Jutge.org website; use it sparingly' }),
+        hide_html: z.coerce
+            .boolean()
+            .default(false)
+            .meta({
+                description:
+                    'If set to true, the statement will not be shown in HTML in the Jutge.org website; use it sparingly',
+            }),
 
-    invisible_main: z.coerce.boolean().default(false)
-        .meta({ description: 'If set to true, the main programs will not be provided to users; use it sparingly' }),
+        invisible_main: z.coerce
+            .boolean()
+            .default(false)
+            .meta({ description: 'If set to true, the main programs will not be provided to users; use it sparingly' }),
 
-    time_factor: z.array(z.number()).min(1).max(3).optional()
-        .meta({ description: 'Time factor' }),
+        time_factor: z.array(z.number()).min(1).max(3).optional().meta({ description: 'Time factor' }),
 
-    time_constant: z.array(z.number()).min(1).max(3).optional()
-        .meta({ description: 'Time constant' }),
+        time_constant: z.array(z.number()).min(1).max(3).optional().meta({ description: 'Time constant' }),
 
-    checker: z.enum(['std', 'loosy', 'epsilon', 'elastic', 'elastic2', 'external']).default('std')
-        .meta({ description: 'Checker to use for the problem' }),
+        checker: z
+            .enum(['std', 'loosy', 'epsilon', 'elastic', 'elastic2', 'external'])
+            .default('std')
+            .meta({ description: 'Checker to use for the problem' }),
 
-    separator: z.string().optional()
-        .meta({ description: 'Separator to use for the elastic checker' }),
+        separator: z.string().optional().meta({ description: 'Separator to use for the elastic checker' }),
 
-    separator1: z.string().optional()
-        .meta({ description: 'Separator to use for the elastic2 checker (first separator)' }),
+        separator1: z
+            .string()
+            .optional()
+            .meta({ description: 'Separator to use for the elastic2 checker (first separator)' }),
 
-    separator2: z.string().optional()
-        .meta({ description: 'Separator to use for the elastic2 checker (second separator)' }),
+        separator2: z
+            .string()
+            .optional()
+            .meta({ description: 'Separator to use for the elastic2 checker (second separator)' }),
 
-    starting: z.string().optional()
-        .meta({ description: 'Starting string to use for the elastic2 checker' }),
+        starting: z.string().optional().meta({ description: 'Starting string to use for the elastic2 checker' }),
 
-    ending: z.string().optional()
-        .meta({ description: 'Ending string to use for the elastic2 checker' }),
+        ending: z.string().optional().meta({ description: 'Ending string to use for the elastic2 checker' }),
 
-    external_program: z.string().optional()
-        .meta({ description: 'External program to use for the external checker' }),
+        external_program: z
+            .string()
+            .optional()
+            .meta({ description: 'External program to use for the external checker' }),
 
-    epsilon: z.number().optional()
-        .meta({ description: 'Epsilon for the epsilon checker' }),
+        epsilon: z.number().optional().meta({ description: 'Epsilon for the epsilon checker' }),
 
-    relative: z.coerce.boolean().optional()
-        .meta({ description: 'Relative mode for the epsilon checker' }),
+        relative: z.coerce.boolean().optional().meta({ description: 'Relative mode for the epsilon checker' }),
 
-    presentation_error: z.coerce.boolean().default(true)
-        .meta({ description: 'Enable presentation error checker' }),
+        presentation_error: z.coerce.boolean().default(true).meta({ description: 'Enable presentation error checker' }),
 
-    tolerance: z.number().optional()
-        .meta({ description: 'Tolerance for the graphic checker' }),
+        tolerance: z.number().optional().meta({ description: 'Tolerance for the graphic checker' }),
 
-    pylibs: z.array(PyLibsEnum).default([])
-        .meta({ description: 'List of enabled Python libraries' }),
+        pylibs: z.array(PyLibsEnum).default([]).meta({ description: 'List of enabled Python libraries' }),
 
-    inspector: z.enum(['hs']).optional()
-        .meta({ description: 'Inspector to use for the problem' }),
+        inspector: z.enum(['hs']).optional().meta({ description: 'Inspector to use for the problem' }),
 
-    game: z
-        .object({
-            hide: z.array(z.string()).default([]),
-        })
-        .optional()
-        .meta({ description: 'Options for the game handler' }),
-
-})
-    .refine((data) => {        // If checker is elastic, separator must exist
-        return !(data.checker === 'elastic' && data.separator === undefined)
-    }, {
-        message: "Field 'separator' is required if 'checker' is 'elastic'",
-        path: ["checker"],
+        game: z
+            .object({
+                hide: z.array(z.string()).default([]),
+            })
+            .optional()
+            .meta({ description: 'Options for the game handler' }),
     })
-    .refine((data) => {        // If checker is elastic2, separator1 and separator2 and starting and ending must exist
-        return !(data.checker === 'elastic2' && (data.separator1 === undefined || data.separator2 === undefined || data.starting === undefined || data.ending === undefined))
-    }, {
-        message: "Fields 'separator1', 'separator2', 'starting' and 'ending' are required if 'checker' is 'elastic2'",
-        path: ["checker"],
-    })
-    .refine((data) => {        // If checker is external, external_program must exist
-        return !(data.checker === 'external' && data.external_program === undefined)
-    }, {
-        message: "Field 'external_program' is required if 'checker' is 'external'",
-        path: ["checker"],
-    })
-    .refine((data) => {        // If checker is epsilon, epsilon must exist
-        return !(data.checker === 'epsilon' && data.epsilon === undefined)
-    }, {
-        message: "Field 'epsilon' is required if 'checker' is 'epsilon'",
-        path: ["checker"],
-    })
-
+    .refine(
+        (data) => {
+            // If checker is elastic, separator must exist
+            return !(data.checker === 'elastic' && data.separator === undefined)
+        },
+        {
+            message: "Field 'separator' is required if 'checker' is 'elastic'",
+            path: ['checker'],
+        },
+    )
+    .refine(
+        (data) => {
+            // If checker is elastic2, separator1 and separator2 and starting and ending must exist
+            return !(
+                data.checker === 'elastic2' &&
+                (data.separator1 === undefined ||
+                    data.separator2 === undefined ||
+                    data.starting === undefined ||
+                    data.ending === undefined)
+            )
+        },
+        {
+            message:
+                "Fields 'separator1', 'separator2', 'starting' and 'ending' are required if 'checker' is 'elastic2'",
+            path: ['checker'],
+        },
+    )
+    .refine(
+        (data) => {
+            // If checker is external, external_program must exist
+            return !(data.checker === 'external' && data.external_program === undefined)
+        },
+        {
+            message: "Field 'external_program' is required if 'checker' is 'external'",
+            path: ['checker'],
+        },
+    )
+    .refine(
+        (data) => {
+            // If checker is epsilon, epsilon must exist
+            return !(data.checker === 'epsilon' && data.epsilon === undefined)
+        },
+        {
+            message: "Field 'epsilon' is required if 'checker' is 'epsilon'",
+            path: ['checker'],
+        },
+    )
 
 export type Handler = z.infer<typeof Handler>
 
@@ -163,7 +198,7 @@ export type ProblemInfo = z.infer<typeof ProblemInfo>
 export const Settings = z.object({
     name: z.string().min(1).default('John Doe'),
     email: z.string().email().default('john.doe@example.com'),
-    defaultModel: z.string().default('google/gemini-2.5-flash-lite'),
+    defaultModel: z.string().default('openai/gpt-6-luna'),
     notifications: z.boolean().default(false),
     showPrompts: z.boolean().default(false),
     showAnswers: z.boolean().default(false),
