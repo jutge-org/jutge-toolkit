@@ -23,7 +23,14 @@ convertCmd
         for (const realDirectory of realDirectories) {
             await tui.section(`Processing ${realDirectory}`, async () => {
                 const problem = await newProblem(realDirectory)
-                for (const language of problem.languages) {
+                // Single structure keeps one language per directory (ca/, en/, …).
+                // findRealDirectories visits each of those directories on its own,
+                // so only the statement in the current directory belongs here.
+                const languages =
+                    problem.structure === 'single' && problem.language
+                        ? problem.languages.filter((language) => language === problem.language)
+                        : problem.languages
+                for (const language of languages) {
                     await tui.section(`Converting problem.${language}.tex`, async () => {
                         const originalText = await readTextInDir(realDirectory, `problem.${language}.tex`)
                         const convertedText = replaceAtSigns(originalText)
