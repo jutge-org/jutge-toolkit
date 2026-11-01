@@ -49,7 +49,8 @@ Finally, it updates problem.yml file with the current sharing settings and shows
         await updateSharingSettings(opts.directory, { passcode, testcases, solutions })
     })
 
-cmdShare.command('show')
+cmdShare
+    .command('show')
     .summary('Show sharing settings')
     .description(
         `Show sharing settings
@@ -62,7 +63,8 @@ This command shows the current sharing settings for the problem.
         await showSharingSettings(directory)
     })
 
-cmdShare.command('with')
+cmdShare
+    .command('with')
     .summary('Share passcode with users')
     .description(
         `Share passcode with users

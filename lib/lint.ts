@@ -18,8 +18,7 @@ function validateOpsString(content: string): OpsValidationResult {
     const peek = (): string | undefined => tokens[i]
     const consume = (): string | undefined => tokens[i++]
 
-    const isPositiveNumber = (s: string | undefined) =>
-        s !== undefined && /^\d+(\.\d+)?$/.test(s) && parseFloat(s) > 0
+    const isPositiveNumber = (s: string | undefined) => s !== undefined && /^\d+(\.\d+)?$/.test(s) && parseFloat(s) > 0
 
     /** Consume next token; if it contains '=' (e.g. --opt=val), split and return [flag, value]. */
     const consumeOpt = (): { flag: string; value: string | undefined } => {
@@ -154,9 +153,7 @@ async function validateProblemYml(dir: string, issues: LintIssue[], pass: LintPa
         ProblemInfo.parse(data)
         pass('PROBLEM_YML', 'problem.yml is valid', 'problem.yml')
     } catch (e) {
-        issues.push(
-            err('PROBLEM_YML_SCHEMA', `problem.yml schema error: ${formatValidationError(e)}`, 'problem.yml'),
-        )
+        issues.push(err('PROBLEM_YML_SCHEMA', `problem.yml schema error: ${formatValidationError(e)}`, 'problem.yml'))
     }
 }
 
@@ -295,12 +292,7 @@ function validateOriginalLanguageConsistency(
 }
 
 function handlerNeedsTestsAndSolution(handler: { handler: string } | null): boolean {
-    return !!(
-        handler &&
-        handler.handler !== 'quiz' &&
-        handler.handler !== 'game' &&
-        handler.handler !== 'circuits'
-    )
+    return !!(handler && handler.handler !== 'quiz' && handler.handler !== 'game' && handler.handler !== 'circuits')
 }
 
 async function validateSolutionFiles(dir: string, issues: LintIssue[], pass: LintPassCallback): Promise<void> {
@@ -409,9 +401,7 @@ async function validateOpsFiles(dir: string, issues: LintIssue[], pass: LintPass
     for (const base of opsBases) {
         const inpPath = join(dir, `${base}.inp`)
         if (!(await exists(inpPath))) {
-            issues.push(
-                err('OPS_WITHOUT_INP', 'Each .ops file must have a matching .inp test case', `${base}.ops`),
-            )
+            issues.push(err('OPS_WITHOUT_INP', 'Each .ops file must have a matching .inp test case', `${base}.ops`))
         }
         const opsFile = `${base}.ops`
         try {
@@ -471,10 +461,7 @@ async function validateSolutionAndTestCases(
 
 export type LintDirectoryOptions = { verbose?: boolean }
 
-export async function lintDirectory(
-    directory: string,
-    options?: LintDirectoryOptions,
-): Promise<LintResult> {
+export async function lintDirectory(directory: string, options?: LintDirectoryOptions): Promise<LintResult> {
     const dir = directory === '.' ? normalize(resolve(process.cwd())) : resolve(directory)
     const verbose = options?.verbose ?? false
     const issues: LintIssue[] = []
@@ -495,20 +482,8 @@ export async function lintDirectory(
         pass('LANGUAGES', 'At least one problem.<lang>.yml found')
     }
 
-    const { languages, langMeta, hasOriginalLanguage } = await validateLanguageFiles(
-        dir,
-        langYmlFiles,
-        issues,
-        pass,
-    )
-    validateOriginalLanguageConsistency(
-        languages,
-        langMeta,
-        langYmlFiles,
-        hasOriginalLanguage,
-        issues,
-        pass,
-    )
+    const { languages, langMeta, hasOriginalLanguage } = await validateLanguageFiles(dir, langYmlFiles, issues, pass)
+    validateOriginalLanguageConsistency(languages, langMeta, langYmlFiles, hasOriginalLanguage, issues, pass)
 
     if (handlerNeedsTestsAndSolution(handler)) {
         await validateSolutionAndTestCases(dir, languages, issues, pass)
@@ -519,10 +494,7 @@ export async function lintDirectory(
 
 export type LintDirectoriesOptions = { verbose?: boolean }
 
-export async function lintDirectories(
-    directories: string[],
-    options?: LintDirectoriesOptions,
-): Promise<LintResult[]> {
+export async function lintDirectories(directories: string[], options?: LintDirectoriesOptions): Promise<LintResult[]> {
     const realDirs = await findRealDirectories(directories.length ? directories : ['.'])
     const results: LintResult[] = []
     for (const dir of realDirs) {

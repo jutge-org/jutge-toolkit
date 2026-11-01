@@ -12,22 +12,14 @@ import { random } from 'radash'
 import type { QuizQuestionOutput, QuizRunOutput } from './quiz'
 import { runQuiz } from './quiz'
 import tui from './tui'
-import type {
-    QuizzMatching,
-    QuizzOrdering
-} from './types'
+import type { QuizzMatching, QuizzOrdering } from './types'
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 /** User or correct answer; shape depends on question type. */
-export type QuizAnswer =
-    | Record<string, string>
-    | string[]
-    | number
-    | number[]
-    | string
+export type QuizAnswer = Record<string, string> | string[] | number | number[] | string
 
 /** Per-question result: user answer, correct answer, score, and emoji (e.g. ✅/❌). */
 export interface QuizQuestionResult {
@@ -146,10 +138,7 @@ async function displayQuestionDetails(q: QuizQuestionOutput): Promise<void> {
 // Prompt user for answer (per question type)
 // ---------------------------------------------------------------------------
 
-async function promptForAnswer(
-    q: QuizQuestionOutput,
-    defaults?: QuizAnswer,
-): Promise<QuizAnswer> {
+async function promptForAnswer(q: QuizQuestionOutput, defaults?: QuizAnswer): Promise<QuizAnswer> {
     const question = q.question
     switch (question.type) {
         case 'FillIn': {
@@ -182,11 +171,8 @@ async function promptForAnswer(
         case 'Ordering': {
             const ord = question as QuizzOrdering & { items_rand?: string[] }
             const list = ord.items_rand ?? ord.items
-            const def = (defaults as string[] | undefined)
-            const orderForChoices =
-                def && def.length === list.length && def.every((s) => list.includes(s))
-                    ? def
-                    : list
+            const def = defaults as string[] | undefined
+            const orderForChoices = def && def.length === list.length && def.every((s) => list.includes(s)) ? def : list
             const ordered = await orderPrompt({
                 message: 'Reorder the items (u/k: move up, d/j: move down, Enter: confirm):',
                 items: orderForChoices,
@@ -205,11 +191,9 @@ async function promptForAnswer(
                 if (leftItem === undefined) continue
                 const defaultRight = def[leftItem]
                 const defaultIdx = defaultRight ? right.indexOf(defaultRight) : -1
-                const choices = right
-                    .map((r, j) => ({ name: r, value: j }))
-                    .filter((c) => !usedRight.has(c.value))
+                const choices = right.map((r, j) => ({ name: r, value: j })).filter((c) => !usedRight.has(c.value))
                 const defaultChoice =
-                    defaultIdx >= 0 && !usedRight.has(defaultIdx) ? defaultIdx : choices[0]?.value ?? 0
+                    defaultIdx >= 0 && !usedRight.has(defaultIdx) ? defaultIdx : (choices[0]?.value ?? 0)
                 const j = await select({
                     message: `Match "${leftItem}" to:`,
                     choices,
@@ -307,11 +291,7 @@ function gradeAnswer(q: QuizQuestionOutput, userAnswer: QuizAnswer): number {
             for (let i = 0; i < left.length; i++) {
                 const leftItem = left[i]
                 const ui = u[i]
-                if (
-                    leftItem !== undefined &&
-                    ui !== undefined &&
-                    right[ui] === m.right[m.left.indexOf(leftItem)]
-                )
+                if (leftItem !== undefined && ui !== undefined && right[ui] === m.right[m.left.indexOf(leftItem)])
                     correctCount++
             }
             if (question.partial_answer) {
@@ -325,9 +305,7 @@ function gradeAnswer(q: QuizQuestionOutput, userAnswer: QuizAnswer): number {
         }
         case 'MultipleChoice': {
             const selected = userAnswer as number[]
-            const correctSet = new Set(
-                question.choices.map((c, i) => (c.correct ? i : -1)).filter((i) => i >= 0),
-            )
+            const correctSet = new Set(question.choices.map((c, i) => (c.correct ? i : -1)).filter((i) => i >= 0))
             if (question.partial_answer) {
                 let score = 0
                 for (const i of selected) {
@@ -403,7 +381,7 @@ export async function playQuiz(input: QuizRunOutput): Promise<QuizTestOutput> {
 
     const collectAnswers = async (defaults?: Record<string, QuizAnswer>) => {
         for (const q of input.questions) {
-            tui.print("")
+            tui.print('')
             await tui.section(`Question: ${q.title} (${q.file})`, async () => {
                 await displayQuestionStatement(q)
                 await displayQuestionDetails(q)
@@ -419,7 +397,7 @@ export async function playQuiz(input: QuizRunOutput): Promise<QuizTestOutput> {
 
     await collectAnswers()
 
-    tui.print("")
+    tui.print('')
     await tui.section('End of quiz', async () => {
         let wantReview = await confirm({
             message: 'Do you want to review your answers?',
@@ -451,7 +429,7 @@ export async function playQuiz(input: QuizRunOutput): Promise<QuizTestOutput> {
         }
     }
 
-    tui.print("")
+    tui.print('')
     await tui.section('Results', () => {
         for (const q of input.questions) {
             const r = results[q.file]

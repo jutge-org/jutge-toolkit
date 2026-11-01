@@ -91,7 +91,7 @@ async function createOrUpdateProblem(directory: string, zipFilePath: string): Pr
 
 function displayProblemInfo(info: ProblemInfo): void {
     const info2 = {
-        "problem.yml": info,
+        'problem.yml': info,
     }
     tui.yaml(info2)
     tui.url(`https://jutge.org/problems/${info.problem_nm}`)

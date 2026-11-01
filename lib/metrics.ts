@@ -12,7 +12,9 @@ export type MultimetricOverallByFile = Record<string, Record<string, unknown>>
 export async function collectMultimetricOverall(files: string[]): Promise<MultimetricOverallByFile> {
     const probe = await execa('python3', ['-m', 'pip', 'show', 'multimetric'], { reject: false })
     if (probe.exitCode !== 0) {
-        throw new Error('Python package "multimetric" is not installed. Install it with: python3 -m pip install multimetric')
+        throw new Error(
+            'Python package "multimetric" is not installed. Install it with: python3 -m pip install multimetric',
+        )
     }
 
     const out: MultimetricOverallByFile = {}

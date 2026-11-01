@@ -10,10 +10,7 @@ export interface RemoveOptions {
     yes?: boolean
 }
 
-export async function removeProblemInDirectory(
-    directory: string,
-    options: RemoveOptions = {},
-): Promise<void> {
+export async function removeProblemInDirectory(directory: string, options: RemoveOptions = {}): Promise<void> {
     const { yes = false } = options
 
     const dir = resolve(directory)
@@ -30,7 +27,6 @@ export async function removeProblemInDirectory(
     const info = ProblemInfo.parse(data)
 
     await tui.section(`Removing problem ${info.problem_nm} from Jutge.org`, async () => {
-
         const jutge = await getLoggedInJutgeClient()
 
         const submissions = await jutge.instructor.problems.getAnonymousSubmissions(info.problem_nm)
@@ -53,5 +49,4 @@ export async function removeProblemInDirectory(
         await unlink(ymlPath)
         tui.success('problem.yml deleted')
     })
-
 }

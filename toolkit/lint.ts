@@ -7,17 +7,16 @@ import tui from '../lib/tui'
 
 export function formatLintIssue(issue: LintIssue): string {
     // Pad path to 20 spaces, left-aligned file path before the code/info
-    const pathPart = issue.path ? chalk.gray(`${issue.path.padEnd(20, ' ')}`) : ' '.repeat(20);
-    const prefix = issue.severity === 'error' ? chalk.red('×') : chalk.yellow('⚠️');
-    return `${prefix} ${pathPart} ${issue.code}: ${issue.message}`;
+    const pathPart = issue.path ? chalk.gray(`${issue.path.padEnd(20, ' ')}`) : ' '.repeat(20)
+    const prefix = issue.severity === 'error' ? chalk.red('×') : chalk.yellow('⚠️')
+    return `${prefix} ${pathPart} ${issue.code}: ${issue.message}`
 }
 
 export function formatLintPassed(passed: LintPassed): string {
     // Pad path to 20 spaces, left-aligned file path before the code/info
-    const pathPart = passed.path ? chalk.gray(`${passed.path.padEnd(20, ' ')}`) : ' '.repeat(20);
-    return `${chalk.green('✓')} ${pathPart} ${passed.code}: ${passed.message}`;
+    const pathPart = passed.path ? chalk.gray(`${passed.path.padEnd(20, ' ')}`) : ' '.repeat(20)
+    return `${chalk.green('✓')} ${pathPart} ${passed.code}: ${passed.message}`
 }
-
 
 export function printLintResults(
     results: LintResult[],
@@ -64,7 +63,6 @@ export const lintCmd = new Command('lint')
     .option('-v, --verbose', 'show all validations, including passed checks')
 
     .action(async ({ directory, verbose }) => {
-
         await tui.section(`Linting ${tui.hyperlink(resolve(directory))}`, async () => {
             const results = await lintDirectories([directory], { verbose })
             if (results.length === 0) throw new Error(noProblemDirsMessage)

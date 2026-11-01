@@ -408,9 +408,11 @@ export class Maker {
         const author = this.problem.problemLangYmls[this.problem.originalLanguage!].author || 'Unknown'
         const authorEmail = this.problem.problemLangYmls[this.problem.originalLanguage!].author_email || 'unknown email'
         const translator = this.problem.problemLangYmls[language].translator || ''
-        const event = this.problem.problemLangYmls[language].event ||
+        const event =
+            this.problem.problemLangYmls[language].event ||
             this.problem.problemLangYmls[this.problem.originalLanguage!].event
-        const eventDate = this.problem.problemLangYmls[language].date ||
+        const eventDate =
+            this.problem.problemLangYmls[language].date ||
             this.problem.problemLangYmls[this.problem.originalLanguage!].date
 
         const [samples1c, samples2c] = await this.makeSamples(tmpDir, language)
@@ -567,9 +569,11 @@ export class Maker {
         const author = this.problem.problemLangYmls[language].author || 'Unknown'
         const authorEmail = this.problem.problemLangYmls[language].author_email || 'unknown email'
         const translator = this.problem.problemLangYmls[language].translator || ''
-        const event = this.problem.problemLangYmls[language].event ||
+        const event =
+            this.problem.problemLangYmls[language].event ||
             this.problem.problemLangYmls[this.problem.originalLanguage!].event
-        const eventDate = this.problem.problemLangYmls[language].date ||
+        const eventDate =
+            this.problem.problemLangYmls[language].date ||
             this.problem.problemLangYmls[this.problem.originalLanguage!].date
 
         const rootTemplate = await readText(join(latexDir, `root-text-${type}.tpl.tex`))
@@ -764,11 +768,11 @@ export class Maker {
                     const status = result.error
                         ? 'EE'
                         : (await filesAreEqual(
-                            join(this.problem.directory, `${result.testcase}.cor`),
-                            join(this.problem.directory, `${toolkitPrefix()}-${result.testcase}.${extension}.out`),
-                        ))
-                            ? 'OK'
-                            : 'WA'
+                                join(this.problem.directory, `${result.testcase}.cor`),
+                                join(this.problem.directory, `${toolkitPrefix()}-${result.testcase}.${extension}.out`),
+                            ))
+                          ? 'OK'
+                          : 'WA'
                     const time = prettyMs(result.time)
                     tui.print(
                         (status !== 'OK' ? chalk.red : chalk.green)(

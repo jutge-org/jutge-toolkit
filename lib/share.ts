@@ -114,7 +114,6 @@ export async function updateSharingSettings(directory: string, options: UpdateSh
     })
 }
 
-
 export async function shareWith(directory: string, emails: string[], text: string): Promise<void> {
     const dir = resolve(directory)
     const info = await ensureProblemYml(dir)

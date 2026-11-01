@@ -47,21 +47,15 @@ export const Handler = z
             })
             .optional(),
 
-        func_name: z
-            .string()
-            .optional()
-            .meta({
-                description:
-                    'Name of the function requested in case the problem only asks for a function (use with source_modifier: "no_main")',
-            }),
+        func_name: z.string().optional().meta({
+            description:
+                'Name of the function requested in case the problem only asks for a function (use with source_modifier: "no_main")',
+        }),
 
-        hide_html: z.coerce
-            .boolean()
-            .default(false)
-            .meta({
-                description:
-                    'If set to true, the statement will not be shown in HTML in the Jutge.org website; use it sparingly',
-            }),
+        hide_html: z.coerce.boolean().default(false).meta({
+            description:
+                'If set to true, the statement will not be shown in HTML in the Jutge.org website; use it sparingly',
+        }),
 
         invisible_main: z.coerce
             .boolean()

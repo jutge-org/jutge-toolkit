@@ -115,7 +115,6 @@ export function cleanMarkdownCodeString(s: string): string {
     return clean
 }
 
-
 const getModelPricesSlow = async (jutge: JutgeApiClient) => jutge.instructor.jutgeai.getPrices()
 
 export const getModelPrices = memo(getModelPricesSlow)

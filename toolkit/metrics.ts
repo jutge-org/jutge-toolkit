@@ -4,10 +4,12 @@ import tui from '../lib/tui'
 
 export const metricsCmd = new Command('metrics')
     .summary('Print multimetric overall metrics for source files')
-    .description(`Print multimetric overall metrics for source files
+    .description(
+        `Print multimetric overall metrics for source files
         
 The metrics are calculated using the Python multimetric package.
-See https://github.com/priv-kweihmann/multimetric for item structure and recommended thresholds.`)
+See https://github.com/priv-kweihmann/multimetric for item structure and recommended thresholds.`,
+    )
 
     .argument('<files...>', 'source files to analyze')
 
