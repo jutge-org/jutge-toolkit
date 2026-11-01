@@ -3,10 +3,17 @@ import { exists, mkdir } from 'fs/promises'
 import Handlebars from 'handlebars'
 import checkboxPlus from 'inquirer-checkbox-plus-plus'
 import { join } from 'path'
-import tree from 'tree-node-cli'
+import { tree } from 'tree-node-cli'
 import YAML from 'yaml'
 import { z } from 'zod'
-import { ChatBot, cleanMarkdownCodeString, complete, llmEstimates } from './aiclient'
+import {
+    ChatBot,
+    cleanMarkdownCodeString,
+    complete,
+    getModelPrices,
+    llmImpactEstimates,
+    priceEurTaxFromTokens,
+} from './aiclient'
 import { languageNames, proglangNames } from './data'
 import { getTitleFromStatement, listify } from './helpers'
 import type { JutgeApiClient, LlmUsageEntry } from './jutge_api_client'
@@ -378,6 +385,7 @@ class FuncsProblemGenerator {
     async generateReadme(): Promise<string> {
         return tui.section('Generating README.md', async () => {
             const llmEntries: LlmUsageEntry[] = await this.jutge.instructor.jutgeai.getLlmUsage()
+            const modelPrices = await getModelPrices(this.jutge)
 
             const total = {
                 inputTokens: 0,
@@ -393,19 +401,18 @@ class FuncsProblemGenerator {
             }
             for (const entry of llmEntries) {
                 if (entry.label === this.label) {
-                    const estimation = await llmEstimates(entry.input_tokens, entry.output_tokens, entry.model)
                     total.inputTokens += entry.input_tokens
                     total.outputTokens += entry.output_tokens
                     total.duration += entry.duration
-                    total.priceEurTax += estimation.priceEurTax
-                    total.wattHours += estimation.wattHours
-                    total.co2Grams += estimation.co2Grams
-                    total.trees += estimation.trees
-                    total.brainHours += estimation.brainHours
-                    total.carKm += estimation.carKm
-                    total.waterLiters += estimation.waterLiters
+                    total.priceEurTax += await priceEurTaxFromTokens(
+                        entry.input_tokens,
+                        entry.output_tokens,
+                        entry.model,
+                        modelPrices,
+                    )
                 }
             }
+            Object.assign(total, llmImpactEstimates(total.inputTokens, total.outputTokens))
 
             const readme = `
 # Problem information

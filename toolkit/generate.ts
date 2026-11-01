@@ -274,7 +274,7 @@ The new image will be saved as award.png in the problem directory, overriding an
     )
 
     .option('-d, --directory <path>', 'problem directory', '.')
-    .option('-m, --model <model>', 'graphic AI model to use', 'openai/dall-e-3')
+    .option('-m, --model <model>', 'graphic AI model to use', 'openai/gpt-image-2.5-sunburst')
     .argument('[prompt]', 'prompt to generate the image', '')
 
     .action(async (prompt, { directory, model }) => {

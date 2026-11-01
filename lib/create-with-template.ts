@@ -2,7 +2,7 @@ import { confirm, select, Separator } from '@inquirer/prompts'
 import { cp, exists, glob } from 'fs/promises'
 import path from 'path'
 import { title } from 'radash'
-import tree from 'tree-node-cli'
+import { tree } from 'tree-node-cli'
 import tui from './tui'
 import { createGitIgnoreFile, projectDir, readTextInDir } from './utils'
 

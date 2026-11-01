@@ -314,7 +314,7 @@ Running **`jtk generate`** with no subcommand prints help.
 **Options:**
 
 - **`-d`, `--directory <path>`** — Problem directory (default: `.`).
-- **`-m`, `--model <model>`** — Image model (default: `openai/dall-e-3`).
+- **`-m`, `--model <model>`** — Image model (default: `openai/gpt-image-2.5-sunburst`).
 
 ### `generate award.html`
 
