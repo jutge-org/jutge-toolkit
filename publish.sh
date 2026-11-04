@@ -61,13 +61,21 @@ bun run build
 echo "✅ Build completed successfully"
 echo ""
 
-# Check npm auth (token is stored in ~/.npmrc after first 'npm login')
+# Check npm auth (token is stored in ~/.npmrc after 'npm login')
 echo "🔐 Checking npm authentication..."
-if ! bunx npm whoami &>/dev/null; then
-    echo "❌ Error: Not logged in to npm. Run 'bunx npm login' once, then run this script again."
-    exit 1
+NPM_USER=$(bunx npm whoami 2>/dev/null || true)
+if [[ -z "$NPM_USER" ]]; then
+    echo "🔑 Not logged in to npm. Starting login..."
+    echo ""
+    bunx npm login
+    echo ""
+    NPM_USER=$(bunx npm whoami 2>/dev/null || true)
+    if [[ -z "$NPM_USER" ]]; then
+        echo "❌ Error: Still not logged in to npm."
+        exit 1
+    fi
 fi
-echo "✅ Authenticated as $(bunx npm whoami)"
+echo "✅ Authenticated as $NPM_USER"
 echo ""
 
 # Ask for confirmation before publishing
