@@ -574,6 +574,7 @@ export class Stager {
                 await cp(join(src, file), join(dst, file))
             }
         }
+        await cp(join(this.workDirLang, `handler.yml`), join(dst, `handler.yml`))
         await cp(join(this.workDirLang, `problem.${language}.yml`), join(dst, `problem.yml`))
         tui.success(`Problem staged to ${tui.hyperlink(this.stagingDirLang, 'problem.pbm')}`)
     }
