@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import dayjs from 'dayjs'
 import { execa } from 'execa'
 import { cp, exists, glob, mkdir, rename, rm } from 'fs/promises'
 import Handlebars from 'handlebars'
@@ -403,7 +404,7 @@ export class Maker {
         const tmpDir = join(tmpDirBase, language)
         await mkdir(tmpDir)
 
-        const date = new Date().toISOString()
+        const date = dayjs().format('YYYY-MM-DD HH:mm:ss')
         const year = new Date().getFullYear()
         const author = this.problem.problemLangYmls[this.problem.originalLanguage!].author || 'Unknown'
         const authorEmail = this.problem.problemLangYmls[this.problem.originalLanguage!].author_email || 'unknown email'
@@ -564,7 +565,7 @@ export class Maker {
         const tmpDir = join(tmpDirBase, language)
         await mkdir(tmpDir)
 
-        const date = new Date().toISOString()
+        const date = dayjs().format('YYYY-MM-DD HH:mm:ss')
         const year = new Date().getFullYear()
         const author = this.problem.problemLangYmls[language].author || 'Unknown'
         const authorEmail = this.problem.problemLangYmls[language].author_email || 'unknown email'
