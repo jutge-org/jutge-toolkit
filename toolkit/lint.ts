@@ -8,7 +8,12 @@ import tui from '../lib/tui'
 export function formatLintIssue(issue: LintIssue): string {
     // Pad path to 20 spaces, left-aligned file path before the code/info
     const pathPart = issue.path ? chalk.gray(`${issue.path.padEnd(20, ' ')}`) : ' '.repeat(20)
-    const prefix = issue.severity === 'error' ? chalk.red('×') : chalk.yellow('⚠️')
+    const prefix =
+        issue.severity === 'error'
+            ? chalk.red('×')
+            : issue.severity === 'warning'
+              ? chalk.yellow('⚠️')
+              : chalk.blue('💡')
     return `${prefix} ${pathPart} ${issue.code}: ${issue.message}`
 }
 
@@ -34,13 +39,20 @@ export function printLintResults(
                 tui.print(formatLintPassed(p))
             }
         }
-        if (result.issues.length === 0) {
+        const errorsAndWarnings = result.issues.filter((i) => i.severity !== 'suggestion')
+        const suggestions = result.issues.filter((i) => i.severity === 'suggestion')
+        if (errorsAndWarnings.length === 0) {
             tui.success(`✅ No issues found in ${tui.hyperlink(resolve(result.directory))}`)
         } else {
-            for (const issue of result.issues) {
+            for (const issue of errorsAndWarnings) {
                 tui.print(formatLintIssue(issue))
             }
-            tui.error(`❌ ${result.issues.length} issue(s) found in ${tui.hyperlink(resolve(result.directory))}`)
+            tui.error(
+                `❌ ${errorsAndWarnings.length} issue(s) found in ${tui.hyperlink(resolve(result.directory))}`,
+            )
+        }
+        for (const issue of suggestions) {
+            tui.print(formatLintIssue(issue))
         }
     }
 

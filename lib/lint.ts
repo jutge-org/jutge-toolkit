@@ -86,7 +86,7 @@ function validateOpsString(content: string): OpsValidationResult {
     return { valid: true }
 }
 
-export type LintSeverity = 'error' | 'warning'
+export type LintSeverity = 'error' | 'warning' | 'suggestion'
 
 export interface LintIssue {
     severity: LintSeverity
@@ -114,6 +114,10 @@ function err(code: string, message: string, path?: string): LintIssue {
 
 function warn(code: string, message: string, path?: string): LintIssue {
     return { severity: 'warning', code, message, path }
+}
+
+function suggest(code: string, message: string, path?: string): LintIssue {
+    return { severity: 'suggestion', code, message, path }
 }
 
 type LintPassCallback = (code: string, message: string, path?: string) => void
@@ -459,6 +463,17 @@ async function validateSolutionAndTestCases(
     await validateSampleStatementConsistency(dir, languages, inpBases, issues, pass)
 }
 
+function suggestEnglishTranslation(languages: string[], issues: LintIssue[]): void {
+    if (languages.length > 0 && !languages.includes('en')) {
+        issues.push(
+            suggest(
+                'NO_ENGLISH_TRANSLATION',
+                'No English translation. Consider creating one with `jtk generate translations en`.',
+            ),
+        )
+    }
+}
+
 export type LintDirectoryOptions = { verbose?: boolean }
 
 export async function lintDirectory(directory: string, options?: LintDirectoryOptions): Promise<LintResult> {
@@ -488,6 +503,8 @@ export async function lintDirectory(directory: string, options?: LintDirectoryOp
     if (handlerNeedsTestsAndSolution(handler)) {
         await validateSolutionAndTestCases(dir, languages, issues, pass)
     }
+
+    suggestEnglishTranslation(languages, issues)
 
     return { directory: dir, issues, ...(verbose && passed.length > 0 ? { passed } : {}) }
 }
