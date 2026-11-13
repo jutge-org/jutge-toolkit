@@ -662,7 +662,9 @@ export class Stager {
     }
 
     private async stageZip_Game(language: string) {
-        const hideList = (this.handlers[this.original_language].game.hide || ['AIDummy.cc']) as string[]
+        const userHide = this.handlers[this.original_language].game.hide || []
+        const alwaysHide = ['AIDummy.cc', 'SecGame.cc', 'SecGame.hh', 'SecMain.cc']
+        const hideList = [...userHide, ...alwaysHide]
         const accept = (filename: string) => {
             if (filename.endsWith('.cc') || filename.endsWith('.hh')) {
                 return !hideList.includes(filename)
