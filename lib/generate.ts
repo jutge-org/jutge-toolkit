@@ -111,6 +111,7 @@ The texts that the program must read and write should not be translated.
             title: getTitleFromStatement(answer) || 'Error translating title',
             translator: settings.name,
             translator_email: settings.email,
+            original_language: original,
             model,
         }
         await writeTextInDir(problem.directory, `problem.${language}.tex`, answer)
