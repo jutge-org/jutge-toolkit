@@ -44,11 +44,13 @@ We recommend using Homebrew to install additional tools. If you don't have Homeb
 
 Then install the tools you need:
 
-- **LaTeX** (for PDF statements):
+- **LaTeX** (for PDF statements): either **Tectonic** (lighter; see [Tectonic install](https://tectonic-typesetting.github.io/en-US/install.html)) or a full **MacTeX** / XeLaTeX setup:
 
     ```bash
     brew install --cask mactex
     ```
+
+    By default the toolkit prefers Tectonic when both are installed. To force one engine, use `jtk config set latexEngine tectonic` or `xelatex` (see [LaTeX engine](reference.md#latex-engine-pdf-statements) in the command reference).
 
 - **Pandoc** (for converting statements):
 

@@ -42,11 +42,13 @@ This command will show which tools are installed on your system. Don't worry if 
 
 Depending on your needs, you may want to install:
 
-- **LaTeX** (for PDF statements):
+- **LaTeX** (for PDF statements): install **Tectonic** (see [Tectonic install](https://tectonic-typesetting.github.io/en-US/install.html)) and/or **XeLaTeX** via TeX Live:
 
     ```bash
     sudo apt-get install texlive-xetex texlive-fonts-recommended texlive-lang-european
     ```
+
+    By default the toolkit prefers Tectonic when both are available. Use `jtk config set latexEngine tectonic` or `xelatex` to pin an engine ([details](reference.md#latex-engine-pdf-statements)).
 
 - **Pandoc** (for converting statements to different formats):
 

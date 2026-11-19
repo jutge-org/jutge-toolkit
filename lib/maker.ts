@@ -23,6 +23,7 @@ import {
 } from '../lib/utils'
 import { languageNames } from './data'
 import * as doctor from './doctor'
+import { compileLatexDocument, latexLogFile } from './latex'
 import { newProblem, Problem } from './problem'
 
 const latexDir = join(projectDir(), 'assets', 'latex')
@@ -476,29 +477,21 @@ export class Maker {
         // copy style files
         await this.copyStyleFiles(tmpDir, language)
 
-        // check latex engine
-        if (!(await doctor.probeXeLaTeX())) {
-            tui.error('xelatex not found')
+        const latexEngine = await doctor.resolveLatexEngine()
+        if (!latexEngine) {
             return
         }
 
-        // latex
+        const texFile = 'root.tex'
+        const logFile = latexLogFile(texFile)
         try {
-            tui.command('xelatex -no-shell-escape -interaction=nonstopmode -file-line-error root.tex')
-            await execa({
-                stderr: 'inherit',
-                // stdout: 'inherit',
-                cwd: tmpDir,
-                env: {
-                    max_print_line: '100000', // avoid ragged lines in the log file
-                },
-            })`xelatex -no-shell-escape -interaction=nonstopmode -file-line-error root.tex`
+            await compileLatexDocument(latexEngine, tmpDir, texFile)
             await cp(join(tmpDir, 'root.pdf'), join(this.problem.directory, `problem.${language}.pdf`))
             tui.success(
-                `Generated ${tui.hyperlink(this.problem.directory, `problem.${language}.pdf`)} see ${tui.hyperlink(tmpDir, `root.log`)}`,
+                `Generated ${tui.hyperlink(this.problem.directory, `problem.${language}.pdf`)} see ${tui.hyperlink(tmpDir, logFile)}`,
             )
         } catch (e) {
-            tui.error(`Error in LaTeX: ${tui.hyperlink(tmpDir, `root.log`)}`)
+            tui.error(`Error in LaTeX: ${tui.hyperlink(tmpDir, logFile)}`)
         }
     }
 

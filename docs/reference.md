@@ -93,7 +93,7 @@ The sections below describe each command in more detail.
 | `info`              | Problem metadata (largely covered during initialization). |
 | `exe`               | Build executables / solution binaries as needed.          |
 | `cor`               | Generate correct outputs for test cases.                  |
-| `pdf`               | Build PDF statements.                                     |
+| `pdf`               | Build PDF statements (see [LaTeX engine](#latex-engine-pdf-statements) below). |
 | `txt`, `md`, `html` | Build full and short textual statements in those formats. |
 
 **Options:**
@@ -414,7 +414,7 @@ Exit code is non-zero if there are **errors** (warnings alone may still pass dep
 
 ## `doctor`
 
-**Purpose:** **Diagnose your machine**: check that interpreters, compilers, and tools the toolkit may call (Python, GCC, Haskell, Clojure, Java, Rust, Verilog, R, CodeMetrics, XeLaTeX, Pandoc, terminal capabilities) are installed and usable. Use this when **`make`** or **`verify`** fails and you suspect a missing dependency.
+**Purpose:** **Diagnose your machine**: check that interpreters, compilers, and tools the toolkit may call (Python, GCC, Haskell, Clojure, Java, Rust, Verilog, R, CodeMetrics, **Tectonic**, **XeLaTeX**, Pandoc, terminal capabilities) are installed and usable. Use this when **`make`** or **`verify`** fails and you suspect a missing dependency.
 
 No arguments or options at the top level.
 
@@ -422,7 +422,7 @@ No arguments or options at the top level.
 
 ## `config`
 
-**Purpose:** Manage **toolkit settings** stored in a YAML file (path is printed when you run `jtk config --help` or `config show`). Typical keys include your **name**, **email**, **default AI model**, **notifications**, and **developer** flag.
+**Purpose:** Manage **toolkit settings** stored in a YAML file (path is printed when you run `jtk config --help` or `config show`). Typical keys include your **name**, **email**, **default AI model**, optional **LaTeX engine** for PDF statements, **notifications**, and **developer** flag.
 
 Running **`jtk config`** with no subcommand prints help.
 
@@ -558,3 +558,25 @@ These are the settings keys defined in the toolkit schema (see `jtk config show`
 | `showPrompts`   | Whether to show prompts in interactive flows.                   |
 | `showAnswers`   | Whether to show answers in teaching/quiz-style flows.           |
 | `developer`     | Enable extra commands (`quiz`, `compilers`).                    |
+| `latexEngine`   | Optional: `tectonic` or `xelatex`. When set, PDF builds use only that engine (if installed). When omitted, see [LaTeX engine](#latex-engine-pdf-statements). |
+
+### LaTeX engine (PDF statements)
+
+Statement PDFs (`jtk make pdf`, and PDF generation for games when staging) are compiled from LaTeX with **XeTeX-based** tools. The toolkit needs **at least one** of:
+
+| Engine     | Command   | Notes |
+| ---------- | --------- | ----- |
+| **Tectonic** | `tectonic` | Recommended on fresh installs: downloads missing TeX files on demand. Invoked as `tectonic -X compile --keep-logs …`. |
+| **XeLaTeX**  | `xelatex`  | Typical when you already have TeX Live or MacTeX (`texlive-xetex`, etc.). |
+
+**Automatic choice (default):** If `latexEngine` is not set in config, the toolkit uses **Tectonic** when it is on your `PATH`, otherwise **XeLaTeX**, otherwise it **skips** PDF generation (other `make` tasks still run; HTML/Markdown/text need Pandoc separately).
+
+**Forced choice:** Set `latexEngine` to pin the engine:
+
+```bash
+jtk config set latexEngine tectonic
+# or
+jtk config set latexEngine xelatex
+```
+
+When `latexEngine` is set, only that binary is used. If it is not installed, PDF generation is skipped (the toolkit does not fall back to the other engine). Run **`jtk doctor`** to verify Tectonic and XeLaTeX.

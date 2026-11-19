@@ -36,9 +36,7 @@ This command will show which tools are installed on your system.
 
 ### 6. Install recommended dependencies (optional)
 
-- **LaTeX** (for PDF statements):
-
-    Install MiKTeX from https://miktex.org/download. During installation, select the option to install missing packages on-the-fly.
+- **LaTeX** (for PDF statements): **Tectonic** (recommended; [install guide](https://tectonic-typesetting.github.io/en-US/install.html)) or **MiKTeX** with XeLaTeX from https://miktex.org/download (enable installing missing packages on-the-fly). Optional: `jtk config set latexEngine tectonic` or `xelatex` ([reference](reference.md#latex-engine-pdf-statements)).
 
 - **Pandoc** (for converting statements):
 

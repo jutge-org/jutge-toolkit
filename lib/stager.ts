@@ -10,7 +10,8 @@ import os from 'os'
 import { join, resolve } from 'path'
 import { invert } from 'radash'
 import { tree } from 'tree-node-cli'
-import { probeCodeMetrics } from './doctor'
+import { probeCodeMetrics, resolveLatexEngine } from './doctor'
+import { compileLatexDocument } from './latex'
 import tui from './tui'
 import { ProblemLangYml, QuizRoot } from './types'
 import { existsInDir, nanoid8, nothing, readText, readYaml, toolkitPrefix, writeText, writeYaml } from './utils'
@@ -411,13 +412,14 @@ export class Stager {
         await tui.section('Preparing game statements', async () => {
             const dir = join(this.workDirLang, 'Doc')
 
-            await tui.section('Generating PDF with xelatex', async () => {
-                tui.command('xelatex -no-shell-escape -interaction=nonstopmode -file-line-error main.tex')
-                await execa({ cwd: dir })`xelatex -no-shell-escape -interaction=nonstopmode -file-line-error main.tex`
-                await execa({ cwd: dir })`xelatex -no-shell-escape -interaction=nonstopmode -file-line-error main.tex`
-                await cp(join(dir, 'main.pdf'), join(this.workDirLang, `problem.${language}.pdf`))
-                tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.pdf`)}`)
-            })
+            const latexEngine = await resolveLatexEngine()
+            if (latexEngine) {
+                await tui.section(`Generating PDF with ${latexEngine}`, async () => {
+                    await compileLatexDocument(latexEngine, dir, 'main.tex', { passes: 2 })
+                    await cp(join(dir, 'main.pdf'), join(this.workDirLang, `problem.${language}.pdf`))
+                    tui.success(`Generated ${tui.hyperlink(this.workDirLang, `problem.${language}.pdf`)}`)
+                })
+            }
 
             // games have short statements equal to full statements
 

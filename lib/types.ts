@@ -189,6 +189,9 @@ export type ProblemInfo = z.infer<typeof ProblemInfo>
 
 // settings.yml file
 
+export const LatexEngine = z.enum(['tectonic', 'xelatex'])
+export type LatexEngine = z.infer<typeof LatexEngine>
+
 export const Settings = z.object({
     name: z.string().min(1).default('John Doe'),
     email: z.string().email().default('john.doe@example.com'),
@@ -197,6 +200,7 @@ export const Settings = z.object({
     showPrompts: z.boolean().default(false),
     showAnswers: z.boolean().default(false),
     developer: z.boolean().default(false),
+    latexEngine: LatexEngine.optional(),
 })
 
 export type Settings = z.infer<typeof Settings>

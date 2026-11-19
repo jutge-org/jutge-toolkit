@@ -1,6 +1,8 @@
 import { execa } from 'execa'
 import terminalLink from 'terminal-link'
+import { settings } from './settings'
 import tui from './tui'
+import type { LatexEngine } from './types'
 import { nothing } from './utils'
 import { exit } from 'process'
 
@@ -237,6 +239,51 @@ export async function probeXeLaTeX(): Promise<boolean> {
     return result
 }
 
+async function _checkTectonic(): Promise<ProbeResult> {
+    let { stdout, stderr, exitCode } = await execa({ reject: false })`tectonic --version`
+    let output = (stdout || stderr).trim()
+    if (!(exitCode === 0 && /Tectonic/i.test(output))) {
+        const fallback = await execa({ reject: false })`tectonic -V`
+        stdout = fallback.stdout
+        stderr = fallback.stderr
+        exitCode = fallback.exitCode
+        output = (stdout || stderr).trim()
+    }
+    const version = output.split(lineSep)[0]!.trim()
+    return {
+        result: exitCode === 0 && /Tectonic/i.test(output),
+        version,
+        stdout,
+        stderr,
+    }
+}
+
+const checkTectonicMemoized = memoize(_checkTectonic)
+
+export async function probeTectonic(): Promise<boolean> {
+    const { result } = await checkTectonicMemoized()
+    return result
+}
+
+export type { LatexEngine } from './types'
+
+/** Prefer tectonic, then xelatex; return null when neither is available. */
+export async function probeLatexEngine(): Promise<LatexEngine | null> {
+    if (await probeTectonic()) return 'tectonic'
+    if (await probeXeLaTeX()) return 'xelatex'
+    return null
+}
+
+/** Use `settings.latexEngine` when set and installed; otherwise auto-detect. */
+export async function resolveLatexEngine(): Promise<LatexEngine | null> {
+    const preferred = settings.latexEngine
+    if (preferred) {
+        const available = preferred === 'tectonic' ? await probeTectonic() : await probeXeLaTeX()
+        return available ? preferred : null
+    }
+    return probeLatexEngine()
+}
+
 async function _checkPandoc(): Promise<ProbeResult> {
     const { stdout } = await execa({ reject: false })`pandoc --version`
     const version = stdout.split(lineSep)[0]!.trim()
@@ -405,6 +452,19 @@ export async function checkXeLaTeX(): Promise<void> {
         tui.print('Install a TeX distribution: macOS: brew install --cask mactex (or basictex for smaller install)')
         tui.print('  Ubuntu/Debian: sudo apt install texlive-full')
         tui.print('  Other: https://www.tug.org/texlive/ or https://miktex.org/')
+    }
+}
+
+export async function checkTectonic(): Promise<void> {
+    tui.command('tectonic --version')
+    const { result, version } = await checkTectonicMemoized()
+    tui.print(version)
+    if (result) {
+        tui.success('Tectonic seems installed')
+    } else {
+        tui.warning('Tectonic does not appear to be installed')
+        tui.print('Tectonic is an alternative TeX engine that fetches dependencies on demand')
+        tui.print('See https://tectonic-typesetting.github.io/en-US/install.html')
     }
 }
 

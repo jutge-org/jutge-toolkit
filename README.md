@@ -166,7 +166,7 @@ jtk about                           # Show toolkit information
 
 ### Optional Dependencies
 
-- **LaTeX** (for PDF generation) - texlive-xetex, texlive-fonts-recommended
+- **LaTeX** (for PDF generation) — [Tectonic](https://tectonic-typesetting.github.io/en-US/install.html) or **XeLaTeX** (e.g. texlive-xetex); optional `latexEngine` in `jtk config` (see [docs/reference.md](docs/reference.md#latex-engine-pdf-statements))
 - **Pandoc** (for format conversion)
 - **Programming language compilers/interpreters** - Python, GCC/G++, Java, etc. (depending on your needs)
 
