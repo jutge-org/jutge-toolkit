@@ -558,6 +558,7 @@ export class Stager {
             if (filename === 'Makefile') return true
             if (filename === 'README.txt') return true
             if (filename === 'README.md') return true
+            if (filename === 'api.pdf') return true
             if (filename.endsWith('.cc')) return true
             if (filename.endsWith('.hh')) return true
             if (filename.endsWith('.cnf')) return true
@@ -673,6 +674,7 @@ export class Stager {
             if (filename == 'Makefile') return true
             if (filename == 'README.txt') return true
             if (filename == 'README.md') return true
+            if (filename == 'api.pdf') return true
 
             return false
         }
